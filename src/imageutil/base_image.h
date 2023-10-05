@@ -55,6 +55,13 @@ public:
         return reinterpret_cast<Pixel*>(data)[pos];
     }
 
+    const Pixel &at(int i, int j) const
+    {
+        long pos = (i + j * width);
+        if(pos < 0 || pos >= width * height) throw std::out_of_range("Requested pixel is out of range");
+        return reinterpret_cast<Pixel*>(data)[pos];
+    }
+
     int save(const std::string &p) const requires Saveable<BaseImage>;
     int save() const requires Saveable<BaseImage>;
 

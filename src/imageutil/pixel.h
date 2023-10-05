@@ -31,6 +31,9 @@ struct PixelRGBA {
 		return rgba[i];
 	}
 
+	glm::vec3 to_vec3() const;
+	
+
 	uint32_t argb() const;
 
 	static PixelRGBA from_argb(uint32_t argb);

@@ -27,6 +27,15 @@ uint32_t PixelRGBA::argb() const
 	return (rgba[0] << 16) | (rgba[1] << 8) | rgba[2] | (rgba[3] << 24);
 }
 
+glm::vec3 PixelRGBA::to_vec3() const
+{
+	return {
+		rgba[0] / 255.0f,
+		rgba[1] / 255.0f,
+		rgba[2] / 255.0f
+	};
+}
+
 PixelRGBA PixelRGBA::from_argb(uint32_t argb)
 {
 	return PixelRGBA(

@@ -16,6 +16,16 @@ public:
 		std::copy(s.spectre, s.spectre + SPECTRE_LENGTH, spectre);
 	}
 
+	SpectreFloat &operator()(int w)
+	{
+		return spectre[(w - WAVELENGTH_MIN) / WAVELENGTH_STEP];
+	}
+
+	SpectreFloat operator()(int w) const
+	{
+		return spectre[(w - WAVELENGTH_MIN) / WAVELENGTH_STEP];
+	}
+
 	SpectreFloat &operator[](int p)
 	{
 		return spectre[p];

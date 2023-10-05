@@ -1,5 +1,5 @@
-set(MODULE_NAME naive_upsampler)
-set(MODULE_PATH ${SRC}/naive_upsampler)
+set(MODULE_NAME upsamplers)
+set(MODULE_PATH ${SRC}/upsamplers)
 
 set(MODULE_SOURCES
 	naive_upsampler.cpp
