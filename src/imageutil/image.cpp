@@ -2,45 +2,29 @@
 #include <stdexcept>
 #include <stb_image.h>
 #include <stb_image_write.h>
-
 #include "image.h"
 
-template<>
-constexpr bool canSave<BaseImage<PixelRGBA>> = true;
-template<>
-constexpr bool canLoad<BaseImage<PixelRGBA>> = true;
-
-
-template<>
-BaseImage<PixelRGBA>::BaseImage(const std::string &p)
-    : data(), width(), height(), path(p), loaded(true)
-{   
-    int n;
-    data = stbi_load(path.c_str(), &width, &height, &n, sizeof(Pixel));
-    if(data == nullptr) throw std::runtime_error("Could not load image");
-}
-
-template<>
-BaseImage<PixelRGBA>::~BaseImage()
+Pixel *ImageLoader::operator()(const std::string &path, int &width, int &height) const
 {
-    if(loaded) {
-        stbi_image_free(data);
-    } else {
-        delete[] data;
-    }
+    (void) path;
+    (void) width;
+    (void) height;
+    return nullptr;
 }
 
-template<>
-int BaseImage<PixelRGBA>::save(const std::string &p) const
+void ImageLoader::free(Pixel *data) const
 {
-    int i = stbi_write_png(p.c_str(), width, height, sizeof(Pixel), data, 0);
-    return i;
+    (void) data;
 }
 
-template<>
-int BaseImage<PixelRGBA>::save() const
+int ImageSaver::operator()(const std::string &path, Pixel *data, int &width, int &height) const
 {
-    return save(path);
+    (void) data;
+    (void) path;
+    (void) width;
+    (void) height;
+    return 0;
 }
 
-template class BaseImage<PixelRGBA>;
+
+template class BaseImage<Pixel, ImageLoader, ImageSaver>;

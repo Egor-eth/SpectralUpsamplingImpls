@@ -1,6 +1,6 @@
 #!/bin/bash
 
 cd ./src
-cmake -G "Ninja" -B ../build 
+cmake -B ../build 
 cd ../build
-ninja
+make

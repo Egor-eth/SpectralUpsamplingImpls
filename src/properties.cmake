@@ -10,6 +10,6 @@ add_subdirectory(${SRC}/libs/glm)
 add_subdirectory(${SRC}/upsamplers)
 add_subdirectory(${SRC}/imageutil)
 
-set(${PROJECT_LIBS}
+set(PROJECT_LIBS
 	glm upsamplers imageutil
 )

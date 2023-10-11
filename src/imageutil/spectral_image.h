@@ -1,55 +1,26 @@
 #ifndef IMAGEUTIL_SPECTRAL_IMAGE_H
 #define IMAGEUTIL_SPECTRAL_IMAGE_H
-#include "base_image.h"
 #include "constants.h"
+#include "base_image.h"
+#include "spectre.h"
 
-using SpectreFloat = float;
 
-class Spectre
+class SpectralImage : public BaseImage<Spectre, void, void>
 {
-public: 
-	Spectre()
-		: spectre() {}
+public:
+    SpectralImage(int w, int h)
+        : BaseImage(w, h) {}  
 
-	Spectre(const Spectre &s)
-	{
-		std::copy(s.spectre, s.spectre + SPECTRE_LENGTH, spectre);
-	}
+    SpectralImage(int w, int h, const Spectre &p)
+        : BaseImage(w, h, p) {} 
 
-	SpectreFloat &operator()(int w)
-	{
-		return spectre[(w - WAVELENGTH_MIN) / WAVELENGTH_STEP];
-	}
 
-	SpectreFloat operator()(int w) const
-	{
-		return spectre[(w - WAVELENGTH_MIN) / WAVELENGTH_STEP];
-	}
-
-	SpectreFloat &operator[](int p)
-	{
-		return spectre[p];
-	}
-
-	SpectreFloat operator[](int p) const
-	{
-		return spectre[p];
-	}
-
-	Spectre &operator=(const Spectre &other)
-	{
-		if(&other != this) {
-			
-		}
-		return *this;
-	}
-
-	static const Spectre none;
+    SpectralImage(SpectralImage &&image)
+        : BaseImage(std::move(image)) {}
 
 private:
-	SpectreFloat spectre[SPECTRE_LENGTH];
+
 };
 
-using SpectralImage = BaseImage<Spectre>; 
 
-#endif
+#endif 

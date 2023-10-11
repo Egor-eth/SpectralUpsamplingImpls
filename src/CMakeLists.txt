@@ -12,5 +12,11 @@ project(${PROJECT_NAME})
 include(properties.cmake)
 
 include(${SRC}/includes.cmake)
-add_executable(${PROJECT_NAME} ${PROJECT_SOURCES})
-target_link_libraries(${PROJECT_NAME} ${PROJECT_LIBS})
+
+add_executable(${PROJECT_NAME}
+	${PROJECT_SOURCES}
+)
+
+target_link_libraries(${PROJECT_NAME} 
+	${PROJECT_LIBS}
+)
