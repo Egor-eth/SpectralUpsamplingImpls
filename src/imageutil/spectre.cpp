@@ -1,35 +1,42 @@
+#include <stdexcept>
 #include "mathcommon.h"
 #include "spectre.h"
 
-Spectre::Spectre(const Spectre &s)
+void Spectre::set(SpectreFloat wavelenght, SpectreFloat value)
 {
-    std::copy(s.spectre, s.spectre + SPECTRE_LENGTH, spectre);
+    modified = true;
+    spectre[wavelenght] = value;
 }
 
-SpectreFloat &Spectre::operator()(int w)
+const std::unordered_set<SpectreFloat> &Spectre::get_wavelenghts() const
 {
-    return spectre[(w - WAVELENGTH_MIN) / WAVELENGTH_STEP];
+    if(modified) {
+        cached_wavelenghts.clear();
+        for(const auto &p : spectre) {
+            cached_wavelenghts.insert(p.first);
+        }
+        modified = false;
+    }
+    return cached_wavelenghts;
 }
 
-SpectreFloat Spectre::operator()(int w) const
+SpectreFloat &Spectre::operator[](SpectreFloat w)
 {
-    return spectre[(w - WAVELENGTH_MIN) / WAVELENGTH_STEP];
+    modified = true;
+    return spectre[w];
 }
 
-SpectreFloat &Spectre::operator[](int p)
+SpectreFloat Spectre::operator[](SpectreFloat w) const
 {
-    return spectre[p];
+    return spectre.at(w);
 }
 
-SpectreFloat Spectre::operator[](int p) const
+Spectre &Spectre::operator=(const Spectre &&other)
 {
-    return spectre[p];
-}
-
-Spectre &Spectre::operator=(const Spectre &other)
-{
-    if(&other != this) {
-        
+    if(this != &other) { 
+        cached_wavelenghts = std::move(other.cached_wavelenghts);
+        modified = std::move(other.modified);
+        spectre = std::move(other.spectre);
     }
     return *this;
 }

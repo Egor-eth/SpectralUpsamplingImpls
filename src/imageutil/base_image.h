@@ -21,8 +21,11 @@ class BaseImage
 {
 public:
 
+    BaseImage()
+        : data(), width(0), height(0), load_path(), loaded(false) {}
+
     BaseImage(int w, int h)
-        : data(), width(w), height(h), path(), loaded(false)
+        : data(), width(w), height(h), load_path(), loaded(false)
     {
         data = new PixelType[w * h];
     }    
@@ -34,15 +37,22 @@ public:
     }    
 
     template<typename T = Loader, typename = std::enable_if_t<!std::is_same<T, void>::value>>
-    BaseImage(const std::string &path)
-        : path(path), loaded(true)
+    explicit BaseImage(const std::string &path)
+        : load_path(path), loaded(true)
     {
-        data = Loader{}(path, width, height);
+        data = Loader{}(load_path, width, height);
         if(data == nullptr) throw std::runtime_error("Could not load images");
     }
 
+    BaseImage(const BaseImage &image)
+        : data(), width(image.width), height(image.height), load_path(image.load_path), loaded(image.loaded)
+    {
+        data = new PixelType[width * height];
+        std::copy(image.data, image.data + width * height, data);
+    }
+
     BaseImage(BaseImage &&image)
-        : data(), width(std::move(image.width)), height(std::move(image.height)), path(std::move(image.path)), loaded(std::move(image.loaded))
+        : data(), width(std::move(image.width)), height(std::move(image.height)), load_path(std::move(image.load_path)), loaded(std::move(image.loaded))
     {
         data = image.data;
         image.data = nullptr;
@@ -76,18 +86,28 @@ public:
     }
 
     template<typename T = Saver, typename = std::enable_if_t<!std::is_same<T, void>::value>>
-    int save(const std::string &p) const
+    bool save(const std::string &path) const
     {
         return Saver{}(path, data, width, height);
     }
 
     template<typename T = Loader, typename P = Saver, typename = std::enable_if_t<!std::is_same<P, void>::value && !std::is_same<T, void>::value, int>>
-    int save() const
+    bool save() const
     {
         if(!loaded) throw std::runtime_error("Image was not loaded, unknown path.");
-        return save(path);
+        return save(load_path);
     }
 
+    BaseImage &operator=(BaseImage &&other) {
+        if(this == &other) return *this;
+
+        std::swap(data, other.data);
+        width = std::move(other.width);
+        height = std::move(other.height);
+        load_path = std::move(other.load_path);
+        loaded = other.loaded;
+        return *this;
+    }
 
     int get_width() const { return width; }
     int get_height() const { return height; }
@@ -95,7 +115,7 @@ public:
 private:
     PixelType *data;
     int width, height;
-    std::string path;
+    std::string load_path;
     bool loaded;
 
 };

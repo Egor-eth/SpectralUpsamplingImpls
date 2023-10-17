@@ -6,8 +6,9 @@ set(MODULE_SOURCES
 	image.cpp
 	spectral_image.cpp
 	spectre.cpp
+	spectral_util.cpp
 )
 
 set(MODULE_LIBS
-	glm stb
+	glm stb jansson
 )

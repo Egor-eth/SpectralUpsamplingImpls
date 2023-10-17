@@ -8,4 +8,6 @@ const int SPECTRE_LENGTH = (WAVELENGTH_MAX - WAVELENGTH_MIN) / WAVELENGTH_STEP;
 
 const float PI = 3.14159265358f;
 
+const float EPSILON = 1e-5;
+
 #endif
