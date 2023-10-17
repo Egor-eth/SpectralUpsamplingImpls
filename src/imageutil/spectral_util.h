@@ -5,16 +5,19 @@
 #include "spectre.h"
 #include "spectral_image.h"
 
-namespace spectral {
+namespace spectral
+{
 
-	struct SavingContext {
+	struct SavingContext
+	{
 		std::string path;
 		const Spectre *data;
 		int width;
 		int height;
 	};
 
-	struct SavingResult {
+	struct SavingResult
+	{
 		int channels_used;
 		SpectreFloat norm_min;
 		SpectreFloat norm_range;

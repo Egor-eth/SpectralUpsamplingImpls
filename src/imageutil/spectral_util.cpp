@@ -7,7 +7,8 @@
 #include <limits>
 #include <stb_image_write.h>
 
-namespace {
+namespace
+{
 	void normalize_and_convert_to_rgb(const spectral::SavingContext &ctx, unsigned char *dst, const std::vector<SpectreFloat> &wavelenghts, int channels, SpectreFloat &range_out, SpectreFloat &min_val_out)
 	{
 
@@ -49,7 +50,8 @@ namespace {
 }
 
 
-namespace spectral {
+namespace spectral
+{
 	void save_spectre(const std::string &path, const Spectre &spectre)
 	{
 		std::ofstream file(path, std::ios::trunc);
@@ -83,10 +85,18 @@ namespace spectral {
 		res.channels_used = channels;
 	}
 
-	void save_png_1(const SavingContext &ctx, SpectreFloat wavelenght, SavingResult *res)
+	void save_png_1(const SavingContext &ctx, SpectreFloat wavelenght, SavingResult &res)
 	{
-		(void) ctx;
-		(void) wavelenght;
-		(void) res;
+		unsigned char *buf = new unsigned char[ctx.width * ctx.height];
+		if(buf == nullptr) throw std::bad_alloc();
+
+		normalize_and_convert_to_rgb(ctx, buf, {wavelenght}, 1, res.norm_range, res.norm_min);
+
+		int code = stbi_write_png(ctx.path.c_str(), ctx.width, ctx.height, 1, buf, 0);
+		delete[] buf;
+		if(!code) {
+			throw std::runtime_error("Error saving to file");
+		}
+		res.channels_used = 1;
 	}
 }

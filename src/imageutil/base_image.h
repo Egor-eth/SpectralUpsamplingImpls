@@ -71,6 +71,10 @@ public:
         }
     }
 
+    const PixelType *raw_data() const {
+        return data;
+    }
+
     PixelType &at(int i, int j)
     {
         long pos = (i + j * width);
@@ -86,9 +90,9 @@ public:
     }
 
     template<typename T = Saver, typename = std::enable_if_t<!std::is_same<T, void>::value>>
-    bool save(const std::string &path) const
+    bool save(const std::string &path, const std::string &format = "") const
     {
-        return Saver{}(path, data, width, height);
+        return Saver{}(path, *this, format);
     }
 
     template<typename T = Loader, typename P = Saver, typename = std::enable_if_t<!std::is_same<P, void>::value && !std::is_same<T, void>::value, int>>

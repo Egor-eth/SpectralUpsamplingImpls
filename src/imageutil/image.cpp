@@ -18,9 +18,15 @@ void ImageLoader::free(Pixel *data) const
     stbi_image_free(reinterpret_cast<unsigned char *>(data));
 }
 
-bool ImageSaver::operator()(const std::string &path, const Pixel *data, int width, int height) const
+bool ImageSaver::operator()(const std::string &path, const Image &image, const std::string &format) const
 {
-    return stbi_write_png(path.c_str(), width, height, sizeof(Pixel), reinterpret_cast<const unsigned char *>(data), 0) != 0;
+    if(format == "png") {
+        return stbi_write_png(path.c_str(), image.get_width(), image.get_height(), sizeof(Pixel), reinterpret_cast<const unsigned char *>(image.raw_data()), 0) != 0;
+    }
+    if(format == "jpg") {
+        return stbi_write_jpg(path.c_str(), image.get_width(), image.get_height(), sizeof(Pixel), reinterpret_cast<const unsigned char *>(image.raw_data()), 90) != 0;
+    }
+    return false;
 }
 
 

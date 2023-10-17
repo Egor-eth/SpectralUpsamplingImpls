@@ -15,7 +15,7 @@ public:
 class ImageSaver
 {
 public:
-    bool operator()(const std::string &path, const Pixel *data, int width, int height) const;
+    bool operator()(const std::string &path, const BaseImage<Pixel, ImageLoader, ImageSaver> &image, const std::string &format = "") const;
 };
 
 using Image = BaseImage<Pixel, ImageLoader, ImageSaver>;
