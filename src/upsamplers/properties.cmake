@@ -6,5 +6,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-	glm imageutil
+	glm imageutil progress_bar
 )

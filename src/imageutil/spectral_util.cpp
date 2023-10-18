@@ -6,9 +6,24 @@
 #include <memory>
 #include <limits>
 #include <stb_image_write.h>
+#include <nlohmannjson/json.hpp>
 
 namespace
 {
+
+	void __to_stream(void *context, void *data, int size)
+	{
+
+		std::ostream *stream = reinterpret_cast<std::ostream *>(context);
+		stream->write(reinterpret_cast<const char *>(data), size);
+		stream->flush();
+	}
+
+	int write_png_to_stream(std::ostream &stream, int width, int height, int channels, const unsigned char *buf)
+	{
+		return stbi_write_png_to_func(__to_stream, reinterpret_cast<void *>(&stream), width, height, channels, buf, 0);
+	}
+
 	void normalize_and_convert_to_rgb(const spectral::SavingContext &ctx, unsigned char *dst, const std::vector<SpectreFloat> &wavelenghts, int channels, SpectreFloat &range_out, SpectreFloat &min_val_out)
 	{
 
@@ -49,9 +64,44 @@ namespace
 	}
 }
 
+using json = nlohmann::json;
 
 namespace spectral
 {
+
+	void Metadata::save(std::ostream &stream) const
+	{
+		json meta;
+		meta["width"] = width;
+		meta["height"] = height;
+
+		meta["format"] = format;
+
+		json wavelenghts_array = json::array();
+		for(const auto &metaentry : wavelenghts) {
+			json entry;
+			entry["path"] = metaentry.path;
+			json targets = json::array();
+			for(SpectreFloat val : metaentry.targets)
+				targets.insert(targets.end(), val);
+
+			entry["targets"] = targets;
+			entry["norm_min_val"] = metaentry.norm_min_val;
+			entry["norm_range"] = metaentry.norm_range;
+			wavelenghts_array.insert(wavelenghts_array.end(), entry);
+		}
+		meta["wavelenghts"] = wavelenghts_array;
+
+
+		stream << meta.dump(2);
+		stream.flush();
+	}
+
+	void Metadata::load(std::istream &stream)
+	{
+		(void) stream;
+	}
+
 	void save_spectre(const std::string &path, const Spectre &spectre)
 	{
 		std::ofstream file(path, std::ios::trunc);
@@ -64,7 +114,7 @@ namespace spectral
 		file.flush();
 	}
 
-	void save_png_multichannel(const SavingContext &ctx, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels)
+	void save_png_multichannel(std::ostream &stream, const SavingContext &ctx, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels)
 	{
 		const int vector_size = wavelenghts.size();
 		if(vector_size < 1 || vector_size > 4) throw std::invalid_argument("Illegal wavelenghts size");
@@ -77,7 +127,7 @@ namespace spectral
 
 		normalize_and_convert_to_rgb(ctx, buf, wavelenghts, channels, res.norm_range, res.norm_min);
 
-		int code = stbi_write_png(ctx.path.c_str(), ctx.width, ctx.height, channels, buf, 0);
+		int code = write_png_to_stream(stream, ctx.width, ctx.height, channels, buf);
 		delete[] buf;
 		if(!code) {
 			throw std::runtime_error("Error saving to file");
@@ -85,18 +135,23 @@ namespace spectral
 		res.channels_used = channels;
 	}
 
-	void save_png_1(const SavingContext &ctx, SpectreFloat wavelenght, SavingResult &res)
+	void save_png_1(std::ostream &stream, const SavingContext &ctx, SpectreFloat wavelenght, SavingResult &res)
 	{
 		unsigned char *buf = new unsigned char[ctx.width * ctx.height];
-		if(buf == nullptr) throw std::bad_alloc();
+		if(buf == nullptr) {
+			res.success = false;
+			throw std::bad_alloc();
+		}
 
 		normalize_and_convert_to_rgb(ctx, buf, {wavelenght}, 1, res.norm_range, res.norm_min);
 
-		int code = stbi_write_png(ctx.path.c_str(), ctx.width, ctx.height, 1, buf, 0);
+		int code = write_png_to_stream(stream, ctx.width, ctx.height, 1, buf);
 		delete[] buf;
 		if(!code) {
+			res.success = false;
 			throw std::runtime_error("Error saving to file");
 		}
 		res.channels_used = 1;
 	}
+
 }

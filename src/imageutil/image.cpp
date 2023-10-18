@@ -9,7 +9,10 @@ Pixel *ImageLoader::operator()(const std::string &path, int &width, int &height)
 {
     int n;
     unsigned char *ptr = stbi_load(path.c_str(), &width, &height, &n, sizeof(Pixel));
-    if(ptr == nullptr) throw std::runtime_error(std::format("Error reading image at %s", path));
+    if(ptr == nullptr) {
+        stbi_failure_reason();
+        throw std::runtime_error(std::format("Error reading image at {}", path));
+    }
     return reinterpret_cast<Pixel *>(ptr); 
 }
 

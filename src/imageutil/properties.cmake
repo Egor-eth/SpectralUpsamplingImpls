@@ -10,5 +10,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-	glm stb jansson
+	glm stb progress_bar nlohmannjson
 )

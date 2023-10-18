@@ -1,5 +1,6 @@
 #include "naive_upsampler.h" 
 #include "mathcommon.h"
+#include "progress_bar/progress.h"
 
 
 namespace {
@@ -17,22 +18,32 @@ namespace {
         0.2126729f, 0.7151522f, 0.0721750f,
         0.0193339f, 0.1191920f, 0.9503041f
     };
+
 }
 
 void NaiveUpsampler::upsample_pixel_to(const Pixel &pixel, Spectre &spectre) const
 {
     vec3 ampls = XYZ_TO_RGB_INV * pixel.to_vec3() * XYZ_TO_SPECTRE_INV;
+    spectre = Spectre();
     spectre[AMPLITUDES[0]] = ampls[0];
     spectre[AMPLITUDES[1]] = ampls[1];
     spectre[AMPLITUDES[2]] = ampls[2];
 }
 
+#include <iostream>
+
 void NaiveUpsampler::upsample(const Image &sourceImage, SpectralImage &dest) const
 {
+    init_progress_bar();
+    const double wh = 1.0 / (sourceImage.get_width() * sourceImage.get_height());
+
     dest = SpectralImage(sourceImage.get_width(), sourceImage.get_height());
+    dest.set_wavelenghts({590.0f, 560.0f, 440.0f});
     for(int i = 0; i < sourceImage.get_width(); ++i) {
         for(int j = 0; j < sourceImage.get_height(); ++j) {
             upsample_pixel_to(sourceImage.at(i, j), dest.at(i, j));
+            print_progress((i * sourceImage.get_height() + j) * wh);
         }
     }
+    finish_progress_bar();
 }

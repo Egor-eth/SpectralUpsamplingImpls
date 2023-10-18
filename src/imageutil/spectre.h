@@ -1,7 +1,7 @@
 #ifndef IMAGEUTIL_SPECTRE_H
 #define IMAGEUTIL_SPECTRE_H
 #include <unordered_map>
-#include <unordered_set>
+#include <set>
 
 using SpectreFloat = float;
 
@@ -20,7 +20,7 @@ public:
 
     void set(SpectreFloat wavelenght, SpectreFloat value);
 
-    const std::unordered_set<SpectreFloat> &get_wavelenghts() const;
+    const std::set<SpectreFloat> &get_wavelenghts() const;
 
     SpectreFloat &operator[](SpectreFloat w);
 
@@ -36,7 +36,7 @@ public:
     static const Spectre none;
 
 private:
-    mutable std::unordered_set<SpectreFloat> cached_wavelenghts{};
+    mutable std::set<SpectreFloat> cached_wavelenghts{};
     mutable bool modified = true;
     std::unordered_map<SpectreFloat, SpectreFloat> spectre;
 };

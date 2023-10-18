@@ -7,6 +7,10 @@ set(CMAKE_C_FLAGS "-m64 -Wall -Wextra")
 set(SRC ${CMAKE_SOURCE_DIR})
 set(PROJECT_NAME spectral_upsampling_impls)
 
+
+find_package(nlohmann_json REQUIRED)
+
+
 project(${PROJECT_NAME})
 
 include(properties.cmake)

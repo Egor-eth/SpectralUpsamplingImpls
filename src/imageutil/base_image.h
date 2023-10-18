@@ -116,9 +116,10 @@ public:
     int get_width() const { return width; }
     int get_height() const { return height; }
 
-private:
+protected:
     PixelType *data;
     int width, height;
+private:
     std::string load_path;
     bool loaded;
 

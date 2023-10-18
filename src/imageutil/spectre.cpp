@@ -8,7 +8,7 @@ void Spectre::set(SpectreFloat wavelenght, SpectreFloat value)
     spectre[wavelenght] = value;
 }
 
-const std::unordered_set<SpectreFloat> &Spectre::get_wavelenghts() const
+const std::set<SpectreFloat> &Spectre::get_wavelenghts() const
 {
     if(modified) {
         cached_wavelenghts.clear();

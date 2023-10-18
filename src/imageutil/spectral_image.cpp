@@ -1,8 +1,12 @@
+#include "spectral_image.h"
 #include <utility>
 #include <stdexcept>
 #include <filesystem>
-#include "spectral_image.h"
+#include <format>
+#include <fstream>
+#include <iostream>
 #include "spectral_util.h"
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -65,11 +69,38 @@ namespace
 		}
  	}
 
- 	bool save_as_png1(const fs::path &dir, const fs::path &meta, const SpectralImage &image) {
- 		(void) dir;
- 		(void) meta;
- 		(void) image;
- 		return false;
+ 	bool save_as_png1(const fs::path &dir, const fs::path &meta_path, const SpectralImage &image) {
+ 		spectral::Metadata metadata;
+ 		metadata.width = image.get_width();
+ 		metadata.height = image.get_height();
+
+ 		metadata.format = "png1";
+
+ 		spectral::SavingResult saving_result;
+ 		for(SpectreFloat w : image.get_wavelenghts()) {
+ 			//save as 1-channel png
+ 			std::string filename = std::format("w_{:.3f}.png", w);
+ 			fs::path img_path = dir / filename;
+ 			std::fstream file(img_path, std::ios::out | std::ios::binary | std::ios::trunc);
+ 			try {
+ 				spectral::save_png_1(file, {image.raw_data(), metadata.width, metadata.height}, w, saving_result);
+ 			} catch(std::runtime_error &) {
+ 				file.close();
+ 				return false;
+ 			} catch(...) {
+ 				file.close();
+ 				throw;
+ 			}
+ 			//add entry to metadata
+ 			metadata.wavelenghts.push_back(spectral::MetadataEntry{filename, {w}, saving_result.norm_min, saving_result.norm_range});
+ 			file.close();
+ 		}
+ 		//save metadata
+ 		std::fstream meta_file(meta_path, std::ios::out | std::ios::trunc);
+ 		metadata.save(meta_file);
+ 		meta_file.close();
+
+ 		return true;
  	}
 
  	bool save_as_png3(const fs::path &dir, const fs::path &meta, const SpectralImage &image) {
@@ -87,6 +118,11 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectre,
 	if(image.get_width() == 1 && image.get_height() == 1) {
 		spectral::save_spectre(path, image.at(0, 0));
 	} else {
+		if(!image.validate()) {
+			std::cerr << "Could not validate spectral image" << std::endl;
+			return false;
+		}
+
 		bool is_directory;
 		bool exists;
 		filecheck(path, is_directory, exists);
@@ -95,7 +131,7 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectre,
 
 		fs::path target_directory;
 		fs::path target_file;
-		if(is_directory) {
+		if(is_directory && exists) {
 			target_directory = fs::path(path);
 		} else {
 			target_directory = fs::path(path).remove_filename();
@@ -124,3 +160,24 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectre,
 }
 
 template class BaseImage<Spectre, void, SpectralSaver>;
+
+void SpectralImage::add_wavelenght(SpectreFloat w)
+{
+    wavelenghts.insert(w);
+}
+
+void SpectralImage::remove_wavelenght(SpectreFloat w)
+{
+    wavelenghts.erase(w);
+}
+
+bool SpectralImage::validate() const
+{
+	std::set<SpectreFloat> all_wavelenghts;
+	for(long i = 0; i < width * height; ++i) {
+		const auto &wl = data[i].get_wavelenghts();
+		all_wavelenghts.insert(wl.begin(), wl.end());
+	}
+	return std::includes(wavelenghts.begin(), wavelenghts.end(),
+						 all_wavelenghts.begin(), all_wavelenghts.end());
+}

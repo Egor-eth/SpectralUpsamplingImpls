@@ -1,16 +1,25 @@
 #include <string>
 #include <unistd.h>
+#include <chrono>
 #include "imageutil/image.h"
 #include "imageutil/spectral_image.h"
 #include "glm/glm.hpp"
+#include <stdexcept>
 #include <iostream>
 #include "upsamplers/naive_upsampler.h"
 
 
-// -c (hex): use color code instead of texture
-// 
+/**
+ *  -c (hex):    use color code instead of texture
+ *  -f (path):   path to texture
+ *  -m (method): method to use
+ */
 int main(int argc, char **argv)
 {
+    using std::chrono::high_resolution_clock;
+    using std::chrono::duration_cast;
+
+
     bool has_input = false;
     bool has_method = false;
     Image image;
@@ -54,12 +63,23 @@ int main(int argc, char **argv)
     }
 
 
-    SpectralImage img;
+    SpectralImage spectral_img;
 
     IUpsampler *upsampler = new NaiveUpsampler();
-
-    upsampler->upsample(image, img);
-    img.save(output_path);
-
+    try {
+        std::cout << "Converting image to spectral with " << method << " method..." << std::endl;
+        auto t1 = high_resolution_clock::now();
+        upsampler->upsample(image, spectral_img);
+        auto t2 = high_resolution_clock::now();
+        std::cout << "Upsampling took " << duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds." << std::endl;
+        if(!spectral_img.save(output_path, "json")) {
+            std::cerr << "[!] Error saving image." << std::endl;
+        }
+    } catch (std::exception &ex) {
+        std::cerr << "[!] " << ex.what() << std::endl;
+        delete upsampler;
+        return 1;
+    }
     delete upsampler;
+    return 0;
 } 
