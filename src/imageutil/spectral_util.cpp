@@ -108,7 +108,7 @@ namespace spectral
 		if(!file) throw std::runtime_error("Cannot open file");
 
 		for(const auto &e : spectre.get_map()) {
-			file << std::format("%.2f %.2f\n", e.first, e.second);
+			file << std::format("{:.2f} {:.2f}\n", e.first, e.second);
 		}
 
 		file.flush();

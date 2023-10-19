@@ -1,5 +1,4 @@
 #include <stdexcept>
-#include "mathcommon.h"
 #include "spectre.h"
 
 void Spectre::set(SpectreFloat wavelenght, SpectreFloat value)

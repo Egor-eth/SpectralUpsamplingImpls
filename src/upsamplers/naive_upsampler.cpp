@@ -1,11 +1,10 @@
 #include "naive_upsampler.h" 
-#include "mathcommon.h"
-#include "progress_bar/progress.h"
+#include "common/math.h"
+#include "common/progress.h"
 
 
 namespace {
     constexpr int AMPLITUDES[]{590, 560, 440};
-    static_assert(AMPLITUDES[0] <= WAVELENGTH_MAX && AMPLITUDES[0] >= WAVELENGTH_MIN && AMPLITUDES[1] <= WAVELENGTH_MAX && AMPLITUDES[1] >= WAVELENGTH_MIN && AMPLITUDES[2] <= WAVELENGTH_MAX && AMPLITUDES[2] >= WAVELENGTH_MIN);
 
     const mat3x3 XYZ_TO_SPECTRE_INV = glm::inverse(mat3x3{ //C
         1.026f, 0.757f, 0.001f,

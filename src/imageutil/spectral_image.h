@@ -1,7 +1,6 @@
 #ifndef IMAGEUTIL_SPECTRAL_IMAGE_H
 #define IMAGEUTIL_SPECTRAL_IMAGE_H
 #include <set>
-#include "constants.h"
 #include "base_image.h"
 #include "spectre.h"
 

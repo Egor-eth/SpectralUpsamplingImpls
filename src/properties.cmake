@@ -10,7 +10,7 @@ add_subdirectory(${SRC}/libs/glm)
 add_subdirectory(${SRC}/libs/nlohmannjson)
 add_subdirectory(${SRC}/upsamplers)
 add_subdirectory(${SRC}/imageutil)
-add_subdirectory(${SRC}/progress_bar)
+add_subdirectory(${SRC}/common)
 
 set(PROJECT_LIBS
 	glm upsamplers imageutil

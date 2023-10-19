@@ -7,13 +7,14 @@
 #include <iostream>
 #include "spectral_util.h"
 #include <algorithm>
+#include "common/constants.h"
 
 namespace fs = std::filesystem;
 
 namespace 
 {
 
-	const std::string META_FILENAME = "meta.json";
+	constexpr std::string META_FILENAME = "meta.json";
 
 	enum SaveFormat
 	{
@@ -82,7 +83,7 @@ namespace
  		spectral::SavingResult saving_result;
  		for(SpectreFloat w : image.get_wavelenghts()) {
  			//save as 1-channel png
- 			std::string filename = std::format("w_{:.3f}.png", w);
+ 			std::string filename = std::format("w_{:3f}.png", w);
  			fs::path img_path = dir / filename;
  			std::fstream file(img_path, std::ios::out | std::ios::binary | std::ios::trunc);
  			try {

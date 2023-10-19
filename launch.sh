@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-./build/spectral_upsampling_impls -f input/icon.png -m naive output/icon/
+./build/spectral_upsampling_impls -cff0000 -m naive output/rgb.spd
