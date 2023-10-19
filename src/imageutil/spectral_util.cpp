@@ -80,7 +80,7 @@ namespace spectral
 		json wavelenghts_array = json::array();
 		for(const auto &metaentry : wavelenghts) {
 			json entry;
-			entry["path"] = metaentry.path;
+			entry["filename"] = metaentry.filename;
 			json targets = json::array();
 			for(SpectreFloat val : metaentry.targets)
 				targets.insert(targets.end(), val);

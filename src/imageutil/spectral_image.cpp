@@ -17,14 +17,14 @@ namespace
 
 	enum SaveFormat
 	{
-		PNG1,
-		PNG1_JSON,
-		PNG1_ZIP,
+		UNKNOWN = -1,
+		PNG1 = 0,
 		PNG3,
+		PNG1_JSON = 0xf000,
+		PNG1_ZIP,
 		PNG3_JSON,
 		PNG3_ZIP,
-		ONE_SPECTRE,
-		UNKNOWN
+		ONE_SPECTRE
 	};
 
 	const std::unordered_map<std::string, SaveFormat> str_to_format{
@@ -44,7 +44,7 @@ namespace
 		auto p = fs::path(path);
 		exists = fs::exists(p);
 		if(exists) {
-			is_directory = fs::is_directory(p);
+			is_directory = path.back() == fs::path::preferred_separator && fs::is_directory(p);
 		}
 	}
 
@@ -53,9 +53,9 @@ namespace
 		fs::path p = path;
 		std::string extension = p.extension();
 		if(extension.empty()) return PNG1;
-		else if(extension == "json") return PNG1_JSON;
-		else if(extension == "zip") return PNG1_ZIP;
-		else if(extension == "spd") return ONE_SPECTRE;
+		else if(extension == ".json") return PNG1_JSON;
+		else if(extension == ".zip") return PNG1_ZIP;
+		else if(extension == ".spd") return ONE_SPECTRE;
 		return UNKNOWN;
  	}
 
@@ -70,11 +70,14 @@ namespace
  	}
 
  	bool save_as_png1(const fs::path &dir, const fs::path &meta_path, const SpectralImage &image) {
+
  		spectral::Metadata metadata;
  		metadata.width = image.get_width();
  		metadata.height = image.get_height();
 
  		metadata.format = "png1";
+
+ 		fs::create_directories(dir);
 
  		spectral::SavingResult saving_result;
  		for(SpectreFloat w : image.get_wavelenghts()) {
@@ -128,15 +131,19 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectre,
 		filecheck(path, is_directory, exists);
 
 		SaveFormat type = get_type(path, format);
+		std::cerr << type << std::endl;
 
 		fs::path target_directory;
 		fs::path target_file;
-		if(is_directory && exists) {
+		if(is_directory && !(type & 0xf000)) {
 			target_directory = fs::path(path);
 		} else {
 			target_directory = fs::path(path).remove_filename();
 			target_file = fs::path(path);
 		}
+
+		std::cerr << "Target file: " << target_file << std::endl;
+ 		std::cerr << "Dir: " << target_directory << std::endl;
 
 		switch(type) {
 		case PNG1:

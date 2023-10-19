@@ -27,7 +27,7 @@ namespace spectral
 
 	struct MetadataEntry
 	{
-		std::string path;
+		std::string filename;
 		std::vector<SpectreFloat> targets;
 		SpectreFloat norm_min_val;
 		SpectreFloat norm_range;

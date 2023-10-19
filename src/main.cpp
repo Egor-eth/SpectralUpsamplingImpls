@@ -71,8 +71,8 @@ int main(int argc, char **argv)
         auto t1 = high_resolution_clock::now();
         upsampler->upsample(image, spectral_img);
         auto t2 = high_resolution_clock::now();
-        std::cout << "Upsampling took " << duration_cast<std::chrono::seconds>(t2 - t1).count() << " seconds." << std::endl;
-        if(!spectral_img.save(output_path, "json")) {
+        std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms. Saving..." << std::endl;
+        if(!spectral_img.save(output_path)) {
             std::cerr << "[!] Error saving image." << std::endl;
         }
     } catch (std::exception &ex) {
