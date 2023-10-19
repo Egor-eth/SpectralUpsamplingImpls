@@ -71,7 +71,7 @@ public:
         }
     }
 
-    const PixelType *raw_data() const {
+    inline const PixelType *raw_data() const {
         return data;
     }
 
@@ -113,8 +113,8 @@ public:
         return *this;
     }
 
-    int get_width() const { return width; }
-    int get_height() const { return height; }
+    inline int get_width() const { return width; }
+    inline int get_height() const { return height; }
 
 protected:
     PixelType *data;

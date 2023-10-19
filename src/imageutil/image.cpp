@@ -1,9 +1,9 @@
+#include "image.h"
 #include <utility>
 #include <stdexcept>
-#include <format>
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include "image.h"
+#include "common/format.h"
 
 Pixel *ImageLoader::operator()(const std::string &path, int &width, int &height) const
 {
@@ -11,7 +11,7 @@ Pixel *ImageLoader::operator()(const std::string &path, int &width, int &height)
     unsigned char *ptr = stbi_load(path.c_str(), &width, &height, &n, sizeof(Pixel));
     if(ptr == nullptr) {
         stbi_failure_reason();
-        throw std::runtime_error(std::format("Error reading image at {}", path));
+        throw std::runtime_error(format("Error reading image at %s", path));
     }
     return reinterpret_cast<Pixel *>(ptr); 
 }

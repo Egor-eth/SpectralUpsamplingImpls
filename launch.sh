@@ -1,4 +1,4 @@
 #!/bin/bash
 
 
-./build/spectral_upsampling_impls -cff0000 -m naive output/rgb.spd
+./build/spectral_upsampling_impls -f input/floppa.jpg -m naive output/floppa/meta.json

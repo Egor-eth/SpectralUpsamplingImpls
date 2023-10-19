@@ -5,9 +5,9 @@ add_library(${MODULE_NAME})
 include(${SRC}/includes.cmake)
 
 target_sources(${MODULE_NAME} PRIVATE 
-	${MODULE_SOURCES}
+    ${MODULE_SOURCES}
 )
 
 target_link_libraries(${MODULE_NAME}
-	${MODULE_LIBS}
+    ${MODULE_LIBS}
 )

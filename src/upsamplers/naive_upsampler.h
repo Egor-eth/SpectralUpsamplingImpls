@@ -5,9 +5,9 @@
 class NaiveUpsampler : public IUpsampler
 {
 public:
-	void upsample(const Image &sourceImage, SpectralImage &dest) const override;
-	void upsample_pixel_to(const Pixel &pixel, Spectre &spectre) const override;
-	~NaiveUpsampler() = default;
+    void upsample(const Image &sourceImage, SpectralImage &dest) const override;
+    void upsample_pixel_to(const Pixel &pixel, Spectre &spectre) const override;
+    ~NaiveUpsampler() = default;
 };
 
 #endif
