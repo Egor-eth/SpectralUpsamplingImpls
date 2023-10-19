@@ -34,15 +34,18 @@ void NaiveUpsampler::upsample_pixel_to(const Pixel &pixel, Spectre &spectre) con
 void NaiveUpsampler::upsample(const Image &sourceImage, SpectralImage &dest) const
 {
     init_progress_bar();
-    const double wh = 1.0 / (sourceImage.get_width() * sourceImage.get_height());
+    const long img_size = sourceImage.get_width() * sourceImage.get_height();
+    const double wh = 1.0 / img_size;
 
     dest = SpectralImage(sourceImage.get_width(), sourceImage.get_height());
     dest.set_wavelenghts({590.0f, 560.0f, 440.0f});
-    for(int i = 0; i < sourceImage.get_width(); ++i) {
-        for(int j = 0; j < sourceImage.get_height(); ++j) {
-            upsample_pixel_to(sourceImage.at(i, j), dest.at(i, j));
-            print_progress((i * sourceImage.get_height() + j) * wh);
-        }
+
+
+    const Pixel *ptr = sourceImage.raw_data();
+    Spectre *s_ptr = dest.raw_data();
+    for(int i = 0; i < img_size; ++i) {
+        upsample_pixel_to(ptr[i], s_ptr[i]);
+        print_progress(i * wh);
     }
     finish_progress_bar();
 }

@@ -1,13 +1,11 @@
-#include <string>
 #include <unistd.h>
 #include <chrono>
-#include "imageutil/image.h"
-#include "imageutil/spectral_image.h"
-#include "glm/glm.hpp"
 #include <stdexcept>
 #include <iostream>
+#include <memory>
 #include "upsamplers/naive_upsampler.h"
-
+#include "imageutil/image.h"
+#include "imageutil/spectral_image.h"
 
 /**
  *  -c (hex):    use color code instead of texture
@@ -65,7 +63,7 @@ int main(int argc, char **argv)
 
     SpectralImage spectral_img;
 
-    IUpsampler *upsampler = new NaiveUpsampler();
+    std::unique_ptr<IUpsampler> upsampler{new NaiveUpsampler()};
     try {
         std::cout << "Converting image to spectral with " << method << " method..." << std::endl;
         auto t1 = high_resolution_clock::now();
@@ -77,9 +75,7 @@ int main(int argc, char **argv)
         }
     } catch (std::exception &ex) {
         std::cerr << "[!] " << ex.what() << std::endl;
-        delete upsampler;
         return 1;
     }
-    delete upsampler;
     return 0;
 } 

@@ -75,6 +75,10 @@ public:
         return data;
     }
 
+    inline PixelType *raw_data() {
+        return data;
+    }
+
     PixelType &at(int i, int j)
     {
         long pos = (i + j * width);
