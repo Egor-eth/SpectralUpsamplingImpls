@@ -13,7 +13,7 @@ namespace fs = std::filesystem;
 
 namespace
 {
-    const std::string IMG_FILENAME_FORMAT = "w_%" + SPECTREFLOAT_FORMAT + ".png";
+    const std::string IMG_FILENAME_FORMAT = "w_" + SPECTREFLOAT_FORMAT + ".png";
     const std::string SPD_OUTPUT_FORMAT = SPECTREFLOAT_FORMAT + " " + SPECTREFLOAT_FORMAT + "\n";
 
     void __to_stream(void *context, void *data, int size)
