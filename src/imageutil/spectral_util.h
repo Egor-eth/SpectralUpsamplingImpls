@@ -44,7 +44,7 @@ namespace spectral
      * Writes saving data to res. If wavelenghts is empty or contains more than 4 
      * elements exception is thrown.
      */
-    void save_wavelenght_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels = 0);
+    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels = 0);
 
     void save_wavelenght_to_png1(std::ostream &stream, const SpectralImage &img, SpectreFloat wavelenght, SavingResult &res);
 

@@ -121,7 +121,7 @@ namespace spectral
         file.flush();
     }
 
-    void save_wavelenght_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels)
+    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels)
     {
         const int vector_size = wavelenghts.size();
         if(vector_size < 1 || vector_size > 4) throw std::invalid_argument("Illegal wavelenghts size");

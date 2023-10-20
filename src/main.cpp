@@ -3,9 +3,26 @@
 #include <stdexcept>
 #include <iostream>
 #include <memory>
+#include <unordered_map>
 #include "upsamplers/naive_upsampler.h"
 #include "imageutil/image.h"
 #include "imageutil/spectral_image.h"
+
+namespace {
+
+    std::unordered_map<std::string, std::unique_ptr<IUpsampler>> upsampler_by_method;
+
+    void fill_method_map() {
+        upsampler_by_method["naive"] = std::unique_ptr<IUpsampler>(new NaiveUpsampler());
+    }
+
+}
+const IUpsampler *get_upsampler_for_method(const std::string &method_name)
+{
+    const auto it = upsampler_by_method.find(method_name);
+    if(it == upsampler_by_method.end()) return nullptr;
+    return it->second.get();
+}
 
 /**
  *  -c (hex):    use color code instead of texture
@@ -14,6 +31,7 @@
  */
 int main(int argc, char **argv)
 {
+    fill_method_map();
     using std::chrono::high_resolution_clock;
     using std::chrono::duration_cast;
 
@@ -43,16 +61,16 @@ int main(int argc, char **argv)
             has_method = true;
             break;
         case '?':
-            std::cerr << "Unknown argument" << std::endl; 
+            std::cerr << "[!] Unknown argument." << std::endl; 
             break;
         }
     }  
     if(!has_input) {
-        std::cerr << "No input data" << std::endl;
+        std::cerr << "[!] No input data." << std::endl;
         return 1;
     }
     if(!has_method) {
-        std::cerr << "No method specified" << std::endl;
+        std::cerr << "[!] No method specified." << std::endl;
         return 1;
     }
 
@@ -63,7 +81,11 @@ int main(int argc, char **argv)
 
     SpectralImage spectral_img;
 
-    std::unique_ptr<IUpsampler> upsampler{new NaiveUpsampler()};
+    const IUpsampler *upsampler = get_upsampler_for_method(method);
+    if(upsampler == nullptr) {
+        std::cerr << "[!] Unknown method." << std::endl;
+        return 1;
+    }
     try {
         std::cout << "Converting image to spectral with " << method << " method..." << std::endl;
         auto t1 = high_resolution_clock::now();
