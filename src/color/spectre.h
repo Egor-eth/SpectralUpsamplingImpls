@@ -1,5 +1,5 @@
-#ifndef IMAGEUTIL_SPECTRE_H
-#define IMAGEUTIL_SPECTRE_H
+#ifndef COLOR_SPECTRE_H
+#define COLOR_SPECTRE_H
 #include <unordered_map>
 #include <set>
 

@@ -1,5 +1,5 @@
-#ifndef GLASSNER_SIMPLE_H
-#define GLASSNER_SIMPLE_H
+#ifndef UPSAMPLERS_NAIVE_H
+#define UPSAMPLERS_NAIVE_H
 #include "upsampler.h"
 
 class NaiveUpsampler : public IUpsampler

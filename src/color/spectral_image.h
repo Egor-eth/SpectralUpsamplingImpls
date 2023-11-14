@@ -1,7 +1,7 @@
-#ifndef IMAGEUTIL_SPECTRAL_IMAGE_H
-#define IMAGEUTIL_SPECTRAL_IMAGE_H
+#ifndef COLOR_SPECTRAL_IMAGE_H
+#define COLOR_SPECTRAL_IMAGE_H
 #include <set>
-#include "base_image.h"
+#include "imageutil/base_image.h"
 #include "spectre.h"
 
 class SpectralImage;

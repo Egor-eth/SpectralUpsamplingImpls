@@ -1,5 +1,5 @@
-#ifndef IMAGEUTIL_SPECTRAL_UTIL_H
-#define IMAGEUTIL_SPECTRAL_UTIL_H
+#ifndef COLOR_SPECTRAL_UTIL_H
+#define COLOR_SPECTRAL_UTIL_H
 #include <string>
 #include <vector>
 #include <ostream>

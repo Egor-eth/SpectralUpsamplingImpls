@@ -7,7 +7,7 @@
 #include <unordered_map>
 #include "upsamplers/naive_upsampler.h"
 #include "imageutil/image.h"
-#include "imageutil/spectral_image.h"
+#include "color/spectral_image.h"
 #include "common/csv.h"
 
 namespace {
@@ -29,7 +29,6 @@ const IUpsampler *get_upsampler_for_method(const std::string &method_name)
 struct Args {
     std::string output_path;
     std::string method;
-    std::string xyz_path;
     Image image;
 };
 
@@ -37,9 +36,8 @@ int parse_args(int argc, char **argv, Args &args)
 {
     bool has_input = false;
     bool has_method = false;
-    bool has_csv = false;
     int c;
-    while((c = getopt(argc, argv, "c:f:m:x:")) != -1) {
+    while((c = getopt(argc, argv, "c:f:m:")) != -1) {
         switch(c) {
         case 'c':
             if(has_input) return 1;
@@ -56,11 +54,6 @@ int parse_args(int argc, char **argv, Args &args)
             if(has_method) return 1;
             args.method = optarg;
             has_method = true;
-            break;
-        case 'x':
-            if(has_csv) return 1;
-            args.xyz_path = optarg;
-            has_csv = true;
             break;
         case '?':
             std::cerr << "[!] Unknown argument." << std::endl; 
@@ -95,11 +88,6 @@ int main(int argc, char **argv)
 
     Args args;
     if(parse_args(argc, argv, args)) return 1;
-
-    std::ifstream xyz_csv(args.xyz_path);
-    auto xyz_curves = csv::load_as_vector<int, float, float, float>(xyz_csv);
-    xyz_csv.close();
-
 
     SpectralImage spectral_img;
 

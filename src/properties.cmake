@@ -11,7 +11,8 @@ add_subdirectory(${SRC}/libs/nlohmannjson)
 add_subdirectory(${SRC}/upsamplers)
 add_subdirectory(${SRC}/imageutil)
 add_subdirectory(${SRC}/common)
+add_subdirectory(${SRC}/color)
 
 set(PROJECT_LIBS
-    glm upsamplers imageutil
+    glm upsamplers imageutil color
 )
