@@ -5,9 +5,11 @@
 #include <glm/glm.hpp>
 
 #pragma pack(push, 1)
-struct PixelRGBA {
+union PixelRGBA {
 	uint8_t rgba[4];
-
+	struct {
+		uint8_t r, g, b, a;
+	};
 	//required for triviality
 	PixelRGBA() = default; // @suppress("Class members should be properly initialized")
 	PixelRGBA(const PixelRGBA &) = default;

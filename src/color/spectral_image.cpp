@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <algorithm>
+#include <unordered_map>
 #include "spectral_util.h"
 #include "common/constants.h"
 #include "common/format.h"
@@ -68,7 +69,7 @@ namespace
 
 }
 
-bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectre, void, SpectralSaver> &image_, const std::string &format) const
+bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectrum, void, SpectralSaver> &image_, const std::string &format) const
 {
     const SpectralImage &image = static_cast<const SpectralImage &>(image_); // Bad practice :(
     if(image.get_width() == 1 && image.get_height() == 1) {
@@ -120,21 +121,21 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectre,
     return true;
 }
 
-template class BaseImage<Spectre, void, SpectralSaver>;
+template class BaseImage<Spectrum, void, SpectralSaver>;
 
-void SpectralImage::add_wavelenght(SpectreFloat w)
+void SpectralImage::add_wavelenght(Float w)
 {
     wavelenghts.insert(w);
 }
 
-void SpectralImage::remove_wavelenght(SpectreFloat w)
+void SpectralImage::remove_wavelenght(Float w)
 {
     wavelenghts.erase(w);
 }
 
 bool SpectralImage::validate() const
 {
-    std::set<SpectreFloat> all_wavelenghts;
+    std::set<Float> all_wavelenghts;
     for(long i = 0; i < width * height; ++i) {
         const auto &wl = data[i].get_wavelenghts();
         all_wavelenghts.insert(wl.begin(), wl.end());

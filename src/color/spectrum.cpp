@@ -1,0 +1,80 @@
+#include <stdexcept>
+#include "spectrum.h"
+#include "common/math.h"
+
+void Spectrum::set(Float wavelenght, Float value)
+{
+    modified = true;
+    spectre[wavelenght] = value;
+}
+
+const std::set<Float> &Spectrum::get_wavelenghts() const
+{
+    if(modified) {
+        cached_wavelenghts.clear();
+        for(const auto &p : spectre) {
+            cached_wavelenghts.insert(p.first);
+        }
+        modified = false;
+    }
+    return cached_wavelenghts;
+}
+
+Float &Spectrum::operator[](Float w)
+{
+    modified = true;
+    return spectre.at(w);
+}
+
+Float Spectrum::operator[](Float w) const
+{
+    return spectre.at(w);
+}
+
+Float &Spectrum::get_or_create(Float w)
+{
+    return spectre[w];
+}
+
+Float Spectrum::get_or_interpolate(Float w) const
+{
+    auto b_it = spectre.lower_bound(w);
+    Float b;
+    Float f_b;
+    if(b_it == spectre.end()) {
+        b = CURVES_WAVELENGHTS_END;
+        f_b = 0.0f;
+    }
+    else {
+        b = b_it->first;
+        f_b = b_it->second;
+        if(b == w) return f_b;
+    }
+
+    Float a;
+    Float f_a;
+    if(b_it == spectre.begin()) {
+        a = CURVES_WAVELENGHTS_START;
+        f_a = 0.0f;
+    }
+    else {
+        auto a_it = b_it;
+        --a_it;
+        a = a_it->first;
+        f_a = a_it->second;
+    }
+    return interpolate(w, a, b, f_a, f_b);
+
+}
+
+Spectrum &Spectrum::operator=(const Spectrum &&other)
+{
+    if(this != &other) { 
+        cached_wavelenghts = std::move(other.cached_wavelenghts);
+        modified = std::move(other.modified);
+        spectre = std::move(other.spectre);
+    }
+    return *this;
+}
+
+const Spectrum Spectrum::none{};

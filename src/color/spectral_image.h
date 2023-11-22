@@ -2,7 +2,7 @@
 #define COLOR_SPECTRAL_IMAGE_H
 #include <set>
 #include "imageutil/base_image.h"
-#include "spectre.h"
+#include "spectrum.h"
 
 class SpectralImage;
 
@@ -22,57 +22,57 @@ class SpectralImage;
 class SpectralSaver
 {
 public:
-    bool operator()(const std::string &path, const BaseImage<Spectre, void, SpectralSaver> &image_, const std::string &format = "") const;
+    bool operator()(const std::string &path, const BaseImage<Spectrum, void, SpectralSaver> &image_, const std::string &format = "") const;
 };
 
-class SpectralImage : public BaseImage<Spectre, void, SpectralSaver>
+class SpectralImage : public BaseImage<Spectrum, void, SpectralSaver>
 {
 public:
     SpectralImage()
-        : BaseImage<Spectre, void, SpectralSaver>(), wavelenghts() {}
+        : BaseImage<Spectrum, void, SpectralSaver>(), wavelenghts() {}
 
     SpectralImage(int w, int h)
-        : BaseImage<Spectre, void, SpectralSaver>(w, h), wavelenghts() {}  
+        : BaseImage<Spectrum, void, SpectralSaver>(w, h), wavelenghts() {}  
 
-    SpectralImage(int w, int h, const Spectre &p)
-        : BaseImage<Spectre, void, SpectralSaver>(w, h, p), wavelenghts(p.get_wavelenghts()) {} 
+    SpectralImage(int w, int h, const Spectrum &p)
+        : BaseImage<Spectrum, void, SpectralSaver>(w, h, p), wavelenghts(p.get_wavelenghts()) {} 
 
     SpectralImage(const SpectralImage &img)
-        : BaseImage<Spectre, void, SpectralSaver>(img), wavelenghts(img.wavelenghts) {}
+        : BaseImage<Spectrum, void, SpectralSaver>(img), wavelenghts(img.wavelenghts) {}
 
     SpectralImage(SpectralImage &&image)
-        : BaseImage<Spectre, void, SpectralSaver>(std::move(image)), wavelenghts(std::move(image.wavelenghts)) {}
+        : BaseImage<Spectrum, void, SpectralSaver>(std::move(image)), wavelenghts(std::move(image.wavelenghts)) {}
 
     SpectralImage &operator=(SpectralImage &&other)
     {
         if(this != &other) { 
-            BaseImage<Spectre, void, SpectralSaver>::operator=(std::move(other));
+            BaseImage<Spectrum, void, SpectralSaver>::operator=(std::move(other));
             wavelenghts = std::move(other.wavelenghts);
         }
         return *this;
     }
 
-    void add_wavelenght(SpectreFloat w);
+    void add_wavelenght(Float w);
 
-    void remove_wavelenght(SpectreFloat w);
+    void remove_wavelenght(Float w);
 
-    inline const std::set<SpectreFloat> &get_wavelenghts() const
+    inline const std::set<Float> &get_wavelenghts() const
     {
         return wavelenghts;
     }
 
-    void set_wavelenghts(const std::set<SpectreFloat> &wl) {
+    void set_wavelenghts(const std::set<Float> &wl) {
         wavelenghts = wl;
     }
 
-    void set_wavelenghts(std::set<SpectreFloat> &&wl) {
+    void set_wavelenghts(std::set<Float> &&wl) {
         wavelenghts = std::move(wl);
     }
 
     bool validate() const;
 
 private:
-    std::set<SpectreFloat> wavelenghts;
+    std::set<Float> wavelenghts;
 };
 
 

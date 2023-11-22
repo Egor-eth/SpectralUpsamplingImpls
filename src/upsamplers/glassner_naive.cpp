@@ -1,6 +1,7 @@
-#include "naive_upsampler.h" 
+#include "glassner_naive.h" 
 #include "color/conversions.h"
 #include "common/progress.h"
+#include "common/math.h"
 
 namespace {
     constexpr int AMPLITUDES[]{590, 560, 440};
@@ -13,16 +14,16 @@ namespace {
 
 }
 
-void NaiveUpsampler::upsample_pixel_to(const Pixel &pixel, Spectre &spectre) const
+void GlassnerUpsampler::upsample_pixel_to(const Pixel &pixel, Spectrum &spectre) const
 {
     vec3 ampls = rgb2xyz(pixel.to_vec3()) * XYZ_TO_SPECTRE_INV;
-    spectre = Spectre();
-    spectre[AMPLITUDES[0]] = ampls[0];
-    spectre[AMPLITUDES[1]] = ampls[1];
-    spectre[AMPLITUDES[2]] = ampls[2];
+    spectre = Spectrum();
+    spectre.get_or_create(AMPLITUDES[0]) = ampls[0];
+    spectre.get_or_create(AMPLITUDES[1]) = ampls[1];
+    spectre.get_or_create(AMPLITUDES[2]) = ampls[2];
 }
 
-void NaiveUpsampler::upsample(const Image &sourceImage, SpectralImage &dest) const
+void GlassnerUpsampler::upsample(const Image &sourceImage, SpectralImage &dest) const
 {
     init_progress_bar();
     const long img_size = sourceImage.get_width() * sourceImage.get_height();
@@ -33,10 +34,10 @@ void NaiveUpsampler::upsample(const Image &sourceImage, SpectralImage &dest) con
 
 
     const Pixel *ptr = sourceImage.raw_data();
-    Spectre *s_ptr = dest.raw_data();
+    Spectrum *s_ptr = dest.raw_data();
     for(int i = 0; i < img_size; ++i) {
         upsample_pixel_to(ptr[i], s_ptr[i]);
-        print_progress(i * wh);
+        print_progress((i + 1) * wh);
     }
     finish_progress_bar();
 }

@@ -5,17 +5,20 @@
 #include <fstream>
 #include <memory>
 #include <unordered_map>
-#include "upsamplers/naive_upsampler.h"
+#include "upsamplers/glassner_naive.h"
+#include "upsamplers/smits.h"
 #include "imageutil/image.h"
 #include "color/spectral_image.h"
-#include "common/csv.h"
+#include "color/conversions.h"
+#include "common/format.h"
 
 namespace {
 
     std::unordered_map<std::string, std::unique_ptr<IUpsampler>> upsampler_by_method;
 
     void fill_method_map() {
-        upsampler_by_method["naive"] = std::unique_ptr<IUpsampler>(new NaiveUpsampler());
+        upsampler_by_method["glassner"] = std::unique_ptr<IUpsampler>(new GlassnerUpsampler());
+        upsampler_by_method["smits"] = std::unique_ptr<IUpsampler>(new SmitsUpsampler());
     }
 
 }
@@ -30,6 +33,7 @@ struct Args {
     std::string output_path;
     std::string method;
     Image image;
+    bool single_color;
 };
 
 int parse_args(int argc, char **argv, Args &args)
@@ -44,11 +48,13 @@ int parse_args(int argc, char **argv, Args &args)
             args.image = Image(1, 1);
             args.image.at(0, 0) = Pixel::from_argb(std::stoi(optarg, nullptr, 16));
             has_input = true;
+            args.single_color = true;
             break;
         case 'f':
             if(has_input) return 1;
             args.image = Image(optarg);
             has_input = true;
+            args.single_color = false;
             break;
         case 'm':
             if(has_method) return 1;
@@ -74,6 +80,8 @@ int parse_args(int argc, char **argv, Args &args)
     }
     return 0;
 }
+
+#include "common/constants.h"
 
 /**
  *  -c (hex):    use color code instead of texture
@@ -101,7 +109,23 @@ int main(int argc, char **argv)
         auto t1 = high_resolution_clock::now();
         upsampler->upsample(args.image, spectral_img);
         auto t2 = high_resolution_clock::now();
-        std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms. Saving..." << std::endl;
+        std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
+        if(args.single_color) {
+
+/*
+            Spectrum s;
+            for(int i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP)
+                s.set(i, 1.0f);
+
+            vec3 downsampled_rgb = xyz2rgb(spectre2xyz(s));
+            std::cout
+                << format("Downsampled RGB: (%d, %d, %d)",
+                    static_cast<int>(downsampled_rgb.x * 255.99),
+                    static_cast<int>(downsampled_rgb.y * 255.99),
+                    static_cast<int>(downsampled_rgb.z * 255.99))
+                << std::endl;*/
+        }
+        std::cout << "Saving..." << std::endl;
         if(!spectral_img.save(args.output_path)) {
             std::cerr << "[!] Error saving image." << std::endl;
         }

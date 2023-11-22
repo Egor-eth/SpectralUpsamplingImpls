@@ -4,7 +4,7 @@ set(MODULE_PATH ${SRC}/color)
 set(MODULE_SOURCES
     spectral_image.cpp
     spectral_util.cpp
-    spectre.cpp
+    spectrum.cpp
     conversions.cpp
 )
 

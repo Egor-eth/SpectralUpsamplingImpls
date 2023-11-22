@@ -13,8 +13,8 @@ namespace fs = std::filesystem;
 
 namespace
 {
-    const std::string IMG_FILENAME_FORMAT = "w_" + SPECTREFLOAT_FORMAT + ".png";
-    const std::string SPD_OUTPUT_FORMAT = SPECTREFLOAT_FORMAT + " " + SPECTREFLOAT_FORMAT + "\n";
+    const std::string IMG_FILENAME_FORMAT = "w_" + Float_FORMAT + ".png";
+    const std::string SPD_OUTPUT_FORMAT = Float_FORMAT + " " + Float_FORMAT + "\n";
 
     void __to_stream(void *context, void *data, int size)
     {
@@ -29,36 +29,36 @@ namespace
         return stbi_write_png_to_func(__to_stream, reinterpret_cast<void *>(&stream), width, height, channels, buf, 0);
     }
 
-    void normalize_and_convert_to_rgb(const SpectralImage &img, unsigned char *dst, const std::vector<SpectreFloat> &wavelenghts, int channels, SpectreFloat &range_out, SpectreFloat &min_val_out)
+    void normalize_and_convert_to_rgb(const SpectralImage &img, unsigned char *dst, const std::vector<Float> &wavelenghts, int channels, Float &range_out, Float &min_val_out)
     {
 
         //calculate normalization data
-        SpectreFloat min_val = std::numeric_limits<SpectreFloat>::max();
-        SpectreFloat max_val = std::numeric_limits<SpectreFloat>::min();
+        Float min_val = std::numeric_limits<Float>::max();
+        Float max_val = std::numeric_limits<Float>::min();
 
-        const Spectre *ptr;
-        const Spectre *end = img.raw_data() + img.get_height() * img.get_width();
+        const Spectrum *ptr;
+        const Spectrum *end = img.raw_data() + img.get_height() * img.get_width();
         for(ptr = img.raw_data(); ptr < end; ++ptr) {
-            for(SpectreFloat w : wavelenghts) {
-                SpectreFloat val = (*ptr)[w];
+            for(Float w : wavelenghts) {
+                Float val = (*ptr)[w];
                 if(val > max_val) max_val = val; 
                 if(val < min_val) min_val = val;
             }
         }
 
-        SpectreFloat range = max_val - min_val;
+        Float range = max_val - min_val;
         if(range < 1.0f) { //what about small values?
             range = 1.0f;
         }
 
 
-        const Spectre *data = img.raw_data();
+        const Spectrum *data = img.raw_data();
         //normalize and write to rgb buffer
         const int vector_size = wavelenghts.size();
         for(long i = 0; i < img.get_height() * img.get_width(); ++i) {
             for(int c = 0; c < vector_size; ++c) {
-                SpectreFloat w = data[i][wavelenghts[c]];
-                SpectreFloat w_norm = (w - min_val) / range;
+                Float w = data[i][wavelenghts[c]];
+                Float w_norm = (w - min_val) / range;
                 dst[i * channels + c] = static_cast<unsigned char>(w_norm * 255.999f);
             }
             for(int c = wavelenghts.size(); c < channels; ++c) {
@@ -89,7 +89,7 @@ namespace spectral
             json entry;
             entry["filename"] = metaentry.filename;
             json targets = json::array();
-            for(SpectreFloat val : metaentry.targets)
+            for(Float val : metaentry.targets)
                 targets.insert(targets.end(), val);
 
             entry["targets"] = targets;
@@ -109,7 +109,7 @@ namespace spectral
         (void) stream;
     }
 
-    void save_single_spd(const std::string &path, const Spectre &spectre)
+    void save_single_spd(const std::string &path, const Spectrum &spectre)
     {
         std::ofstream file(path, std::ios::trunc);
         if(!file) throw std::runtime_error("Cannot open file");
@@ -121,7 +121,7 @@ namespace spectral
         file.flush();
     }
 
-    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<SpectreFloat> &wavelenghts, SavingResult &res, int requested_channels)
+    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels)
     {
         const int vector_size = wavelenghts.size();
         if(vector_size < 1 || vector_size > 4) throw std::invalid_argument("Illegal wavelenghts size");
@@ -147,7 +147,7 @@ namespace spectral
         res.channels_used = channels;
     }
 
-    void save_wavelenght_to_png1(std::ostream &stream, const SpectralImage &img, SpectreFloat wavelenght, SavingResult &res)
+    void save_wavelenght_to_png1(std::ostream &stream, const SpectralImage &img, Float wavelenght, SavingResult &res)
     {
         const int width = img.get_width();
         const int height = img.get_height();
@@ -179,7 +179,7 @@ namespace spectral
         fs::create_directories(dir_path);
         
         SavingResult saving_result;
-        for(SpectreFloat w : image.get_wavelenghts()) {
+        for(Float w : image.get_wavelenghts()) {
             //save as 1-channel png
             std::string filename = format(IMG_FILENAME_FORMAT, w);
             fs::path img_path = dir_path / filename;

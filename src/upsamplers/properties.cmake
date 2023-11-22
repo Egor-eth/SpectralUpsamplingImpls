@@ -2,7 +2,8 @@ set(MODULE_NAME upsamplers)
 set(MODULE_PATH ${SRC}/upsamplers)
 
 set(MODULE_SOURCES
-    naive_upsampler.cpp
+    glassner_naive.cpp
+    smits.cpp
 )
 
 set(MODULE_LIBS
