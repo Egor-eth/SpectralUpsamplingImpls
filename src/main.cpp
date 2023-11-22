@@ -81,8 +81,6 @@ int parse_args(int argc, char **argv, Args &args)
     return 0;
 }
 
-#include "common/constants.h"
-
 /**
  *  -c (hex):    use color code instead of texture
  *  -f (path):   path to texture

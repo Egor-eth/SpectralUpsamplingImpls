@@ -45,13 +45,55 @@ namespace {
     constexpr int WL_END = 720;
     constexpr int WL_STEP = (WL_END - WL_START) / SPECTRUM_SIZE;
 
+
+    void add_array_multiplied(Spectrum &s, const Float mul, const Float *ptr)
+    {
+        for(int wl = WL_START; wl <= WL_END; wl += WL_STEP) {
+            s.get_or_create(wl) += mul * (*(ptr++));
+        }
+    }
 }
 
-void SmitsUpsampler::upsample_pixel_to(const Pixel &pixel, Spectrum &spectre) const
+void SmitsUpsampler::upsample_pixel_to(const Pixel &pixel, Spectrum &s) const
 {
-    spectre = Spectrum();
-    if(pixel.r <= pixel.g && pixel.r <= pixel.b) {
+    s = Spectrum();
+    vec3 rgb = pixel.to_vec3();
 
+    if(pixel.r <= pixel.g && pixel.r <= pixel.b) {
+        add_array_multiplied(s, rgb[0], WHITE_SPECTRUM);
+
+        if(pixel.g <= pixel.b) {
+            add_array_multiplied(s, rgb[1] - rgb[0], CYAN_SPECTRUM);
+            add_array_multiplied(s, rgb[2] - rgb[1], BLUE_SPECTRUM);
+        }
+        else {
+            add_array_multiplied(s, rgb[2] - rgb[0], CYAN_SPECTRUM);
+            add_array_multiplied(s, rgb[1] - rgb[2], GREEN_SPECTRUM);
+        }
+    }
+    else if(pixel.g <= pixel.r && pixel.g <= pixel.b) {
+        add_array_multiplied(s, rgb[1], WHITE_SPECTRUM);
+
+        if(pixel.r <= pixel.b) {
+            add_array_multiplied(s, rgb[0] - rgb[1], MAGENTA_SPECTUM);
+            add_array_multiplied(s, rgb[2] - rgb[0], BLUE_SPECTRUM);
+        }
+        else {
+            add_array_multiplied(s, rgb[2] - rgb[1], MAGENTA_SPECTUM);
+            add_array_multiplied(s, rgb[0] - rgb[2], RED_SPECTRUM);
+        }
+    }
+    else /*if(pixel.b <= pixel.r && pixel.b <= pixel.g)*/ {
+        add_array_multiplied(s, rgb[2], WHITE_SPECTRUM);
+
+        if(pixel.r <= pixel.g) {
+            add_array_multiplied(s, rgb[0] - rgb[2], YELLOW_SPECTUM);
+            add_array_multiplied(s, rgb[1] - rgb[0], GREEN_SPECTRUM);
+        }
+        else {
+            add_array_multiplied(s, rgb[1] - rgb[2], YELLOW_SPECTUM);
+            add_array_multiplied(s, rgb[0] - rgb[1], RED_SPECTRUM);
+        }
     }
 }
 
