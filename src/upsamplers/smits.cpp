@@ -2,7 +2,14 @@
 #include "common/progress.h"
 #include "math/math.h"
 
+#include <iostream>
+
 namespace {
+
+    constexpr Float WAVELENGHTS[] = {
+        397, 431, 465, 499, 533,
+        567, 601, 635, 669, 703
+    };
 
     constexpr Float WHITE_SPECTRUM[] = {
         1.0000f, 1.0000f, 0.9999f, 0.9993f, 0.9992f,
@@ -41,14 +48,12 @@ namespace {
 
     constexpr size_t SPECTRUM_SIZE = sizeof(WHITE_SPECTRUM) / sizeof(Float); 
 
-    constexpr int WL_START = 380;
-    constexpr int WL_END = 720;
-    constexpr int WL_STEP = (WL_END - WL_START) / SPECTRUM_SIZE;
 
 
     void add_array_multiplied(Spectrum &s, const Float mul, const Float *ptr)
     {
-        for(int wl = WL_START; wl <= WL_END; wl += WL_STEP) {
+        for(unsigned i = 0; i < SPECTRUM_SIZE; ++i) {
+            int wl = WAVELENGHTS[i];
             s.get_or_create(wl) += mul * (*(ptr++));
         }
     }
@@ -106,8 +111,8 @@ void SmitsUpsampler::upsample(const Image &sourceImage, SpectralImage &dest) con
 
     dest = SpectralImage(sourceImage.get_width(), sourceImage.get_height());
 
-    for(int lambda = WL_START; lambda <= WL_END; lambda += WL_STEP) {
-        dest.add_wavelenght(lambda);
+    for(unsigned i = 0; i < SPECTRUM_SIZE; ++i) {
+        dest.add_wavelenght(WAVELENGHTS[i]);
     }
 
     const Pixel *ptr = sourceImage.raw_data();

@@ -109,7 +109,7 @@ namespace spectral
         (void) stream;
     }
 
-    void save_single_spd(const std::string &path, const Spectrum &spectre)
+    void save_spd(const std::string &path, const Spectrum &spectre)
     {
         std::ofstream file(path, std::ios::trunc);
         if(!file) throw std::runtime_error("Cannot open file");

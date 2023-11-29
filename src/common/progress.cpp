@@ -6,7 +6,7 @@ void init_progress_bar() {
 }
 
 void finish_progress_bar() {
-
+    std::cout << "\033[A\033[2K\r";
 }
 
 void print_progress(float p) 

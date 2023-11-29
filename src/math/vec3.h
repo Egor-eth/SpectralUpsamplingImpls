@@ -1,6 +1,7 @@
 #ifndef MATH_VEC3_H
 #define MATH_VEC3_H
 
+#include <ostream>
 #include "math_fwd.h"
 namespace math {
 
@@ -64,6 +65,8 @@ namespace math {
         }
 
     };
+
+    std::ostream &operator<<(std::ostream &str, const vec3 &v);
 
 }
 

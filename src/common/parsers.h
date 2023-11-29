@@ -1,6 +1,8 @@
+#ifndef COMMON_PARSERS_H
+#define COMMON_PARSERS_H
+
 #include <string>
 #include <sstream>
-
 
 template<typename T>
 T parse(const std::string &str)
@@ -52,3 +54,5 @@ std::string parse(const std::string &str)
 {
     return str;
 }
+
+#endif

@@ -109,8 +109,9 @@ int main(int argc, char **argv)
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         if(args.single_color) {
-
+            std::cout << args.image.at(0, 0).to_vec3() << std::endl;
             vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectral_img.at(0, 0)));
+            std::cout << downsampled_rgb<< std::endl;
             std::cout
                 << format("Downsampled RGB: (%d, %d, %d)",
                     static_cast<int>(downsampled_rgb.x * 255.99),

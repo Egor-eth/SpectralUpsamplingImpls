@@ -39,4 +39,10 @@ namespace math {
         return *this;
     }
 
+    std::ostream &operator<<(std::ostream &str, const vec3 &v)
+    {
+        str << '{' << v.x << ", " << v.y << ", " << v.z << "}";
+        return str;
+    }
+
 }

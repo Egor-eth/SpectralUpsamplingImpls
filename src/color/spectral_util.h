@@ -37,7 +37,9 @@ namespace spectral
         void load(std::istream &stream);
     };
 
-    void save_single_spd(const std::string &path, const Spectrum &spectre);
+    void save_spd(const std::string &path, const Spectrum &spectre);
+
+    Spectrum load_spd(const std::string &path);
 
     /**
      *  Saves specified wavelenghts of spectral image in multichannel png file (up to 4 channels).

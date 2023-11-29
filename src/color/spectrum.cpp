@@ -36,35 +36,34 @@ Float &Spectrum::get_or_create(Float w)
     return spectre[w];
 }
 
+#include <iostream>
+
 Float Spectrum::get_or_interpolate(Float w) const
 {
     auto b_it = spectre.lower_bound(w);
     Float b;
     Float f_b;
     if(b_it == spectre.end()) {
-        b = CURVES_WAVELENGHTS_END;
-        f_b = 0.0f;
+        return 0.0f;
     }
-    else {
-        b = b_it->first;
-        f_b = b_it->second;
-        if(b == w) return f_b;
-    }
+    
+    b = b_it->first;
+    f_b = b_it->second;
+    if(b == w) return f_b;
+    
 
     Float a;
     Float f_a;
     if(b_it == spectre.begin()) {
-        a = CURVES_WAVELENGHTS_START;
-        f_a = 0.0f;
+        return 0.0f;
     }
-    else {
-        auto a_it = b_it;
-        --a_it;
-        a = a_it->first;
-        f_a = a_it->second;
-    }
-    return interpolate(w, a, b, f_a, f_b);
 
+    auto a_it = b_it;
+    --a_it;
+    a = a_it->first;
+    f_a = a_it->second;
+    
+    return math::interpolate(w, a, b, f_a, f_b);
 }
 
 Spectrum &Spectrum::operator=(const Spectrum &&other)

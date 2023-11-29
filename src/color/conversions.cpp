@@ -1,5 +1,6 @@
 #include "conversions.h" 
 #include <memory>
+#include "spectral_util.h"
 
 namespace {
 
@@ -18,7 +19,7 @@ namespace {
 
         const Float f_b = X_CURVE[b_idx];
 
-        return (f_b - f_a) * CURVES_WAVELENGHTS_STEP / (wl - a);
+        return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
     }
 
     Float _y(Float wl)
@@ -36,7 +37,7 @@ namespace {
 
         const Float f_b = Y_CURVE[b_idx];
 
-        return (f_b - f_a) * CURVES_WAVELENGHTS_STEP / (wl - a);
+        return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
     }
 
     Float _z(Float wl)
@@ -54,17 +55,33 @@ namespace {
 
         const Float f_b = Z_CURVE[b_idx];
 
-        return (f_b - f_a) * CURVES_WAVELENGHTS_STEP / (wl - a);
+        return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
     }
+
+    Spectrum _cie_D6500;
+    bool _notloaded = true;
+
+    const Spectrum &get_D6500()
+    {
+        if(_notloaded) {
+            _cie_D6500 = spectral::load_spd("resources/cie.stdillum.D6500.spd");
+            _notloaded = false;
+        }
+        return _cie_D6500;
+    }
+
 }
 
-Float get_cie_y_integral()
+Float get_cie_y_integral(const std::set<Float> &wl)
 {
     static Float val = 0.0f;
     static bool not_computed = true;
     if(not_computed) {
+        const Spectrum &d65 = get_D6500();
         for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-            val += _y(lambda) * CURVES_WAVELENGHTS_STEP;
+        //for(int lambda : wl) {
+            Float lightval = d65.get_or_interpolate(lambda);
+            val += _y(lambda) * CURVES_WAVELENGHTS_STEP * lightval;
         }
         not_computed = false;
     }
@@ -77,15 +94,24 @@ vec3 spectre2xyz(const Spectrum &spectre)
 {
     vec3 xyz{0.0f, 0.0f, 0.0f};
     const auto &wl = spectre.get_wavelenghts();
-    for(int lambda : wl) {
-        Float val = spectre[lambda];
-        xyz.x += _x(lambda) * val;
-        xyz.y += _y(lambda) * val;
-        xyz.z += _z(lambda) * val;
+    const Spectrum &d65 = get_D6500();
+
+    int count = 0;
+    for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+    //for(int lambda : wl) {
+        Float val = spectre.get_or_interpolate(lambda);
+        Float lightval = d65.get_or_interpolate(lambda);
+        count += val != 0.0f;
+        //std::cout << val << " " << lightval << std::endl;
+        
+        xyz.x += _x(lambda) * val * lightval;
+        xyz.y += _y(lambda) * val * lightval;
+        xyz.z += _z(lambda) * val * lightval;
     }
     //int count = (CURVES_WAVELENGHTS_END - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;
-    std::cout <<  get_cie_y_integral() << std::endl;
-    xyz = xyz / static_cast<float>(wl.size());
-    std::cout << xyz.x << " " << xyz.y << " " << xyz.z << std::endl;
-    return xyz / get_cie_y_integral();
+    //std::cout <<  get_cie_y_integral() << std::endl;
+    //xyz /= static_cast<Float>(count);
+    xyz /= get_cie_y_integral(wl);
+    std::cout << "XYZ = " << xyz << std::endl;
+    return xyz;
 }

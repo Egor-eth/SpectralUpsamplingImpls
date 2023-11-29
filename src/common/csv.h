@@ -42,9 +42,9 @@ namespace csv {
 
     template<typename Head, typename... Columns>
     std::vector<std::tuple<Head, Columns...>> load_as_vector(std::istream &stream, char delim = ',')
-    {
+    {  
         std::vector<std::tuple<Head, Columns...>> res;
-        while(stream) {
+        while(stream.peek() != EOF) {
             res.push_back(parse_line<Head, Columns...>(stream, delim));
         }
         return res;

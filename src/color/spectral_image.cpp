@@ -73,7 +73,7 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectrum
 {
     const SpectralImage &image = static_cast<const SpectralImage &>(image_); // Bad practice :(
     if(image.get_width() == 1 && image.get_height() == 1) {
-        spectral::save_single_spd(path, image.at(0, 0));
+        spectral::save_spd(path, image.at(0, 0));
     } else {
         if(!image.validate()) {
             std::cerr << "Could not validate spectral image" << std::endl;
