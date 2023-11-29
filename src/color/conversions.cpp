@@ -76,13 +76,16 @@ Float get_cie_y_integral()
 vec3 spectre2xyz(const Spectrum &spectre)
 {
     vec3 xyz{0.0f, 0.0f, 0.0f};
-    for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-        Float val = spectre.get_or_interpolate(lambda);
-        xyz.x += _x(lambda) * val * CURVES_WAVELENGHTS_STEP;
-        xyz.y += _y(lambda) * val * CURVES_WAVELENGHTS_STEP;
-        xyz.z += _z(lambda) * val * CURVES_WAVELENGHTS_STEP;
-        std::cout << val << std::endl;
+    const auto &wl = spectre.get_wavelenghts();
+    for(int lambda : wl) {
+        Float val = spectre[lambda];
+        xyz.x += _x(lambda) * val;
+        xyz.y += _y(lambda) * val;
+        xyz.z += _z(lambda) * val;
     }
     //int count = (CURVES_WAVELENGHTS_END - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;
+    std::cout <<  get_cie_y_integral() << std::endl;
+    xyz = xyz / static_cast<float>(wl.size());
+    std::cout << xyz.x << " " << xyz.y << " " << xyz.z << std::endl;
     return xyz / get_cie_y_integral();
 }

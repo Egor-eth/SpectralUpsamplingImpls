@@ -9,5 +9,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    glm stb imageutil nlohmannjson common
+    math stb imageutil nlohmannjson common
 )

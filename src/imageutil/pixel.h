@@ -2,7 +2,7 @@
 #define IMAGEUTIL_PIXEL_H
 #include <type_traits>
 #include <cinttypes>
-#include <glm/glm.hpp>
+#include "math/vec3.h"
 
 #pragma pack(push, 1)
 union PixelRGBA {
@@ -33,14 +33,14 @@ union PixelRGBA {
 		return rgba[i];
 	}
 
-	glm::vec3 to_vec3() const;
+	math::vec3 to_vec3() const;
 	
 
 	uint32_t argb() const;
 
 	static PixelRGBA from_argb(uint32_t argb);
 	static PixelRGBA from_rgb(uint32_t rgb);
-	static PixelRGBA from_vec3(const glm::vec3 &rgb);
+	static PixelRGBA from_vec3(const math::vec3 &rgb);
 	static const PixelRGBA none;
 };
 #pragma pack(pop)

@@ -1,12 +1,12 @@
 #include "glassner_naive.h" 
 #include "color/conversions.h"
 #include "common/progress.h"
-#include "common/math.h"
+#include "math/math.h"
 
 namespace {
     constexpr int AMPLITUDES[]{590, 560, 440};
 
-    const mat3x3 XYZ_TO_SPECTRE_INV = glm::inverse(mat3x3{ //C
+    const mat3 XYZ_TO_SPECTRE_INV = math::inverse(mat3{ //C
         1.026f, 0.757f, 0.001f,
         0.594f, 0.995f, 0.004f,
         0.348f, 0.023f, 1.747f

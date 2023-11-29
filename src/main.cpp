@@ -110,18 +110,13 @@ int main(int argc, char **argv)
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         if(args.single_color) {
 
-/*
-            Spectrum s;
-            for(int i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP)
-                s.set(i, 1.0f);
-
-            vec3 downsampled_rgb = xyz2rgb(spectre2xyz(s));
+            vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectral_img.at(0, 0)));
             std::cout
                 << format("Downsampled RGB: (%d, %d, %d)",
                     static_cast<int>(downsampled_rgb.x * 255.99),
                     static_cast<int>(downsampled_rgb.y * 255.99),
                     static_cast<int>(downsampled_rgb.z * 255.99))
-                << std::endl;*/
+                << std::endl;
         }
         std::cout << "Saving..." << std::endl;
         if(!spectral_img.save(args.output_path)) {

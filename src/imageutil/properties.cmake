@@ -7,5 +7,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    glm stb
+    math stb
 )

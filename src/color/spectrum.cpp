@@ -1,6 +1,6 @@
 #include <stdexcept>
 #include "spectrum.h"
-#include "common/math.h"
+#include "math/math.h"
 
 void Spectrum::set(Float wavelenght, Float value)
 {

@@ -1,6 +1,6 @@
 #include "smits.h"
 #include "common/progress.h"
-#include "common/math.h"
+#include "math/math.h"
 
 namespace {
 

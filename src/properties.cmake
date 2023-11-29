@@ -6,13 +6,13 @@ set(PROJECT_SOURCES
 )
 
 add_subdirectory(${SRC}/libs/stb)
-add_subdirectory(${SRC}/libs/glm)
 add_subdirectory(${SRC}/libs/nlohmannjson)
 add_subdirectory(${SRC}/upsamplers)
 add_subdirectory(${SRC}/imageutil)
 add_subdirectory(${SRC}/common)
 add_subdirectory(${SRC}/color)
+add_subdirectory(${SRC}/math)
 
 set(PROJECT_LIBS
-    glm upsamplers imageutil color
+    math upsamplers imageutil color
 )

@@ -1,21 +1,19 @@
 #ifndef COMMON_CONSTANTS_H
 #define COMMON_CONSTANTS_H
 #include <string>
-#include "glm/glm.hpp"
+#include "math/math.h"
 
-constexpr float EPSILON = 1e-5f;
+constexpr Float EPSILON = 1e-5f;
 
-using Float = float;
+const std::string FLOAT_FORMAT = "%.3f";
 
-const std::string Float_FORMAT = "%.3f";
-
-const glm::mat3x3 RGB_TO_XYZ { //M
+const mat3 RGB_TO_XYZ { //M
     0.4124564f, 0.3575761f, 0.1804375f,
     0.2126729f, 0.7151522f, 0.0721750f,
     0.0193339f, 0.1191920f, 0.9503041f
 };
 
-const glm::mat3x3 XYZ_TO_RGB {
+const mat3 XYZ_TO_RGB {
     3.2404542f, -1.5371385f, -0.4985314f,
     -0.9692660f, 1.8760108f, 0.0415560f,
     0.0556434f, -0.2040259f, 1.0572252f
