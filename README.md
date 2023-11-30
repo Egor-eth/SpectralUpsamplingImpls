@@ -6,7 +6,7 @@ Small program to convert RGB to spectum
 
 Simply run 
 ~~~
-build.sh
+./build.sh
 ~~~
  to build program (Ninja required).
 
