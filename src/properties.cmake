@@ -3,6 +3,7 @@ include_directories("libs")
 
 set(PROJECT_SOURCES 
     main.cpp
+    argparse.cpp
 )
 
 add_subdirectory(${SRC}/libs/stb)

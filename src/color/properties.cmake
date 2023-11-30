@@ -10,5 +10,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    math stb imageutil nlohmannjson common
+    stb nlohmannjson imageutil common math
 )

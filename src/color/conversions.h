@@ -10,7 +10,7 @@ inline vec3 rgb2xyz(const vec3 &rgb)
 
 inline vec3 xyz2rgb(const vec3 &xyz)
 {
-    return XYZ_TO_RGB * xyz;
+    return math::clamp(XYZ_TO_RGB * xyz, 0.0f, 1.0f);
 }
 
 vec3 spectre2xyz(const Spectrum &spectre);
