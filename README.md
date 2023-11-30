@@ -16,9 +16,9 @@ Run
 ./build/spectral_upsampling_impls 
 ~~~
 Parameters: 
-* -f <path> : input file;
-* -c <hex> : input color in RGB;
-* -m <method> : upsampling method;
+* -f \<path\> : input file;
+* -c \<hex\> : input color in RGB;
+* -m \<method\> : upsampling method;
 * --downsample : downsample instead of upsampling (requires -f).
 
 If not downsampling, output path must be specified as last parameter.
