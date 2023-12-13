@@ -1,5 +1,5 @@
 #include "glassner_naive.h" 
-#include "color/conversions.h"
+#include "conversions.h"
 #include "common/progress.h"
 #include "math/math.h"
 

@@ -1,4 +1,5 @@
 include_directories(${SRC})
-include_directories(${SRC}/libs)
-include_directories(${SRC}/libs/stb) 
+include_directories(${SRC}/lib)
+include_directories(${SRC}/3rd_party)
+include_directories(${SRC}/3rd_party/stb) 
 

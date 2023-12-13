@@ -1,5 +1,5 @@
 set(MODULE_NAME stb)
-set(MODULE_PATH ${SRC}/libs/stb)
+set(MODULE_PATH ${SRC}/3rd_party/stb)
 
 set(MODULE_SOURCES
 	stbimpl.c

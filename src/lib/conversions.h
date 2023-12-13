@@ -1,7 +1,7 @@
 #ifndef COLOR_CONVERSIONS_H
 #define COLOR_CONVERSIONS_H
 #include "math/math.h"
-#include "spectrum.h"
+#include "spec/spectrum.h"
 
 inline vec3 rgb2xyz(const vec3 &rgb)
 {

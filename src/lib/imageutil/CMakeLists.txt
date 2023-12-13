@@ -1,8 +1,8 @@
+include(${SRC}/includes.cmake)
+
 include(properties.cmake)
 
 add_library(${MODULE_NAME})
-
-include(${SRC}/includes.cmake)
 
 target_sources(${MODULE_NAME} PRIVATE 
     ${MODULE_SOURCES}

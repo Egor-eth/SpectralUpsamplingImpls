@@ -7,9 +7,9 @@
 #include "upsamplers/glassner_naive.h"
 #include "upsamplers/smits.h"
 #include "imageutil/image.h"
-#include "color/spectral_image.h"
-#include "color/spectral_util.h"
-#include "color/conversions.h"
+#include "spec/spectral_image.h"
+#include "spec/spectral_util.h"
+#include "conversions.h"
 #include "common/format.h"
 #include "argparse.h"
 

@@ -1,6 +1,6 @@
 #ifndef UPSAMPLERS_UPSAMPLER_H
 #define UPSAMPLERS_UPSAMPLER_H
-#include "color/spectral_image.h"
+#include "spec/spectral_image.h"
 #include "imageutil/image.h"
 
 class IUpsampler
