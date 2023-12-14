@@ -1,4 +1,5 @@
-include(${SRC}/includes.cmake)
+
+add_compile_options(-Wall -Wextra)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-O0 -g)
@@ -12,12 +13,3 @@ endif()
 
 include(properties.cmake)
 
-add_library(${MODULE_NAME})
-
-target_sources(${MODULE_NAME} PRIVATE 
-    ${MODULE_SOURCES}
-)
-
-target_link_libraries(${MODULE_NAME}
-    ${MODULE_LIBS}
-)

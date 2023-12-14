@@ -13,7 +13,7 @@ Simply run
 ## Usage
 Run
 ~~~
-./build/spectral_upsampling_impls 
+./build/upsampler
 ~~~
 Parameters: 
 * -f \<path\> : input file;

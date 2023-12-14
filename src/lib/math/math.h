@@ -3,6 +3,7 @@
 #include "math_fwd.h"
 #include "vec3.h"
 #include "mat3.h"
+#include <cmath>
 
 namespace math {
 
@@ -14,6 +15,11 @@ namespace math {
     Float clamp(Float x, Float a, Float b);
     vec3 clamp(const vec3 &x, Float a, Float b);
 
+    template<typename T>
+    T sigmoid(T x)
+    {
+        return 0.5 + x / (2 * std::sqrt(1 + x * x));
+    }
 }
 
 using math::mat3;

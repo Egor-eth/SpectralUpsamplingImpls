@@ -80,7 +80,7 @@ bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectrum
             return false;
         }
 
-        bool is_directory;
+        bool is_directory = false;
         bool exists;
         filecheck(path, is_directory, exists);
 

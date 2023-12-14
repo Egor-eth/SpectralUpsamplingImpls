@@ -1,8 +1,6 @@
 #!/bin/bash
 
-N_JOBS=${1:-4}
-
 cd ./src
-cmake -G "Ninja"  -B ../build 
+cmake -G "Ninja" -DCMAKE_BUILD_TYPE=RelWithDbgInfo -B ../build 
 cd ../build
-ninja -j $N_JOBS
+ninja 

@@ -4,8 +4,8 @@ enable_language(CXX)
 enable_language(C)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_FLAGS "-m64 -Wall -Wextra -g")
-set(CMAKE_C_FLAGS "-m64 -Wall -Wextra")
+
+add_compile_options(-m64)
 
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
@@ -20,11 +20,3 @@ project(${PROJECT_NAME})
 include(${SRC}/includes.cmake)
 
 include(properties.cmake)
-
-add_executable(${PROJECT_NAME}
-    ${PROJECT_SOURCES}
-)
-
-target_link_libraries(${PROJECT_NAME} 
-    ${PROJECT_LIBS}
-)
