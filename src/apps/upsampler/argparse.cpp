@@ -3,6 +3,8 @@
 #include <getopt.h>
 #include <iostream> 
 
+using namespace spec;
+
 namespace {
     enum InputType
     {

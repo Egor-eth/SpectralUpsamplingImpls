@@ -4,20 +4,18 @@
 #include "pixel.h"
 #include "base_image.h"
 
-class ImageLoader
-{
-public:
-    Pixel *operator()(const std::string &path, int &width, int &height) const;
-    void free(Pixel *data) const;
-};
+namespace spec {
 
+    class Image : public BaseImage<Pixel>
+    {
+    public:
+        using BaseImage<Pixel>::BaseImage;
 
-class ImageSaver
-{
-public:
-    bool operator()(const std::string &path, const BaseImage<Pixel, ImageLoader, ImageSaver> &image, const std::string &format = "") const;
-};
+        Image(const std::string &path);
 
-using Image = BaseImage<Pixel, ImageLoader, ImageSaver>;
+        bool save(const std::string &path, const std::string &format = "") const;
+    };
+
+}
 
 #endif 

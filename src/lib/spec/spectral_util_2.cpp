@@ -6,15 +6,17 @@
 #include <vector>
 #include <tuple>
 
+using namespace spec;
+
 namespace spectral
 {
 
-    Spectrum load_spd(const std::string &path)
+    BasicSpectrum load_spd(const std::string &path)
     {
         std::ifstream file(path);
         if(!file) throw std::runtime_error("Cannot open file");
 
-        Spectrum sp;
+        BasicSpectrum sp;
 
         std::vector<std::tuple<Float, Float>> loaded = csv::load_as_vector<Float, Float>(file, ' ');
         for(const auto &p : loaded) {

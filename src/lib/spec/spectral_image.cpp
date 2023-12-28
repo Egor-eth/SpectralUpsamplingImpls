@@ -68,78 +68,84 @@ namespace
     }
 
 }
+    namespace spec {
+    /*
+    BasicSpectralImage::BasicSpectralImage(const std::string &path)
+        : BaseImage<BasicSpectrum>(), wavelenghts()
+    {
 
-bool SpectralSaver::operator()(const std::string &path, const BaseImage<Spectrum, void, SpectralSaver> &image_, const std::string &format) const
-{
-    const SpectralImage &image = static_cast<const SpectralImage &>(image_); // Bad practice :(
-    if(image.get_width() == 1 && image.get_height() == 1) {
-        spectral::save_spd(path, image.at(0, 0));
-    } else {
-        if(!image.validate()) {
-            std::cerr << "Could not validate spectral image" << std::endl;
-            return false;
-        }
+    }*/
 
-        bool is_directory = false;
-        bool exists;
-        filecheck(path, is_directory, exists);
-
-        SaveFormat type = get_type(path, format);
-        std::cerr << type << std::endl;
-
-        std::string target_directory;
-        std::string target_file;
-        if(is_directory && !(type & 0xf000)) {
-            target_directory = path;
+    bool BasicSpectralImage::save(const std::string &path, const std::string &format) const
+    {
+        if(width == 1 && height == 1) {
+            spectral::save_spd(path, data[0]);
         } else {
-            target_directory = fs::path(path).remove_filename().string();
-            target_file = fs::path(path).filename();
-        }
-
-        std::cerr << "Target file: " << target_file << std::endl;
-        std::cerr << "Dir: " << target_directory << std::endl;
-        try {
-            switch(type) {
-            case PNG1:
-                target_file = spectral::META_FILENAME;
-                [[fallthrough]];
-            case PNG1_JSON:
-                return spectral::save_as_png1(image, target_directory, target_file);
-            case PNG3:
-                target_file = spectral::META_FILENAME;
-                [[fallthrough]];
-            case PNG3_JSON:
-                return spectral::save_as_png3(image, target_directory, target_file);
-            default:
+            if(!validate()) {
+                std::cerr << "Could not validate spectral image" << std::endl;
                 return false;
             }
-        } catch (std::runtime_error &) {
-            return false;
+
+            bool is_directory = false;
+            bool exists;
+            filecheck(path, is_directory, exists);
+
+            SaveFormat type = get_type(path, format);
+            std::cerr << type << std::endl;
+
+            std::string target_directory;
+            std::string target_file;
+            if(is_directory && !(type & 0xf000)) {
+                target_directory = path;
+            } else {
+                target_directory = fs::path(path).remove_filename().string();
+                target_file = fs::path(path).filename();
+            }
+
+            std::cerr << "Target file: " << target_file << std::endl;
+            std::cerr << "Dir: " << target_directory << std::endl;
+            try {
+                switch(type) {
+                case PNG1:
+                    target_file = spectral::META_FILENAME;
+                    [[fallthrough]];
+                case PNG1_JSON:
+                    return spectral::save_as_png1(*this, target_directory, target_file);
+                case PNG3:
+                    target_file = spectral::META_FILENAME;
+                    [[fallthrough]];
+                case PNG3_JSON:
+                    return spectral::save_as_png3(*this, target_directory, target_file);
+                default:
+                    return false;
+                }
+            } catch (std::runtime_error &) {
+                return false;
+            }
+
         }
-
+        return true;
     }
-    return true;
-}
 
-template class BaseImage<Spectrum, void, SpectralSaver>;
-
-void SpectralImage::add_wavelenght(Float w)
-{
-    wavelenghts.insert(w);
-}
-
-void SpectralImage::remove_wavelenght(Float w)
-{
-    wavelenghts.erase(w);
-}
-
-bool SpectralImage::validate() const
-{
-    std::set<Float> all_wavelenghts;
-    for(long i = 0; i < width * height; ++i) {
-        const auto &wl = data[i].get_wavelenghts();
-        all_wavelenghts.insert(wl.begin(), wl.end());
+    void BasicSpectralImage::add_wavelenght(Float w)
+    {
+        wavelenghts.insert(w);
     }
-    return std::includes(wavelenghts.begin(), wavelenghts.end(),
-                         all_wavelenghts.begin(), all_wavelenghts.end());
+
+    void BasicSpectralImage::remove_wavelenght(Float w)
+    {
+        wavelenghts.erase(w);
+    }
+
+    bool BasicSpectralImage::validate() const
+    {
+        std::set<Float> all_wavelenghts;
+        for(long i = 0; i < this->width * this->height; ++i) {
+            const auto &wl = this->data[i].get_wavelenghts();
+            all_wavelenghts.insert(wl.begin(), wl.end());
+        }
+        return std::includes(wavelenghts.begin(), wavelenghts.end(),
+                             all_wavelenghts.begin(), all_wavelenghts.end());
+    }
+
 }

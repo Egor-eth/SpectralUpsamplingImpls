@@ -9,13 +9,14 @@
 #include "imageutil/image.h"
 #include "spec/spectral_image.h"
 #include "spec/spectral_util.h"
-#include "conversions.h"
+#include "spec/conversions.h"
 #include "common/format.h"
 #include "argparse.h"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 
+using namespace spec;
 
 std::unordered_map<std::string, std::unique_ptr<IUpsampler>> upsampler_by_method;
 
@@ -32,7 +33,7 @@ const IUpsampler *get_upsampler_for_method(const std::string &method_name)
 }
 
 int downsample(const Args &args) {
-    Spectrum spectrum = spectral::load_spd(args.input_path);
+    BasicSpectrum spectrum = spectral::load_spd(args.input_path);
 
     std::cout << "Converting spectum to RGB" << std::endl;
     vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectrum));
@@ -47,7 +48,7 @@ int upsample(const Args &args) {
         return 1;
     }
 
-    SpectralImage spectral_img;
+    BasicSpectralImage spectral_img;
     Image image;
     if(args.color) {
         image = Image(1, 1);

@@ -5,25 +5,32 @@
 #include "mat3.h"
 #include <cmath>
 
-namespace math {
+namespace spec {
 
-    inline Float interpolate(Float point, Float a, Float b, Float f_a, Float f_b)
-    {
-        return f_a + (f_b - f_a) * (point - a) / (b - a);
+    namespace math {
+
+        inline Float interpolate(Float point, Float a, Float b, Float f_a, Float f_b)
+        {
+            return f_a + (f_b - f_a) * (point - a) / (b - a);
+        }
+
+        Float clamp(Float x, Float a, Float b);
+        vec3 clamp(const vec3 &x, Float a, Float b);
+
+        inline Float sigmoid(Float x)
+        {
+            return std::fma(0.5, x / std::sqrt(std::fma(x, x, 1)), 0.5);
+        }
+
+        inline Float sigmoid_polynomial(Float x, const Float coef[3])
+        {
+            return sigmoid(std::fma(std::fma(coef[0], x, coef[1]), x, coef[2]));
+        }
     }
 
-    Float clamp(Float x, Float a, Float b);
-    vec3 clamp(const vec3 &x, Float a, Float b);
+    using math::mat3;
+    using math::vec3;
 
-    template<typename T>
-    T sigmoid(T x)
-    {
-        return 0.5 + x / (2 * std::sqrt(1 + x * x));
-    }
 }
-
-using math::mat3;
-using math::vec3;
-
 
 #endif

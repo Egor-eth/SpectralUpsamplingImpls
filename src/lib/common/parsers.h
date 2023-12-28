@@ -4,55 +4,59 @@
 #include <string>
 #include <sstream>
 
-template<typename T>
-T parse(const std::string &str)
-{
-    std::stringstream ss(str);
-    T val;
-    ss >> val;
-    return val;
-}
+namespace spec {
 
-template<>
-int parse(const std::string &str)
-{
-    return stoi(str);
-}
+    template<typename T>
+    T parse(const std::string &str)
+    {
+        std::stringstream ss(str);
+        T val;
+        ss >> val;
+        return val;
+    }
 
-template<>
-long parse(const std::string &str)
-{
-    return stol(str);
-}
+    template<>
+    int parse(const std::string &str)
+    {
+        return stoi(str);
+    }
 
-template<>
-long long parse(const std::string &str)
-{
-    return stoll(str);
-}
+    template<>
+    long parse(const std::string &str)
+    {
+        return stol(str);
+    }
 
-template<>
-float parse(const std::string &str)
-{
-    return stof(str);
-}
+    template<>
+    long long parse(const std::string &str)
+    {
+        return stoll(str);
+    }
 
-template<>
-double parse(const std::string &str)
-{
-    return stod(str);
-}
+    template<>
+    float parse(const std::string &str)
+    {
+        return stof(str);
+    }
 
-template<>
-long double parse(const std::string &str)
-{
-    return stold(str);
-}
+    template<>
+    double parse(const std::string &str)
+    {
+        return stod(str);
+    }
 
-template<>
-std::string parse(const std::string &str)
-{
-    return str;
+    template<>
+    long double parse(const std::string &str)
+    {
+        return stold(str);
+    }
+
+    template<>
+    std::string parse(const std::string &str)
+    {
+        return str;
+    }
+
 }
 
 #endif

@@ -11,6 +11,8 @@
 
 namespace fs = std::filesystem;
 
+using namespace spec;
+
 namespace
 {
     const std::string IMG_FILENAME_FORMAT = "w_" + FLOAT_FORMAT + ".png";
@@ -29,15 +31,15 @@ namespace
         return stbi_write_png_to_func(__to_stream, reinterpret_cast<void *>(&stream), width, height, channels, buf, 0);
     }
 
-    void normalize_and_convert_to_rgb(const SpectralImage &img, unsigned char *dst, const std::vector<Float> &wavelenghts, int channels, Float &range_out, Float &min_val_out)
+    void normalize_and_convert_to_rgb(const BasicSpectralImage &img, unsigned char *dst, const std::vector<Float> &wavelenghts, int channels, Float &range_out, Float &min_val_out)
     {
 
         //calculate normalization data
         Float min_val = std::numeric_limits<Float>::max();
         Float max_val = std::numeric_limits<Float>::min();
 
-        const Spectrum *ptr;
-        const Spectrum *end = img.raw_data() + img.get_height() * img.get_width();
+        const BasicSpectrum *ptr;
+        const BasicSpectrum *end = img.raw_data() + img.get_height() * img.get_width();
         for(ptr = img.raw_data(); ptr < end; ++ptr) {
             for(Float w : wavelenghts) {
                 Float val = (*ptr)[w];
@@ -52,7 +54,7 @@ namespace
         }
 
 
-        const Spectrum *data = img.raw_data();
+        const BasicSpectrum *data = img.raw_data();
         //normalize and write to rgb buffer
         const int vector_size = wavelenghts.size();
         for(long i = 0; i < img.get_height() * img.get_width(); ++i) {
@@ -109,7 +111,7 @@ namespace spectral
         (void) stream;
     }
 
-    void save_spd(const std::string &path, const Spectrum &spectre)
+    void save_spd(const std::string &path, const BasicSpectrum &spectre)
     {
         std::ofstream file(path, std::ios::trunc);
         if(!file) throw std::runtime_error("Cannot open file");
@@ -121,7 +123,7 @@ namespace spectral
         file.flush();
     }
 
-    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels)
+    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const BasicSpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels)
     {
         const int vector_size = wavelenghts.size();
         if(vector_size < 1 || vector_size > 4) throw std::invalid_argument("Illegal wavelenghts size");
@@ -147,7 +149,7 @@ namespace spectral
         res.channels_used = channels;
     }
 
-    void save_wavelenght_to_png1(std::ostream &stream, const SpectralImage &img, Float wavelenght, SavingResult &res)
+    void save_wavelenght_to_png1(std::ostream &stream, const BasicSpectralImage &img, Float wavelenght, SavingResult &res)
     {
         const int width = img.get_width();
         const int height = img.get_height();
@@ -167,7 +169,7 @@ namespace spectral
         res.channels_used = 1;
     }
 
-    bool save_as_png1(const SpectralImage &image, const std::string &dir, const std::string &meta_filename) {
+    bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename) {
 
         Metadata metadata;
         metadata.width = image.get_width();
@@ -202,7 +204,7 @@ namespace spectral
         return true;
     }
 
-    bool save_as_png3(const SpectralImage &image, const std::string &dir, const std::string &meta_filename)
+    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename)
     {
         (void) image;
         (void) dir;

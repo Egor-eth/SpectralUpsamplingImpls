@@ -6,6 +6,8 @@
 #include <istream>
 #include "spectral_image.h"
 
+using namespace spec;
+
 namespace spectral
 {
     const std::string META_FILENAME = "meta.json";
@@ -37,22 +39,25 @@ namespace spectral
         void load(std::istream &stream);
     };
 
-    void save_spd(const std::string &path, const Spectrum &spectre);
+    void save_spd(const std::string &path, const BasicSpectrum &spectre);
 
-    Spectrum load_spd(const std::string &path);
+    BasicSpectrum load_spd(const std::string &path);
 
     /**
      *  Saves specified wavelenghts of spectral image in multichannel png file (up to 4 channels).
      * Writes saving data to res. If wavelenghts is empty or contains more than 4 
      * elements exception is thrown.
      */
-    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const SpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels = 0);
+    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const BasicSpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels = 0);
 
-    void save_wavelenght_to_png1(std::ostream &stream, const SpectralImage &img, Float wavelenght, SavingResult &res);
+    void save_wavelenght_to_png1(std::ostream &stream, const BasicSpectralImage &img, Float wavelenght, SavingResult &res);
 
-    bool save_as_png1(const SpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+    bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
 
-    bool save_as_png3(const SpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+
+//    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+
 }
 
 #endif

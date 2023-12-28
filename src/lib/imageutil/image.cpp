@@ -5,32 +5,40 @@
 #include <stb_image_write.h>
 #include "common/format.h"
 
-Pixel *ImageLoader::operator()(const std::string &path, int &width, int &height) const
-{
-    int n;
-    unsigned char *ptr = stbi_load(path.c_str(), &width, &height, &n, sizeof(Pixel));
-    if(ptr == nullptr) {
-        stbi_failure_reason();
-        throw std::runtime_error(format("Error reading image at %s", path));
+
+namespace spec {
+
+    namespace {
+        void free_image(Pixel *ptr)
+        {
+            stbi_image_free(ptr);
+        }
     }
-    return reinterpret_cast<Pixel *>(ptr); 
-}
 
-void ImageLoader::free(Pixel *data) const
-{
-    stbi_image_free(reinterpret_cast<unsigned char *>(data));
-}
-
-bool ImageSaver::operator()(const std::string &path, const Image &image, const std::string &format) const
-{
-    if(format == "png") {
-        return stbi_write_png(path.c_str(), image.get_width(), image.get_height(), sizeof(Pixel), reinterpret_cast<const unsigned char *>(image.raw_data()), 0) != 0;
+    Image::Image(const std::string &path)
+        : BaseImage<Pixel>()
+    {
+        int n;
+        
+        unsigned char *ptr = stbi_load(path.c_str(), &width, &height, &n, sizeof(Pixel));
+        if(ptr == nullptr) {
+            stbi_failure_reason();
+            throw std::runtime_error(format("Error reading image at %s", path));
+        }
+        data = std::unique_ptr<Pixel[], BaseImage<Pixel>::DeleterType>(reinterpret_cast<Pixel *>(ptr), free_image);
     }
-    if(format == "jpg") {
-        return stbi_write_jpg(path.c_str(), image.get_width(), image.get_height(), sizeof(Pixel), reinterpret_cast<const unsigned char *>(image.raw_data()), 90) != 0;
+
+    bool Image::save(const std::string &path, const std::string &format) const
+    {
+        if(format == "png") {
+            return stbi_write_png(path.c_str(), width, height, sizeof(Pixel), reinterpret_cast<const unsigned char *>(data.get()), 0) != 0;
+        }
+        if(format == "jpg") {
+            return stbi_write_jpg(path.c_str(), width, height, sizeof(Pixel), reinterpret_cast<const unsigned char *>(data.get()), 90) != 0;
+        }
+        return false;
     }
-    return false;
+
+    template class BaseImage<Pixel>;
+
 }
-
-
-template class BaseImage<Pixel, ImageLoader, ImageSaver>;
