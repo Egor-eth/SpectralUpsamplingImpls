@@ -8,7 +8,7 @@
 
 using namespace spec;
 
-namespace spectral
+namespace spec::util
 {
 
     BasicSpectrum load_spd(const std::string &path)

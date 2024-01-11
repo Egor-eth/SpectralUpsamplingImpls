@@ -9,6 +9,8 @@ namespace spec {
     {
     public:
 
+        INJECT_REFL(SigPolySpectrum);
+
         SigPolySpectrum()
             : coef{0, 0, 0} {}
 

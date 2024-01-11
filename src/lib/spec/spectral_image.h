@@ -10,6 +10,8 @@ namespace spec {
     class SpectralImage : public ISpectralImage
     {
     public:
+        INJECT_REFL(SpectralImage<SpectrumType>);
+
         SpectralImage()
             : SpectralImage(nullptr, 0, 0) {}
 

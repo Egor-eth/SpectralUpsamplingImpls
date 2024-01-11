@@ -10,7 +10,6 @@
 #include "common/constants.h"
 
 namespace fs = std::filesystem;
-
 using namespace spec;
 
 namespace
@@ -75,7 +74,7 @@ namespace
 
 using json = nlohmann::json;
 
-namespace spectral
+namespace spec::util
 {
 
     void Metadata::save(std::ostream &stream) const
@@ -211,5 +210,17 @@ namespace spectral
         (void) meta_filename;
         return false;
     }
+
+    bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum)
+    {
+        std::ofstream file(path, std::ios::trunc);
+        if(!file) throw std::runtime_error("Cannot open file");
+
+        file << format("%f %f %f", spectrum[0], spectrum[1], spectrum[2]);
+
+        file.flush();
+        return true;
+    }
+
 
 }

@@ -33,6 +33,10 @@ namespace spec {
         static IdType last_id;
     };
 
+    struct Object {
+        
+    };
+
     class ReflectiveClass
     {
     public:
@@ -40,27 +44,40 @@ namespace spec {
         const UniqueId &id() const { return class_id; }
     };
 
-    template<typename T>
-    inline bool isa(const ReflectiveClass *obj)
+    template<typename T, typename P>
+    inline bool isa(const P *obj)
     {
-        return obj->id() == T::class_id;
+        return obj->id() == T::refl_class_id;
     }
 
-    template<typename T>
-    inline bool isa(const ReflectiveClass &obj)
+    template<typename T, typename P>
+    inline bool isa(const P &obj)
     {
-        return obj.id() == T::class_id;
+        return obj.id() == T::refl_class_id;
     }
 
-    template<typename T>
-    T *dyn_cast(const ReflectiveClass *obj)
+    template<typename T, typename P>
+    T *dyn_cast(const P *obj)
     {
-        if(isa<T>(*obj)) {
-            return static_cast<T>(obj);
+        if(isa<T, P>(obj)) {
+            return static_cast<const T *>(obj);
+        }
+        return nullptr;
+    }
+
+    template<typename T, typename P>
+    T *dyn_cast(P *obj)
+    {
+        if(isa<T, P>(obj)) {
+            return static_cast<T *>(obj);
         }
         return nullptr;
     }
 
 }
+
+#define INJECT_REFL(...)\
+    inline static const spec::UniqueId refl_class_id{};\
+    const spec::UniqueId &class_id() const { return refl_class_id; }
 
 #endif

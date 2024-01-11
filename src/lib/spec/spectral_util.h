@@ -7,57 +7,62 @@
 #include "basic_spectrum.h"
 #include "sigpoly_spectrum.h"
 
-
-namespace spectral
+namespace spec
 {
-    const std::string META_FILENAME = "meta.json";
 
-    struct SavingResult
-    {
-        bool success;
-        int channels_used;
-        Float norm_min;
-        Float norm_range;
-    };
+    namespace util {
+        const std::string META_FILENAME = "meta.json";
 
-    struct MetadataEntry
-    {
-        std::string filename;
-        std::vector<Float> targets;
-        Float norm_min_val;
-        Float norm_range;
-    };
+        struct SavingResult
+        {
+            bool success;
+            int channels_used;
+            Float norm_min;
+            Float norm_range;
+        };
 
-    struct Metadata
-    {
-        int width;
-        int height;
-        std::string format;
-        std::vector<MetadataEntry> wavelenghts;
+        struct MetadataEntry
+        {
+            std::string filename;
+            std::vector<Float> targets;
+            Float norm_min_val;
+            Float norm_range;
+        };
 
-        void save(std::ostream &stream) const;
-        void load(std::istream &stream);
-    };
+        struct Metadata
+        {
+            int width;
+            int height;
+            std::string format;
+            std::vector<MetadataEntry> wavelenghts;
 
-    void save_spd(const std::string &path, const BasicSpectrum &spectre);
+            void save(std::ostream &stream) const;
+            void load(std::istream &stream);
+        };
 
-    BasicSpectrum load_spd(const std::string &path);
+        void save_spd(const std::string &path, const BasicSpectrum &spectre);
 
-    /**
-     *  Saves specified wavelenghts of spectral image in multichannel png file (up to 4 channels).
-     * Writes saving data to res. If wavelenghts is empty or contains more than 4 
-     * elements exception is thrown.
-     */
-    void save_wavelenghts_to_png_multichannel(std::ostream &stream, const BasicSpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels = 0);
+        BasicSpectrum load_spd(const std::string &path);
 
-    void save_wavelenght_to_png1(std::ostream &stream, const BasicSpectralImage &img, Float wavelenght, SavingResult &res);
+        /**
+         *  Saves specified wavelenghts of spectral image in multichannel png file (up to 4 channels).
+         * Writes saving data to res. If wavelenghts is empty or contains more than 4 
+         * elements exception is thrown.
+         */
+        void save_wavelenghts_to_png_multichannel(std::ostream &stream, const BasicSpectralImage &img, const std::vector<Float> &wavelenghts, SavingResult &res, int requested_channels = 0);
 
-    bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+        void save_wavelenght_to_png1(std::ostream &stream, const BasicSpectralImage &img, Float wavelenght, SavingResult &res);
 
-    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
 
-//    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+        bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
 
+    //    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+
+
+        bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum);
+
+    }
 }
 
 #endif

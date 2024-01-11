@@ -163,7 +163,7 @@ namespace spec {
     bool BasicSpectralImage::save(const std::string &path, const std::string &format) const
     {
         if(width == 1 && height == 1) {
-            spectral::save_spd(path, data[0]);
+            util::save_spd(path, data[0]);
         } else {
             if(!validate()) {
                 std::cerr << "Could not validate spectral image" << std::endl;
@@ -191,15 +191,15 @@ namespace spec {
             try {
                 switch(type) {
                 case PNG1:
-                    target_file = spectral::META_FILENAME;
+                    target_file = util::META_FILENAME;
                     [[fallthrough]];
                 case PNG1_JSON:
-                    return spectral::save_as_png1(*this, target_directory, target_file);
+                    return util::save_as_png1(*this, target_directory, target_file);
                 case PNG3:
-                    target_file = spectral::META_FILENAME;
+                    target_file = util::META_FILENAME;
                     [[fallthrough]];
                 case PNG3_JSON:
-                    return spectral::save_as_png3(*this, target_directory, target_file);
+                    return util::save_as_png3(*this, target_directory, target_file);
                 default:
                     return false;
                 }

@@ -5,9 +5,11 @@
 #include "common/refl.h"
 
 namespace spec {
-    class ISpectrum : public ReflectiveClass
+    class ISpectrum
     {
-    public: 
+    public:
+        INJECT_REFL(ISpectrum);
+
         virtual Float get_or_interpolate(Float w) const = 0;
         virtual ~ISpectrum() = default;
 
@@ -17,8 +19,10 @@ namespace spec {
         using ptr = std::unique_ptr<ISpectrum>;
     };
 
-    class ISpectralImage : public ReflectiveClass {
+    class ISpectralImage {
     public:
+        INJECT_REFL(ISpectralImage);
+        
         ISpectralImage(int width, int height) 
             : width(width), height(height) {}
 
@@ -35,9 +39,6 @@ namespace spec {
     protected:
         int width, height;
     };
-
-    bool save(const std::string &path, const ISpectrum::ptr &spectrum);
-    bool save(const std::string &path, const ISpectralImage::ptr &img);    
 
 }
 
