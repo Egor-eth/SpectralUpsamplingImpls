@@ -4,9 +4,9 @@
 #include <vector>
 #include <ostream>
 #include <istream>
-#include "spectral_image.h"
+#include "basic_spectrum.h"
+#include "sigpoly_spectrum.h"
 
-using namespace spec;
 
 namespace spectral
 {

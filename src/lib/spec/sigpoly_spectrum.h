@@ -1,14 +1,14 @@
 #ifndef SPEC_SIGPOLY_SPECTRUM_H
 #define SPEC_SIGPOLY_SPECTRUM_H
-
-#include "spectrum.h"
 #include <stdexcept>
+#include "spectral_image.h"
 
 namespace spec {
     
     class SigPolySpectrum : public ISpectrum
     {
     public:
+
         SigPolySpectrum()
             : coef{0, 0, 0} {}
 
@@ -32,6 +32,8 @@ namespace spec {
         Float coef[3];
     };
 
+    using SigPolySpectralImage = SpectralImage<SigPolySpectrum>;
+    
 }
 
 #endif

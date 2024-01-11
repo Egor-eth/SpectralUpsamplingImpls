@@ -5,8 +5,9 @@
 namespace spec {
     class SmitsUpsampler : public IUpsampler
     {
-        void upsample(const Image &sourceImage, BasicSpectralImage &dest) const override;
-        void upsample_pixel_to(const Pixel &pixel, BasicSpectrum &spectre) const override;
+    public:
+        ISpectralImage::ptr upsample(const Image &sourceImage) const override;
+        ISpectrum::ptr upsample_pixel(const Pixel &src) const override;
         ~SmitsUpsampler() = default;
     };
 }

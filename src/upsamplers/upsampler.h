@@ -1,23 +1,21 @@
 #ifndef UPSAMPLERS_UPSAMPLER_H
 #define UPSAMPLERS_UPSAMPLER_H
-#include "spec/spectral_image.h"
+#include "spec/spectrum.h"
 #include "imageutil/image.h"
+#include <memory>
 
 namespace spec {
+
     class IUpsampler
     {
     public:
-        virtual void upsample(const Image &sourceImage, BasicSpectralImage &dest) const = 0;
-        virtual void upsample_pixel_to(const Pixel &src, BasicSpectrum &dst) const = 0;
-
-        BasicSpectrum upsample_pixel(const Pixel &src) const
-        {
-            BasicSpectrum s;
-            upsample_pixel_to(src, s);
-            return s;
-        }
+        virtual ISpectralImage::ptr upsample(const Image &sourceImage) const = 0;
+        virtual ISpectrum::ptr upsample_pixel(const Pixel &src) const = 0;
 
         virtual ~IUpsampler() {}
+
+        using ptr = std::unique_ptr<IUpsampler>;
+        using shared_ptr = std::shared_ptr<IUpsampler>;
     };
 
 }

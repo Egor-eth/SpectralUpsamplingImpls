@@ -4,10 +4,9 @@
 #include <fstream>
 #include <memory>
 #include <unordered_map>
-#include "upsamplers/glassner_naive.h"
-#include "upsamplers/smits.h"
+#include "upsamplers/upsamplers.h"
 #include "imageutil/image.h"
-#include "spec/spectral_image.h"
+#include "spec/basic_spectrum.h"
 #include "spec/spectral_util.h"
 #include "spec/conversions.h"
 #include "common/format.h"
@@ -18,17 +17,17 @@ using std::chrono::duration_cast;
 
 using namespace spec;
 
-std::unordered_map<std::string, std::unique_ptr<IUpsampler>> upsampler_by_method;
+std::unordered_map<std::string, IUpsampler::shared_ptr> upsampler_by_name;
 
 void fill_method_map() {
-    upsampler_by_method["glassner"] = std::unique_ptr<IUpsampler>(new GlassnerUpsampler());
-    upsampler_by_method["smits"] = std::unique_ptr<IUpsampler>(new SmitsUpsampler());
+    upsampler_by_name["glassner"] = spec::upsamplers::glassner;
+    upsampler_by_name["smits"] = spec::upsamplers::smits;
 }
 
-const IUpsampler *get_upsampler_for_method(const std::string &method_name)
+const IUpsampler *get_upsampler_by_name(const std::string &method_name)
 {
-    const auto it = upsampler_by_method.find(method_name);
-    if(it == upsampler_by_method.end()) return nullptr;
+    const auto it = upsampler_by_name.find(method_name);
+    if(it == upsampler_by_name.end()) return nullptr;
     return it->second.get();
 }
 
@@ -42,13 +41,12 @@ int downsample(const Args &args) {
 }
 
 int upsample(const Args &args) {
-    const IUpsampler *upsampler = get_upsampler_for_method(*args.method);
+    const IUpsampler *upsampler = get_upsampler_by_name(*args.method);
     if(upsampler == nullptr) {
         std::cerr << "[!] Unknown method." << std::endl;
         return 1;
     }
 
-    BasicSpectralImage spectral_img;
     Image image;
     if(args.color) {
         image = Image(1, 1);
@@ -61,11 +59,11 @@ int upsample(const Args &args) {
     try {
         std::cout << "Converting image to spectral with " << *args.method << " method..." << std::endl;
         auto t1 = high_resolution_clock::now();
-        upsampler->upsample(image, spectral_img);
+        ISpectralImage::ptr spectral_img = upsampler->upsample(image);
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         std::cout << "Saving..." << std::endl;
-        if(!spectral_img.save(*args.output_path)) {
+        if(!spectral_img->save(*args.output_path)) {
             std::cerr << "[!] Error saving image." << std::endl;
         }
     } catch (std::exception &ex) {

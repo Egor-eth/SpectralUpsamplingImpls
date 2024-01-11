@@ -8,4 +8,6 @@ namespace spec {
         return math::sigmoid_polynomial(w, coef);
     }
     
+    template class SpectralImage<SigPolySpectrum>;
+
 }

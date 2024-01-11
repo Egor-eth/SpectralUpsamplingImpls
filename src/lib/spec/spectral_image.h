@@ -1,76 +1,76 @@
-#ifndef COLOR_SPECTRAL_IMAGE_H
-#define COLOR_SPECTRAL_IMAGE_H
-#include <set>
-#include "imageutil/base_image.h"
-#include "basic_spectrum.h"
+#ifndef SPEC_SPECTRAL_IMAGE_H
+#define SPEC_SPECTRAL_IMAGE_H
+#include "spectrum.h"
+#include <memory>
 
 namespace spec {
 
-    template <typename T>
-    class SpectralImage;
-
-    /**
-     * Formats: 
-     *          png1, json          - monochrnomatic png for each wavelenght and metadata file (default)
-     *          png1_zip, zip       - same as 'png1', but packed in zip archive
-     *          png3, json3         - 3 channel png for each triplet of wavelenghts and metadata file
-     *          png3_zip            - same as 'png3', but packet in zip archive
-     *          one_spectre         - saves spectre of (0, 0) pixel in text format
-     * 
-     *  If format is not specified (empty string is supplied), format will be choosen from name of file. 
-     * If 'png1', or 'png3' format is used, path is interpreted as directory to save those files to,
-     * otherwise, path is considered to be filename. If 'json' or 'json3' format is used, all
-     * correspinding pngs are saved in the same directory as file. 
-     */
-
-    class BasicSpectralImage : public BaseImage<BasicSpectrum>
+   
+    template <typename SpectrumType>
+    class SpectralImage : public ISpectralImage
     {
     public:
-        using BaseImage<BasicSpectrum>::BaseImage;
+        SpectralImage()
+            : SpectralImage(nullptr, 0, 0) {}
 
-        //SpectralImage(const std::string &path);
+        SpectralImage(int w, int h)
+            : SpectralImage(new SpectrumType[w * h], w, h) {}
 
-        BasicSpectralImage(int w, int h, const BasicSpectrum &p)
-            : BaseImage<BasicSpectrum>(w, h, p), wavelenghts(p.get_wavelenghts()) {} 
-
-        BasicSpectralImage(const BasicSpectralImage &img)
-            : BaseImage<BasicSpectrum>(img), wavelenghts(img.wavelenghts) {}
-
-        BasicSpectralImage(BasicSpectralImage &&image)
-            : BaseImage<BasicSpectrum>(std::move(image)), wavelenghts(std::move(image.wavelenghts)) {}
-
-        BasicSpectralImage &operator=(BasicSpectralImage &&other)
+        SpectralImage(int w, int h, const SpectrumType &p)
+            : SpectralImage(w, h)
         {
-            if(this != &other) { 
-                BaseImage<BasicSpectrum>::operator=(std::move(other));
-                wavelenghts = std::move(other.wavelenghts);
-            }
+            std::fill(this->data.get(), this->data.get() + w * h, p);
+        }    
+
+        SpectralImage(const SpectralImage &image)
+            : SpectralImage(new SpectrumType[width * height], image.width, image.height)
+        {
+            std::copy(image.data.get(), image.data.get() + width * height, data.get());
+        }
+
+        SpectralImage(SpectralImage &&image)
+            : ISpectralImage(image.width, image.height), data(std::move(image.data)) {}
+
+        inline const SpectrumType *raw_data() const {
+            return data.get();
+        }
+
+        inline SpectrumType *raw_data() {
+            return data.get();
+        }
+
+        SpectrumType &at(int i, int j) override
+        {
+            long pos = (i + j * width);
+            if(pos < 0 || pos >= width * height) throw std::out_of_range("Requested pixel is out of range");
+            return data[pos];
+        }
+
+        const SpectrumType &at(int i, int j) const override
+        {
+            long pos = (i + j * width);
+            if(pos < 0 || pos >= width * height) throw std::out_of_range("Requested pixel is out of range");
+            return data[pos];
+        }
+
+        SpectralImage &operator=(SpectralImage &&other) {
+            if(this == &other) return *this;
+
+            std::swap(data, other.data);
+            width = std::move(other.width);
+            height = std::move(other.height);
             return *this;
         }
 
-        void add_wavelenght(Float w);
-        
-        void remove_wavelenght(Float w);
 
-        inline const std::set<Float> &get_wavelenghts() const
-        {
-            return wavelenghts;
-        }
 
-        void set_wavelenghts(const std::set<Float> &wl) {
-            wavelenghts = wl;
-        }
+    protected:
+        std::unique_ptr<SpectrumType []> data;
 
-        void set_wavelenghts(std::set<Float> &&wl) {
-            wavelenghts = std::move(wl);
-        }
+        SpectralImage(SpectrumType *ptr, int width, int height)
+            : ISpectralImage(width, height), data(ptr) {}
 
-         bool save(const std::string &path, const std::string &format = "") const;
 
-        bool validate() const;
-
-    private:
-        std::set<Float> wavelenghts;
     };
 
 }
