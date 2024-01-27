@@ -32,7 +32,7 @@ const IUpsampler *get_upsampler_by_name(const std::string &method_name)
 }
 
 int downsample(const Args &args) {
-    BasicSpectrum spectrum = spectral::load_spd(args.input_path);
+    BasicSpectrum spectrum = spec::util::load_spd(args.input_path);
 
     std::cout << "Converting spectum to RGB" << std::endl;
     vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectrum));
@@ -63,7 +63,8 @@ int upsample(const Args &args) {
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         std::cout << "Saving..." << std::endl;
-        if(!spectral_img->save(*args.output_path)) {
+
+        if(spec::util::save(*args.output_dir, *args.output_name, *spectral_img)) {
             std::cerr << "[!] Error saving image." << std::endl;
         }
     } catch (std::exception &ex) {

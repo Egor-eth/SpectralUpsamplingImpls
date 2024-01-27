@@ -12,6 +12,7 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(SRC ${CMAKE_SOURCE_DIR})
 set(PROJECT_NAME spectral_upsampling_impls)
 
+
 find_package(Ceres REQUIRED)
 find_package(nlohmann_json REQUIRED)
 

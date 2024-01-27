@@ -61,7 +61,9 @@ namespace spec
 
 
         bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum);
-
+        bool save_sigpoly_img(const std::string path, const SigPolySpectralImage &img);
+        bool save(const std::string &directory_path, const std::string &input_filename, const ISpectrum &s);
+        bool save(const std::string &directory_path, const std::string &input_filename, const ISpectralImage &s);
     }
 }
 

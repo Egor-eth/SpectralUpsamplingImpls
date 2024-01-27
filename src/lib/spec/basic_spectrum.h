@@ -11,6 +11,7 @@ namespace spec {
     class BasicSpectrum : public ISpectrum
     {
     public: 
+        INJECT_REFL(BasicSpectrum);
 
         BasicSpectrum()
             : spectre() {}

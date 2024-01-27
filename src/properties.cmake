@@ -1,6 +1,5 @@
 set(PROJECT_SOURCES 
-    main.cpp
-    argparse.cpp
+
 )
 
 add_subdirectory(lib)

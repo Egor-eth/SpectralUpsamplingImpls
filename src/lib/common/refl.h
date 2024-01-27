@@ -47,13 +47,13 @@ namespace spec {
     template<typename T, typename P>
     inline bool isa(const P *obj)
     {
-        return obj->id() == T::refl_class_id;
+        return obj->class_id() == T::refl_class_id;
     }
 
     template<typename T, typename P>
     inline bool isa(const P &obj)
     {
-        return obj.id() == T::refl_class_id;
+        return obj.class_id() == T::refl_class_id;
     }
 
     template<typename T, typename P>
@@ -75,6 +75,9 @@ namespace spec {
     }
 
 }
+
+#define INJECT_ABSTRACT_REFL(...)\
+    virtual const spec::UniqueId &class_id() const = 0;
 
 #define INJECT_REFL(...)\
     inline static const spec::UniqueId refl_class_id{};\

@@ -5,10 +5,11 @@
 #include "common/refl.h"
 
 namespace spec {
+
     class ISpectrum
     {
     public:
-        INJECT_REFL(ISpectrum);
+        INJECT_ABSTRACT_REFL(ISpectrum);
 
         virtual Float get_or_interpolate(Float w) const = 0;
         virtual ~ISpectrum() = default;
@@ -21,7 +22,7 @@ namespace spec {
 
     class ISpectralImage {
     public:
-        INJECT_REFL(ISpectralImage);
+        INJECT_ABSTRACT_REFL(ISpectralImage);
         
         ISpectralImage(int width, int height) 
             : width(width), height(height) {}

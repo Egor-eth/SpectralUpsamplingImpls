@@ -6,7 +6,8 @@
 
 
 struct Args {
-    std::optional<std::string> output_path; 
+    std::optional<std::string> output_dir; //-o or -D 
+    std::optional<std::string> output_name; 
     std::optional<std::string> method; // -m
     std::optional<spec::Pixel> color; // -c
 

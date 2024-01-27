@@ -66,7 +66,7 @@ namespace spec {
         const BasicSpectrum &get_D6500()
         {
             if(_notloaded) {
-                _cie_D6500 = spectral::load_spd("resources/cie.stdillum.D6500.spd");
+                _cie_D6500 = spec::util::load_spd("resources/cie.stdillum.D6500.spd");
                 _notloaded = false;
             }
             return _cie_D6500;

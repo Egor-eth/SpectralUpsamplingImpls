@@ -8,6 +8,7 @@
 #include <nlohmannjson/json.hpp>
 #include "common/format.h"
 #include "common/constants.h"
+#include "common/refl.h"
 
 namespace fs = std::filesystem;
 using namespace spec;
@@ -221,6 +222,46 @@ namespace spec::util
         file.flush();
         return true;
     }
+    
+    bool save_sigpoly_img(const std::string path, const SigPolySpectralImage &img)
+    {
+        std::ofstream file(path, std::ios::trunc);
+        if(!file) throw std::runtime_error("Cannot open file");
 
+
+        file.flush();
+        return false;
+    }
+    
+    bool save(const std::string &directory_path, const std::string &input_filename, const ISpectrum &s) {
+        fs::path p{directory_path};
+        if(isa<BasicSpectrum>(s)) {
+            const BasicSpectrum &spectrum = static_cast<const BasicSpectrum &>(s);
+            save_spd(p / (input_filename + ".spd"), spectrum);
+            return true;
+        }
+        if(isa<SigPolySpectrum>(s)) {
+            const SigPolySpectrum &spectrum = static_cast<const SigPolySpectrum &>(s);
+            return save_sigpoly(p / (input_filename + ".spspec"), spectrum);
+        }
+        return false;
+    }
+
+    bool save(const std::string &directory_path, const std::string &input_filename, const ISpectralImage &s) {
+        if(s.get_width() == 1 && s.get_height() == 1) {
+            return save(directory_path, input_filename, s.at(0, 0));
+        }
+        fs::path p{directory_path};
+        if(isa<BasicSpectralImage>(s)) {
+            const BasicSpectralImage &img = static_cast<const BasicSpectralImage &>(s);
+            return save_as_png1(img, p / input_filename);
+            
+        }
+        if(isa<SigPolySpectralImage>(s)) {
+            const SigPolySpectralImage &img = static_cast<const SigPolySpectralImage &>(s);
+            return save_sigpoly_img(p / (input_filename + ".spspec"), img);
+        }
+        return false;
+    }
 
 }
