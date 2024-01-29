@@ -27,6 +27,9 @@ namespace spec {
             vec3 &operator*=(Float f);
             vec3 &operator/=(Float f);
 
+            vec3 &operator*=(const vec3 &v);
+            vec3 &operator/=(const vec3 &v);
+
             vec3 operator+(const vec3 &v) const
             {
                 vec3 c(*this);
@@ -52,6 +55,20 @@ namespace spec {
             {
                 vec3 c(*this);
                 c /= f;
+                return c;
+            }
+
+            vec3 operator*(const vec3 &v) const
+            {
+                vec3 c(*this);
+                c *= v;
+                return c;
+            }
+
+            vec3 operator/(const vec3 &v) const
+            {
+                vec3 c(*this);
+                c /= v;
                 return c;
             }
 

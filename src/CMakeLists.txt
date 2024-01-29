@@ -5,6 +5,9 @@ enable_language(C)
 
 set(CMAKE_CXX_STANDARD 17)
 
+#Because eigen3 doesn't want to work without it
+include_directories(/usr/include/eigen3)
+
 add_compile_options(-m64)
 
 SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})

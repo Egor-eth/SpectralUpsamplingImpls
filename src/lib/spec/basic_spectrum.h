@@ -19,7 +19,7 @@ namespace spec {
         BasicSpectrum(const BasicSpectrum &s) = default;
 
         BasicSpectrum(BasicSpectrum &&s)
-            : cached_wavelenghts(std::move(s.cached_wavelenghts)), modified(std::move(s.modified)), spectre(std::move(s.spectre)), last_wavelenght(spectre.begin()) {}
+            : ISpectrum(s), cached_wavelenghts(std::move(s.cached_wavelenghts)), modified(std::move(s.modified)), spectre(std::move(s.spectre)), last_wavelenght(spectre.begin()) {}
 
         void set(Float wavelenght, Float value);
 

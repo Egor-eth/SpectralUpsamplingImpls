@@ -12,10 +12,10 @@ namespace spec {
         INJECT_ABSTRACT_REFL(ISpectrum);
 
         virtual Float get_or_interpolate(Float w) const = 0;
+        Float operator()(Float w) const { return get_or_interpolate(w); }
         virtual ~ISpectrum() = default;
 
         static const ISpectrum &none();
-
 
         using ptr = std::unique_ptr<ISpectrum>;
     };

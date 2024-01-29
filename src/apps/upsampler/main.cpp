@@ -64,7 +64,7 @@ int upsample(const Args &args) {
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         std::cout << "Saving..." << std::endl;
 
-        if(spec::util::save(*args.output_dir, *args.output_name, *spectral_img)) {
+        if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
             std::cerr << "[!] Error saving image." << std::endl;
         }
     } catch (std::exception &ex) {

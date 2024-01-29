@@ -12,7 +12,7 @@ namespace spec {
         INJECT_REFL(SigPolySpectrum);
 
         SigPolySpectrum()
-            : coef{0, 0, 0} {}
+            : ISpectrum(), coef{0, 0, 0} {}
 
         SigPolySpectrum(const SigPolySpectrum &s) = default;
         

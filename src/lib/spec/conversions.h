@@ -15,7 +15,9 @@ namespace spec {
         return math::clamp(XYZ_TO_RGB * xyz, 0.0f, 1.0f);
     }
 
-    vec3 spectre2xyz(const BasicSpectrum &spectre);
+    vec3 xyz2cielab(const vec3 &xyz);
+
+    vec3 spectre2xyz(const ISpectrum &spectre);
 
 }
 #endif

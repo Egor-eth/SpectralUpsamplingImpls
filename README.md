@@ -19,6 +19,6 @@ Parameters:
 * -f \<path\> : input file;
 * -c \<hex\> : input color in RGB (upsampling only);
 * -m \<method\> : upsampling method;
-* -D \<path\> : directory to output (upsampling only), cannot be used with -o ;
-* -o \<path\> : path for output (upsampling only) cannot be used with -D;
+* -D \<path\> : directory to output (upsampling only);
+* -n \<name\> : name for output (upsampling only);
 * --downsample : downsample instead of upsampling (requires -f).
