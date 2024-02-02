@@ -6,12 +6,16 @@
 #include <istream>
 #include "basic_spectrum.h"
 #include "sigpoly_spectrum.h"
+#include "common/lazy_value.h"
 
 namespace spec
 {
 
     namespace util {
-        const std::string META_FILENAME = "meta.json";
+
+        extern const LazyValue<BasicSpectrum> CIE_D6500;
+
+        extern const std::string META_FILENAME;
 
         struct SavingResult
         {
@@ -40,6 +44,30 @@ namespace spec
             void load(std::istream &stream);
         };
 
+
+        using XYZArray_t = Float[CURVES_ARRAY_LEN];
+
+        template<const XYZArray_t& arr>
+        Float _interp(Float wl)
+        {
+            const int a = (static_cast<int>(wl) / CURVES_WAVELENGHTS_STEP) * CURVES_WAVELENGHTS_STEP;
+            const int a_idx = (a - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;
+            if(a > CURVES_WAVELENGHTS_END) return 0.0f;
+
+            const Float f_a = arr[a_idx];
+            if(a == wl) return f_a;
+
+
+            const int b_idx = a_idx + 1;
+            if(b_idx < CURVES_WAVELENGHTS_START / CURVES_WAVELENGHTS_STEP) return 0.0f;
+
+            const Float f_b = arr[b_idx];
+
+            return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
+        }
+
+        Float get_cie_y_integral();
+
         void save_spd(const std::string &path, const BasicSpectrum &spectre);
 
         BasicSpectrum load_spd(const std::string &path);
@@ -62,9 +90,12 @@ namespace spec
 
         bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum);
         bool save_sigpoly_img(const std::string path, const SigPolySpectralImage &img);
+
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectrum &s);
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectralImage &s);
+
     }
+
 }
 
 #endif

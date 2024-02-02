@@ -15,6 +15,9 @@ namespace spec {
             : ISpectrum(), coef{0, 0, 0} {}
 
         SigPolySpectrum(const SigPolySpectrum &s) = default;
+
+        SigPolySpectrum(const vec3 &c)
+            : ISpectrum(), coef{c.x, c.y, c.z} {}
         
         inline Float &operator[](int i)
         {

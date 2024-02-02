@@ -19,5 +19,7 @@ namespace spec {
 
     vec3 spectre2xyz(const ISpectrum &spectre);
 
+    vec3 sigpoly2xyz(Float a1, Float a2, Float a3);
+
 }
 #endif
