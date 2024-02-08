@@ -13,8 +13,8 @@ namespace spec::math {
             T x, y, z;
         };
 
-        base_vec3() : x(0.0f), y(0.0f), z(0.0f) {}
-        base_vec3(const base_vec3 &v) = default;
+        base_vec3() : x(), y(), z() {}
+        base_vec3(const base_vec3 &v) : x(v.x), y(v.y), z(v.z) {}
         base_vec3(base_vec3 &&v) : x(std::move(v.x)), y(std::move(v.y)), z(std::move(v.z)) {}
         base_vec3(T x, T y, T z) : x(x), y(y), z(z) {}
 
@@ -133,6 +133,16 @@ namespace spec::math {
             return *this;
         }
 
+        T sum() const
+        {
+            return x + y + z;
+        }
+
+        T abssum() const
+        {
+            return std::fabs(x) + std::fabs(y) + std::fabs(z);
+        }
+
         static T distance2(const base_vec3 &v1, const base_vec3 &v2)
         {
             T dx = v1.x - v2.x;
@@ -142,9 +152,18 @@ namespace spec::math {
             return dx * dx + dy * dy + dz * dz;
         }
 
-        inline static T distance(const base_vec3 &v1, const base_vec3 &v2)
+        static T distance(const base_vec3 &v1, const base_vec3 &v2)
         {
             return std::sqrt(distance2(v1, v2));
+        }
+
+        template<typename P>
+        base_vec3<P> cast() const
+        {
+            if constexpr(std::is_same_v<P, T>) {
+                return *this;
+            }
+            else return {P(x), P(y), P(z)};
         }
 
     };
@@ -156,8 +175,13 @@ namespace spec::math {
         return str;
     }
 
+    extern template union base_vec3<Float>;
+    extern template std::ostream &operator<<(std::ostream &str, const base_vec3<Float> &v);
 
     using vec3 = base_vec3<Float>;
+    using vec3d = base_vec3<double>;
+    using vec3f = base_vec3<float>;
+
 }
 
 #endif

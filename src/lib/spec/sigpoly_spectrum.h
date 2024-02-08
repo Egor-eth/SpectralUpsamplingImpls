@@ -19,12 +19,12 @@ namespace spec {
         SigPolySpectrum(const vec3 &c)
             : ISpectrum(), coef{c.x, c.y, c.z} {}
         
-        inline Float &operator[](int i)
+        Float &operator[](int i)
         {
             return coef[i];
         }
 
-        inline Float operator[](int i) const
+        Float operator[](int i) const
         {
             return coef[i];
         }
@@ -36,6 +36,8 @@ namespace spec {
     private:
         Float coef[3];
     };
+
+    extern template class SpectralImage<SigPolySpectrum>;
 
     using SigPolySpectralImage = SpectralImage<SigPolySpectrum>;
     

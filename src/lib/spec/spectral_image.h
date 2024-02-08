@@ -4,7 +4,6 @@
 #include <memory>
 
 namespace spec {
-
    
     template <typename SpectrumType>
     class SpectralImage : public ISpectralImage

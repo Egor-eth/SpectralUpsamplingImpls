@@ -2,7 +2,7 @@ include(${SRC}/includes.cmake)
 
 include(properties.cmake)
 
-add_library(${MODULE_NAME})
+add_library(${MODULE_NAME} OBJECT)
 
 target_sources(${MODULE_NAME} PRIVATE 
     ${MODULE_SOURCES}

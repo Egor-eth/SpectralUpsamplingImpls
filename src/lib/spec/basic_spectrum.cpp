@@ -93,6 +93,8 @@ namespace spec {
     }
 
 
+    template class SpectralImage<BasicSpectrum>;
+
     namespace fs = std::filesystem;
 
     namespace 
@@ -159,6 +161,16 @@ namespace spec {
     {
 
     }*/
+
+
+    BasicSpectralImage &BasicSpectralImage::operator=(BasicSpectralImage &&other)
+    {
+        if(this != &other) { 
+            SpectralImage<BasicSpectrum>::operator=(std::move(other));
+            wavelenghts = std::move(other.wavelenghts);
+        }
+        return *this;
+    }
 
     bool BasicSpectralImage::save(const std::string &path, const std::string &format) const
     {

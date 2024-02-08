@@ -10,14 +10,16 @@ if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
     add_compile_options(-g)
 endif()
 
+add_compile_options(-fPIC)
+
 include(properties.cmake)
 
-add_library(${MODULE_NAME} INTERFACE)
+add_library(${MODULE_NAME} SHARED)
 
 #target_sources(${MODULE_NAME} PRIVATE 
 #    ${MODULE_SOURCES}
 #)
 
-target_link_libraries(${MODULE_NAME} INTERFACE
+target_link_libraries(${MODULE_NAME} PRIVATE
     ${MODULE_LIBS}
 )

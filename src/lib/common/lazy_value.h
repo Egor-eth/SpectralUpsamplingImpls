@@ -22,9 +22,9 @@ public:
         return *value;
     }
 
-    const T *operator*() const
+    const T &operator*() const
     {
-        return &get();
+        return get();
     }
 
     const T *operator->() const

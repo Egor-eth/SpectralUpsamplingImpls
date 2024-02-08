@@ -16,19 +16,12 @@ namespace spec {
         Float clamp(Float x, Float a, Float b);
         vec3 clamp(const vec3 &x, Float a, Float b);
 
-        inline Float sigmoid(Float x)
-        {
-            return std::fma(0.5, x / std::sqrt(std::fma(x, x, 1)), 0.5);
-        }
-        
-        inline Float sigmoid_polynomial(Float x, const Float coef[3])
-        {
-            return sigmoid(std::fma(std::fma(coef[0], x, coef[1]), x, coef[2]));
-        }
+        Float sigmoid_polynomial(Float x, const Float coef[3]);
     }
 
     using math::mat3;
     using math::vec3;
+    using math::vec3d;
 
 }
 

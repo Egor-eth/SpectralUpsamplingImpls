@@ -6,32 +6,7 @@
 namespace spec {
     namespace {
 
-    /*    const BasicSpectrum &get_D6500()
-        {
-            if(_notloaded) {
-                _cie_D6500 = spec::util::load_spd("resources/cie.stdillum.D6500.spd");
-                _notloaded = false;
-            }
-            return _cie_D6500;
-        }*/
-
-
-        Float get_cie_y_integral()
-        {
-            static Float val = 0.0f;
-            static bool not_computed = true;
-            if(not_computed) {
-                for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-                //for(int lambda : wl) {
-                    Float lightval = util::CIE_D6500->get_or_interpolate(lambda);
-                    val += util::_interp<Y_CURVE>(lambda) * CURVES_WAVELENGHTS_STEP * lightval;
-                }
-                not_computed = false;
-            }
-            return val;
-        }
-
-        const vec3 XYZ_TO_CIELAB_XYZN{95.0489f, 100.0f, 108.8840f};
+        const vec3 D6500_WHITE_POINT{95.0489f, 100.0f, 108.8840f};
 
         Float _xyz2cielab_f(Float t)
         {
@@ -40,7 +15,7 @@ namespace spec {
             static constexpr Float delta_div = 3.0f * delta * delta;
             static constexpr Float delta3 = delta * delta * delta;
 
-            return t - delta3 > EPSILON ? std::cbrt(t) : std::fma(t, delta_div, f_tn);
+            return t > delta3 ? std::cbrt(t) : (t / delta_div + f_tn);
         }
     }
 
@@ -62,14 +37,13 @@ namespace spec {
             xyz.y += util::_interp<Y_CURVE>(lambda) * val * lightval;
             xyz.z += util::_interp<Z_CURVE>(lambda) * val * lightval;
         }
-        xyz /= get_cie_y_integral();
+        xyz /= util::get_cie_y_integral();
         return xyz;
     }
 
     vec3 spectre2xyz(const ISpectrum &spectrum)
     {
         vec3 xyz{0.0f, 0.0f, 0.0f};
-        //const BasicSpectrum &d65 = get_D6500();
 
         unsigned idx = 0u;
         for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
@@ -80,13 +54,13 @@ namespace spec {
             xyz.z += Z_CURVE[idx] * val_lv;
             idx += 1;
         }
-        xyz /= get_cie_y_integral();
+        xyz /= util::get_cie_y_integral();
         return xyz;
     }
 
     vec3 xyz2cielab(const vec3 &xyz)
     {
-        const vec3 xyz_norm = xyz / XYZ_TO_CIELAB_XYZN;
+        const vec3 xyz_norm = xyz / D6500_WHITE_POINT;
         const Float f_x = _xyz2cielab_f(xyz_norm.x);
         const Float f_y = _xyz2cielab_f(xyz_norm.y);
         const Float f_z = _xyz2cielab_f(xyz_norm.z);
@@ -101,7 +75,6 @@ namespace spec {
     vec3 sigpoly2xyz(Float a1, Float a2, Float a3)
     {
         vec3 xyz{0.0f, 0.0f, 0.0f};
-        //const BasicSpectrum &d65 = get_D6500();
         const Float coef[3]{a1, a2, a3};
         unsigned idx = 0u;
         for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
@@ -112,7 +85,7 @@ namespace spec {
             xyz.z += Z_CURVE[idx] * val_lv;
             idx += 1;
         }
-        xyz /= get_cie_y_integral();
+        xyz /= util::get_cie_y_integral();
         return xyz;
     }
 

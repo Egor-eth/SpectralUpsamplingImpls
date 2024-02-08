@@ -8,6 +8,8 @@
 
 namespace spec {
 
+    template class BaseImage<Pixel>;
+
     namespace {
         void free_image(Pixel *ptr)
         {
@@ -38,7 +40,5 @@ namespace spec {
         }
         return false;
     }
-
-    template class BaseImage<Pixel>;
 
 }

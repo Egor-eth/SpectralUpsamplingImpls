@@ -6,6 +6,8 @@
 
 namespace spec {
 
+    extern template class BaseImage<Pixel>;
+
     class Image : public BaseImage<Pixel>
     {
     public:

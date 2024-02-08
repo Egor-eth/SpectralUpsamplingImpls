@@ -17,6 +17,11 @@ namespace spec {
 
     vec3 xyz2cielab(const vec3 &xyz);
 
+    inline vec3 rgb2cielab(const vec3 &rgb) 
+    {
+        return xyz2cielab(rgb2xyz(rgb));
+    }
+
     vec3 spectre2xyz(const ISpectrum &spectre);
 
     vec3 sigpoly2xyz(Float a1, Float a2, Float a3);

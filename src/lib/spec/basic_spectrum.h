@@ -49,11 +49,6 @@ namespace spec {
         mutable decltype(spectre)::const_iterator last_wavelenght;
     };
 
-
-
-    template <typename T>
-    class SpectralImage;
-
     /**
      * Formats: 
      *          png1, json          - monochrnomatic png for each wavelenght and metadata file (default)
@@ -67,6 +62,8 @@ namespace spec {
      * otherwise, path is considered to be filename. If 'json' or 'json3' format is used, all
      * correspinding pngs are saved in the same directory as file. 
      */
+
+    extern template class SpectralImage<BasicSpectrum>;
 
     class BasicSpectralImage : public SpectralImage<BasicSpectrum>
     {
@@ -84,20 +81,13 @@ namespace spec {
         BasicSpectralImage(BasicSpectralImage &&image)
             : SpectralImage<BasicSpectrum>(std::move(image)), wavelenghts(std::move(image.wavelenghts)) {}
 
-        BasicSpectralImage &operator=(BasicSpectralImage &&other)
-        {
-            if(this != &other) { 
-                SpectralImage<BasicSpectrum>::operator=(std::move(other));
-                wavelenghts = std::move(other.wavelenghts);
-            }
-            return *this;
-        }
+        BasicSpectralImage &operator=(BasicSpectralImage &&other);
 
         void add_wavelenght(Float w);
         
         void remove_wavelenght(Float w);
 
-        inline const std::set<Float> &get_wavelenghts() const
+        const std::set<Float> &get_wavelenghts() const
         {
             return wavelenghts;
         }
