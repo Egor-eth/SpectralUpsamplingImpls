@@ -2,9 +2,12 @@
 #define MATH_UTIL_H
 #include <optional>
 #include <utility>
+#include <cinttypes>
 #include "math/math.h"
 #include "common/constants.h"
 #include "spec/spectral_util.h"
+#include <istream>
+#include <ostream>
 
 using spec::math::base_vec3;
 using spec::math::vec3;
@@ -78,7 +81,9 @@ vec3d solve_for_rgb(const vec3 &rgb, const vec3d &init);
 
 std::optional<std::pair<vec3, vec3>> find_stable(const vec3d &init, vec3d &solution, int div, int mdiv, spec::Float epsilon);
 
-std::optional<vec3d> find_stable_i(const vec3 &color, vec3d &solution, int div, int mdiv, spec::Float epsilon);
+void write_header(std::ostream &dst);
+
+bool validate_header(std::istream &src);
 
 
 #endif

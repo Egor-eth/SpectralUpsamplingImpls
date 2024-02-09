@@ -13,14 +13,14 @@ namespace spec::math {
             T x, y, z;
         };
 
-        base_vec3() : x(), y(), z() {}
-        base_vec3(const base_vec3 &v) : x(v.x), y(v.y), z(v.z) {}
-        base_vec3(base_vec3 &&v) : x(std::move(v.x)), y(std::move(v.y)), z(std::move(v.z)) {}
-        base_vec3(T x, T y, T z) : x(x), y(y), z(z) {}
+        base_vec3() noexcept(true) : x(), y(), z() {}
+        base_vec3(const base_vec3 &v) noexcept(true) : x(v.x), y(v.y), z(v.z) {}
+        base_vec3(base_vec3 &&v) noexcept(true) : x(std::move(v.x)), y(std::move(v.y)), z(std::move(v.z)) {}
+        base_vec3(T x, T y, T z) noexcept(true) : x(x), y(y), z(z) {}
 
         base_vec3 &operator=(const base_vec3 &v) = default;
 
-        base_vec3 &operator=(base_vec3 &&v)
+        base_vec3 &operator=(base_vec3 &&v) noexcept(true)
         {
             std::swap(x, v.x);
             std::swap(y, v.y);
@@ -28,64 +28,64 @@ namespace spec::math {
             return *this;
         }
 
-        base_vec3 operator+(const base_vec3 &v) const
+        base_vec3 operator+(const base_vec3 &v) const noexcept(true)
         {
             base_vec3 c(*this);
             c += v;
             return c;
         }
 
-        base_vec3 operator-(const base_vec3 &v) const
+        base_vec3 operator-(const base_vec3 &v) const noexcept(true)
         {
             base_vec3 c(*this);
             c -= v;
             return c;
         }
 
-        base_vec3 operator*(T f) const
+        base_vec3 operator*(T f) const noexcept(true)
         {
             base_vec3 c(*this);
             c *= f;
             return c;
         }
 
-        base_vec3 operator/(T f) const
+        base_vec3 operator/(T f) const noexcept(true)
         {
             base_vec3 c(*this);
             c /= f;
             return c;
         }
 
-        base_vec3 operator*(const base_vec3 &v) const
+        base_vec3 operator*(const base_vec3 &v) const noexcept(true)
         {
             base_vec3 c(*this);
             c *= v;
             return c;
         }
 
-        base_vec3 operator/(const base_vec3 &v) const
+        base_vec3 operator/(const base_vec3 &v) const noexcept(true)
         {
             base_vec3 c(*this);
             c /= v;
             return c;
         }
 
-        inline T &operator[](int i)
+        inline T &operator[](int i) noexcept(true)
         {
             return v[i];
         }
 
-        inline T operator[](int i) const
+        inline T operator[](int i) const noexcept(true)
         {
             return v[i];
         }
 
-        inline base_vec3 operator-() const
+        inline base_vec3 operator-() const noexcept(true)
         {
             return {-x, -y, -z};
         }
 
-        base_vec3 &operator+=(const base_vec3 &v)
+        base_vec3 &operator+=(const base_vec3 &v) noexcept(true)
         {
             x += v.x;
             y += v.y;
@@ -93,14 +93,15 @@ namespace spec::math {
             return *this;
         }
 
-        base_vec3 &operator-=(const base_vec3 &v) {
+        base_vec3 &operator-=(const base_vec3 &v) noexcept(true)
+        {
             x -= v.x;
             y -= v.y;
             z -= v.z;
             return *this;
         }
 
-        base_vec3 &operator*=(T f)
+        base_vec3 &operator*=(T f) noexcept(true)
         {
             x *= f;
             y *= f;
@@ -108,7 +109,7 @@ namespace spec::math {
             return *this;
         }
 
-        base_vec3 &operator/=(T f)
+        base_vec3 &operator/=(T f) noexcept(true)
         {
             const T invf = 1.0f / f;
             x *= invf;
@@ -117,7 +118,7 @@ namespace spec::math {
             return *this;
         }
 
-        base_vec3 &operator*=(const base_vec3 &v)
+        base_vec3 &operator*=(const base_vec3 &v) noexcept(true)
         {
             x *= v.x;
             y *= v.y;
@@ -125,7 +126,7 @@ namespace spec::math {
             return *this;
         }
 
-        base_vec3 &operator/=(const base_vec3 &v)
+        base_vec3 &operator/=(const base_vec3 &v) noexcept(true)
         {
             x /= v.x;
             y /= v.y;
@@ -133,17 +134,17 @@ namespace spec::math {
             return *this;
         }
 
-        T sum() const
+        T sum() const noexcept(true)
         {
             return x + y + z;
         }
 
-        T abssum() const
+        T abssum() const noexcept(true)
         {
             return std::fabs(x) + std::fabs(y) + std::fabs(z);
         }
 
-        static T distance2(const base_vec3 &v1, const base_vec3 &v2)
+        static T distance2(const base_vec3 &v1, const base_vec3 &v2) noexcept(true)
         {
             T dx = v1.x - v2.x;
             T dy = v1.y - v2.y;
@@ -169,7 +170,7 @@ namespace spec::math {
     };
 
     template<typename T>
-    std::ostream &operator<<(std::ostream &str, const base_vec3<T> &v)
+    std::ostream &operator<<(std::ostream &str, const base_vec3<T> &v) 
     {
         str << '{' << v.x << ", " << v.y << ", " << v.z << "}";
         return str;

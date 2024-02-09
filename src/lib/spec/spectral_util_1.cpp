@@ -18,7 +18,7 @@ namespace
     const std::string IMG_FILENAME_FORMAT = "w_" + FLOAT_FORMAT + ".png";
     const std::string SPD_OUTPUT_FORMAT = FLOAT_FORMAT + " " + FLOAT_FORMAT + "\n";
 
-    void __to_stream(void *context, void *data, int size)
+    void __to_stream(void *context, void *data, int size) 
     {
 
         std::ostream *stream = reinterpret_cast<std::ostream *>(context);
@@ -26,7 +26,7 @@ namespace
         stream->flush();
     }
 
-    int write_png_to_stream(std::ostream &stream, int width, int height, int channels, const unsigned char *buf)
+    int write_png_to_stream(std::ostream &stream, int width, int height, int channels, const unsigned char *buf) noexcept(true)
     {
         return stbi_write_png_to_func(__to_stream, reinterpret_cast<void *>(&stream), width, height, channels, buf, 0);
     }

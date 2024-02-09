@@ -1,5 +1,5 @@
-#ifndef COMMON_PARSERS_H
-#define COMMON_PARSERS_H
+#ifndef SERIALIZATION_PARSERS_H
+#define SERIALIZATION_PARSERS_H
 #include <string>
 #include <sstream>
 

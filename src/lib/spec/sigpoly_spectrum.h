@@ -11,20 +11,20 @@ namespace spec {
 
         INJECT_REFL(SigPolySpectrum);
 
-        SigPolySpectrum()
+        SigPolySpectrum() noexcept(true)
             : ISpectrum(), coef{0, 0, 0} {}
 
         SigPolySpectrum(const SigPolySpectrum &s) = default;
 
-        SigPolySpectrum(const vec3 &c)
+        SigPolySpectrum(const vec3 &c) noexcept(true)
             : ISpectrum(), coef{c.x, c.y, c.z} {}
         
-        Float &operator[](int i)
+        Float &operator[](int i) noexcept(true)
         {
             return coef[i];
         }
 
-        Float operator[](int i) const
+        Float operator[](int i) const noexcept(true)
         {
             return coef[i];
         }

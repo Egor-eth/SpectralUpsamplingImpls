@@ -1,7 +1,7 @@
 #include "functions.h"
 #include <ceres/ceres.h>
 #include "spec/conversions.h"
-
+#include "serialization/binary.h"
 
 using namespace ceres;
 
@@ -88,29 +88,20 @@ std::optional<std::pair<vec3, vec3>> find_stable(const vec3d &init, vec3d &solut
 
 }
 
-std::optional<vec3d> find_stable_i(const vec3 &color, vec3d &solution, int div, int mdiv, spec::Float epsilon)
+constexpr uint64_t MARKER = 0xfafa0000ab0ba000;
+
+void write_header(std::ostream &dst)
 {
-    const spec::Float divf = div; 
-    for(int i = -mdiv ; i <= mdiv; ++i) {
-        for(int j = -mdiv; j <= mdiv; ++j) {
-            for(int k = -mdiv; k <= mdiv; ++k) {
-                if(i + j + k == 0) continue;
-                vec3d init{i / divf, j / divf, k / divf};
-                std::cout << "Using init: " << init << std::endl;
+    spec::write<uint64_t>(dst, MARKER);
+    spec::write<uint16_t>(dst, sizeof(Float));
+}
 
-                vec3d result = solve_for_rgb(color, init);
-                vec3 downsampled = spec::xyz2rgb(spec::sigpoly2xyz(result.x, result.y, result.z));
+bool validate_header(std::istream &src)
+{
+    uint64_t marker = spec::read<uint64_t>(src);
+    if(!src) return false;
+    uint16_t floatsize = spec::read<uint16_t>(src);
+    if(!src) return false;
 
-                std::cout << "Downsampled version of result: " << downsampled << std::endl;
-
-                if((downsampled - color).abssum() < epsilon) {
-                    solution = result;
-                    return {init};
-                }
-            }
-        }
-    }
-
-    return {};
-
+    return marker == MARKER && floatsize == sizeof(Float);
 }

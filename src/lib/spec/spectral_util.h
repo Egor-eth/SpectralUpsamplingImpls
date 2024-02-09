@@ -48,7 +48,7 @@ namespace spec
         using XYZArray_t = Float[CURVES_ARRAY_LEN];
 
         template<const XYZArray_t& arr>
-        Float _interp(Float wl)
+        Float _interp(Float wl) noexcept(true)
         {
             const int a = (static_cast<int>(wl) / CURVES_WAVELENGHTS_STEP) * CURVES_WAVELENGHTS_STEP;
             const int a_idx = (a - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;

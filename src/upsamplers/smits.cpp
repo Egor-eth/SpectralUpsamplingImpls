@@ -1,5 +1,5 @@
 #include "smits.h"
-#include "common/progress.h"
+#include "common/util.h"
 #include "math/math.h"
 #include "spec/basic_spectrum.h"
 

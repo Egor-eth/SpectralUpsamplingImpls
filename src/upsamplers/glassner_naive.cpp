@@ -1,6 +1,6 @@
 #include "glassner_naive.h" 
 #include "spec/conversions.h"
-#include "common/progress.h"
+#include "common/util.h"
 #include "math/math.h"
 
 

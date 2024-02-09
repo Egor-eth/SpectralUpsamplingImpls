@@ -3,7 +3,7 @@
 #include <glog/logging.h>
 #include "functions.h"
 #include <fstream>
-#include "common/csv.h"
+#include "serialization/csv.h"
 
 using namespace ceres;
 

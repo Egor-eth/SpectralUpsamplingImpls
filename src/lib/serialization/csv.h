@@ -1,5 +1,5 @@
-#ifndef COMMON_CSV_H
-#define COMMON_CSV_H
+#ifndef SERIALIZATION_CSV_H
+#define SERIALIZATION_CSV_H
 #include <unordered_map>
 #include <vector>
 #include <istream>
