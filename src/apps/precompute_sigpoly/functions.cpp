@@ -1,7 +1,6 @@
 #include "functions.h"
 #include <ceres/ceres.h>
 #include "spec/conversions.h"
-#include "serialization/binary.h"
 
 using namespace ceres;
 
@@ -33,7 +32,7 @@ vec3d solve_for_rgb(const vec3 &rgb, const vec3d &init)
     vec3d x = init;
 
     if(enable_logging) {
-        std::cout << "Using initial x: " << x << std::endl;
+        std::cout << "Solving for color: " << rgb << std::endl;
     }
 
     // Build the problem.
@@ -58,6 +57,35 @@ vec3d solve_for_rgb(const vec3 &rgb, const vec3d &init)
         std::cout << summary.BriefReport() << "\n";
     }
     return x;
+}
+
+void solve_for_rgb_d(const vec3 &rgb, vec3d &x)
+{
+    if(enable_logging) {
+        std::cout << "Solving for color: " << rgb << std::endl;
+    }
+
+    // Build the problem.
+    Problem problem;
+
+    // Set up the only cost function (also known as residual). This uses
+    // auto-differentiation to obtain the derivative (jacobian).
+    CostFunction* cost_function =
+      new AutoDiffCostFunction<CostFunctor, 3, 3>(new CostFunctor(rgb));
+    problem.AddResidualBlock(cost_function, nullptr, x.v);
+
+    // Run the solver!
+    Solver::Options options;
+    options.num_threads = 4;
+    options.max_num_iterations = 100;
+    options.linear_solver_type = ceres::DENSE_QR;
+    options.minimizer_progress_to_stdout = enable_logging;
+    Solver::Summary summary;
+    Solve(options, &problem, &summary);
+
+    if(enable_logging) {
+        std::cout << summary.BriefReport() << "\n";
+    }
 }
 
 
@@ -85,23 +113,4 @@ std::optional<std::pair<vec3, vec3>> find_stable(const vec3d &init, vec3d &solut
     }
 
     return {};
-
-}
-
-constexpr uint64_t MARKER = 0xfafa0000ab0ba000;
-
-void write_header(std::ostream &dst)
-{
-    spec::write<uint64_t>(dst, MARKER);
-    spec::write<uint16_t>(dst, sizeof(Float));
-}
-
-bool validate_header(std::istream &src)
-{
-    uint64_t marker = spec::read<uint64_t>(src);
-    if(!src) return false;
-    uint16_t floatsize = spec::read<uint16_t>(src);
-    if(!src) return false;
-
-    return marker == MARKER && floatsize == sizeof(Float);
 }

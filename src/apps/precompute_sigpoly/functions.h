@@ -1,13 +1,11 @@
-#ifndef MATH_UTIL_H
-#define MATH_UTIL_H
+#ifndef FUNCTIONS_H
+#define FUNCTIONS_H
 #include <optional>
 #include <utility>
-#include <cinttypes>
 #include "math/math.h"
 #include "common/constants.h"
 #include "spec/spectral_util.h"
-#include <istream>
-#include <ostream>
+
 
 using spec::math::base_vec3;
 using spec::math::vec3;
@@ -79,11 +77,10 @@ base_vec3<T> _sigpoly2xyz(const T *x)
 
 vec3d solve_for_rgb(const vec3 &rgb, const vec3d &init);
 
+void solve_for_rgb_d(const vec3 &rgb, vec3d &x);
+
 std::optional<std::pair<vec3, vec3>> find_stable(const vec3d &init, vec3d &solution, int div, int mdiv, spec::Float epsilon);
 
-void write_header(std::ostream &dst);
-
-bool validate_header(std::istream &src);
 
 
 #endif

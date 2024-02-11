@@ -5,17 +5,17 @@
 #include "math/math.h"
 #include "common/util.h"
 
-namespace spec {
+namespace spec::binary {
 
-    template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value, void>>
-    void write(std::ostream &dst, T val)
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
+    void write(std::ostream &dst, const T val)
     {
         char buf[sizeof(T)];
         spec::serial_copy(reinterpret_cast<const char *>(&val), buf, sizeof(T));
         dst.write(buf, sizeof(T));
     }
 
-    template<typename T, typename = std::enable_if_t<std::is_arithmetic<T>::value, void>>
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
     T read(std::istream &src)
     {
         char buf[sizeof(T)];
@@ -25,12 +25,29 @@ namespace spec {
         return val;
     }
 
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
+    void write_vec(std::ostream &dst, const math::base_vec3<T> &val)
+    {
+        write<T>(dst, val.x);
+        write<T>(dst, val.y);
+        write<T>(dst, val.z);
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
+    math::base_vec3<T> read_vec(std::istream &src)
+    {
+        math::base_vec3<T> v;
+        v.x = read<T>(src);
+        v.y = read<T>(src);
+        v.z = read<T>(src);
+        return v;
+    }
+
+
     extern template void write(std::ostream &dst, Float val);
     extern template Float read(std::istream &src);
-
-    void write_vec3(std::ostream &dst, const vec3 &val);
-
-    vec3 read_vec(std::ostream &src);
+    extern template void write_vec(std::ostream &dst, const vec3 &val);
+    extern template vec3 read_vec(std::istream &src);
 
 }
 

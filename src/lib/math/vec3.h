@@ -15,16 +15,16 @@ namespace spec::math {
 
         base_vec3() noexcept(true) : x(), y(), z() {}
         base_vec3(const base_vec3 &v) noexcept(true) : x(v.x), y(v.y), z(v.z) {}
-        base_vec3(base_vec3 &&v) noexcept(true) : x(std::move(v.x)), y(std::move(v.y)), z(std::move(v.z)) {}
         base_vec3(T x, T y, T z) noexcept(true) : x(x), y(y), z(z) {}
 
         base_vec3 &operator=(const base_vec3 &v) = default;
 
-        base_vec3 &operator=(base_vec3 &&v) noexcept(true)
+        template<typename P>
+        base_vec3 &operator=(const base_vec3<P> &v)
         {
-            std::swap(x, v.x);
-            std::swap(y, v.y);
-            std::swap(z, v.z);
+            x = v.x;
+            y = v.y;
+            z = v.z;
             return *this;
         }
 
