@@ -4,31 +4,21 @@
 
 namespace bin = spec::binary;
 
-constexpr uint64_t MARKER = 0xfafa0000ab0ba000;
-
 void write_header(std::ostream &dst)
 {
-    bin::write<uint64_t>(dst, MARKER);
+    bin::write<uint64_t>(dst, spec::LUT::FILE_MARKER);
     bin::write<uint16_t>(dst, sizeof(Float));
-}
-
-bool validate_header(std::istream &src)
-{
-    uint64_t marker = bin::read<uint64_t>(src);
-    if(!src) return false;
-    uint16_t floatsize = bin::read<uint16_t>(src);
-    if(!src) return false;
-
-    return marker == MARKER && floatsize == sizeof(Float);
 }
 
 void write_lut(std::ostream &dst, const LUT &lut)
 {  
-    bin::write<uint16_t>(dst, lut.get_size());
-    for(unsigned i = 0; i < lut.get_size(); ++i) {
-        for(unsigned j = 0; j < lut.get_size(); ++j) {
-            bin::write_vec(dst, lut.at(i, j));
-        }
+    unsigned step = lut.get_step();
+    bin::write<uint16_t>(dst, step);
+    unsigned count = lut.get_size();
+    count = count * count * count;
+    const vec3 *ptr = lut.get_raw_data();
+    for(unsigned i = 0; i < count ; ++i) {
+        bin::write_vec<Float>(dst, ptr[i]);
     }
 }
 
@@ -36,285 +26,347 @@ void write_lut(std::ostream &dst, const LUT &lut)
 
 namespace {
 
-    inline vec3 fill_vector(int zeroed_idx, Float a, Float b)
+    inline vec3 fill_vector(int main_channel, Float a, Float b, Float alpha)
     {
-        switch(zeroed_idx) {
+        switch(main_channel) {
         case 0:
-            return {0, a, b};
+            return {alpha, a, b};
         case 1:
-            return {b, 0, a};
+            return {b, alpha, a};
         case 2:
-            return {a, b, 0};
+            return {a, b, alpha};
         default:
             return {};
         }
     }
 
-    inline void _init_x(const LUT &lut, vec3d &solution, int i, int j, bool backwards)
+    class LutBuilder
     {
-        const int s = backwards ? 1 : -1;
-        const vec3 &target = (i > j) ^ backwards ? lut.at(i + s, j) : lut.at(i, j + s);
-        solution = target;
+    public:
+        const int main_channel;
+        const int step, size;
+        const int stable, stable_id;
+        const bool force_last;
+        int i = 0, j = 0, k = 0;
+
+        LutBuilder(int main_channel, int step, int stable)
+            : main_channel{main_channel}, step{step}, size{256 / step + (256 % step != 0)},
+              stable{stable}, stable_id{stable / step}, 
+              force_last{256 % step != 0}, data{new vec3[size * size * size]} {}
+
+        ~LutBuilder()
+        {
+            delete[] data;
+        }
+
+        LUT build_and_clear()
+        {
+            vec3 *d = data;
+            data = nullptr;
+            return LUT(d, step);
+        }
+
+        int idx_to_color(int i) const
+        {
+            return i == size - 1 ? 255 : i * step;
+        }
+
+        void set_target(int i, int j, int k);
+
+        int color_to_idx(int c) const
+        {
+            return c == 255 ? size - 1 : c / step; 
+        }
+
+        Float acolorf(int i) const
+        {
+            return spec::math::smoothstep2(i / static_cast<Float>(size - 1));
+        }
+
+        void init_solution(vec3d &solution) const
+        {
+            if(k <= stable_id) {
+                std::fill_n(solution.v, 3, 0.0);
+            }
+            else {
+                solution = at(i, j, k - 1);
+            }
+        }
+
+        const vec3 &at(int i1, int j1, int k1) const
+        {
+            return data[((k1 * size) + i1) * size + j1]; 
+        }
+
+        const vec3 &current() const
+        {
+            return data[((k * size) + i) * size + j]; 
+        }
+
+        vec3 &current()
+        {
+            return data[((k * size) + i) * size + j]; 
+        }
+
+        vec3 spaced_color() const;
+    private:
+        vec3 *data;
+    };
+
+    vec3 LutBuilder::spaced_color() const
+    {
+        Float ac = acolorf(k);
+        return fill_vector(main_channel, ac * idx_to_color(i) / 255.0f, ac * idx_to_color(j) / 255.0f, ac);
     }
+
 
     /**
-     * -------------------
-     * | 00 |    10       |
-     * |    |             |
-     * |------------------|
-     * |    |             |
-     * |    |             |
-     * | 01 |    11       |
-     * |    |             |
-     * -------------------
+     *  ____________________
+     * /                  /|
+     * |------------------||
+     * | 00 |    10       ||
+     * |    |             ||
+     * |------------------||
+     * |    |             ||
+     * |    |             ||
+     * | 01 |    11       ||
+     * |    |             ||
+     * ___________________|/
      */
 
-    unsigned color_count = 1;
     unsigned color_processed = 0;
 
-    void fill_main(LUT &lut, int stable, int step, int zeroed_idx)
+    void fill_main(LutBuilder &ctx)
     {
         vec3d solution;
 
-        Float a, b = stable / 255.0f;
+        for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
+            //over x, stable
+            ctx.j = ctx.stable_id;
+            for(ctx.i = ctx.stable_id; ctx.i >= 0; --ctx.i) {
+                ctx.init_solution(solution);
+                solve_for_rgb_d(ctx.spaced_color(), solution);
+                ctx.current() = solution;
+                color_processed += 1;
+            }
 
-        //over x, stable
-        for(int i = stable; i >= 0; i -= step) {
-            std::fill_n(solution.v, 3, 0.0);
-            a = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(i / step, stable / step) = solution;
-            color_processed += 1;
-        }
+            spec::print_progress(color_processed);
 
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+            ctx.j = ctx.stable_id;
+            ctx.init_solution(solution);
+            for(ctx.i = ctx.stable_id + 1; ctx.i < ctx.size; ++ctx.i) {
+                solve_for_rgb_d(ctx.spaced_color(), solution);
+                ctx.current() = solution;
+                color_processed += 1;
+            }
+            spec::print_progress(color_processed);
 
-        //over x, unstable
-        solution = lut.at(stable / step, stable / step);
-        for(int i = stable + step; i <= 255; i += step) {
-            a = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(i / step, stable / step) = solution;
-            color_processed += 1;
+            //over y, stable
+            ctx.i = ctx.stable_id;
+            for(ctx.j = ctx.stable_id - 1; ctx.j >= 0; --ctx.j) {
+                ctx.init_solution(solution);
+                solve_for_rgb_d(ctx.spaced_color(), solution);
+                ctx.current() = solution;
+                color_processed += 1;
+            }
+            spec::print_progress(color_processed);
+            //over y, unstable
+            ctx.i = ctx.stable_id;
+            ctx.init_solution(solution);
+            for(ctx.j = ctx.stable_id + 1; ctx.j <= ctx.size; ++ctx.j) {
+                solve_for_rgb_d(ctx.spaced_color(), solution);
+                ctx.current() = solution;
+                color_processed += 1;
+            }
+            spec::print_progress(color_processed);
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
-
-        //over y, stable
-        a = stable / 255.0f;
-        for(int i = stable - step; i >= 0; i -= step) {
-            std::fill_n(solution.v, 3, 0.0);
-            b = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(stable / step, i / step) = solution;
-            color_processed += 1;
-        }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
-        //over y, unstable
-        solution = lut.at(stable, stable);
-        for(int i = stable + step; i <= 255; i += step) {
-            b = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(stable / step, i / step) = solution;
-            color_processed += 1;
-        }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
     }
 
-    void fill_00(LUT &lut, int target, int step, int zeroed_idx)
+    void fill_00(LutBuilder &ctx, int target)
     {
         vec3d solution;
 
-        Float a, b = target / 255.0f;
-
         //over x
-        for(int i = target; i >= 0; i -= step) {
-            const int dy = step;
-            const int dx = target - i + step; 
+        ctx.j = target;
+        for(ctx.i = target; ctx.i >= 0; --ctx.i) {
+            const int dy = 1;
+            const int dx = target - ctx.i + 1; 
 
             const Float wx = dy / static_cast<Float>(dx + dy);
             const Float wy = dx / static_cast<Float>(dx + dy);
 
-            solution = lut.at(i / step, target / step + 1) * wy + lut.at(target / step + 1, target / step) * wx;
+            solution = ctx.at(ctx.i, target + 1, ctx.k) * wy + ctx.at(target + 1, target, ctx.k) * wx;
 
-            a = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(i / step, target / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+        spec::print_progress(color_processed);
         //over y
-        a = target / 255.0f;
-        for(int i = target - step; i >= 0; i -= step) {
-            const int dx = step;
-            const int dy = target - i + step; 
+        ctx.i = target;
+        for(ctx.j = target - 1; ctx.j >= 0; --ctx.j) {
+            const int dy = 1;
+            const int dx = target - ctx.j + 1; 
 
             const Float wy = dx / static_cast<Float>(dx + dy);
             const Float wx = dy / static_cast<Float>(dx + dy);
 
-            solution = lut.at(target / step + 1, i / step) * wx + lut.at(target / step, target / step + 1) * wy;
+            solution = ctx.at(target + 1, ctx.j, ctx.k) * wx + ctx.at(target, target + 1, ctx.k) * wy;
 
-            b = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(target / step, i / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+        spec::print_progress(color_processed);
     }
 
-    void fill_11(LUT &lut, int target, int step, int zeroed_idx)
+    void fill_11(LutBuilder &ctx, int target)
     {
         vec3d solution;
 
-        Float a, b = target / 255.0f;
-
         //over x
-        for(int i = target; i <= 255; i += step) {
-            const int dy = step;
-            const int dx = i - target + step; 
+        ctx.j = target;
+        for(ctx.i = target; ctx.i < ctx.size; ++ctx.i) {
+            const int dy = 1;
+            const int dx = ctx.i - target + 1; 
 
             const Float wx = dy / static_cast<Float>(dx + dy);
             const Float wy = dx / static_cast<Float>(dx + dy);
 
-            solution = lut.at(i / step, target / step - 1) * wy + lut.at(target / step - 1, target / step) * wx;
+            solution = ctx.at(ctx.i, target - 1, ctx.k) * wy + ctx.at(target - 1, target, ctx.k) * wx;
 
-            a = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(i / step, target / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+        spec::print_progress(color_processed);
         //over y
-        a = target / 255.0f;
-        for(int i = target + step; i <= 255; i += step) {
-            const int dx = step;
-            const int dy = i - target + step; 
+        ctx.i = target;
+        for(ctx.j = target + 1; ctx.j < ctx.size; ++ctx.j) {
+            const int dy = 1;
+            const int dx = ctx.j - target + 1; 
 
             const Float wy = dx / static_cast<Float>(dx + dy);
             const Float wx = dy / static_cast<Float>(dx + dy);
 
-            solution = lut.at(target / step - 1, i / step) * wx + lut.at(target / step, target / step - 1) * wy;
+            solution = ctx.at(target - 1, ctx.j, ctx.k) * wx + ctx.at(target, target - 1, ctx.k) * wy;
 
-            b = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(target / step, i / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+        spec::print_progress(color_processed);
     }
 
-    void fill_01(LUT &lut, int target_x, int target_y, int step, int zeroed_idx)
+    void fill_01(LutBuilder &ctx, int target_x, int target_y)
     {
         vec3d solution;
 
-        Float a, b = target_y / 255.0f;
-
         //over x
-        for(int i = target_x; i >= 0; i -= step) {
-            const int dy = step;
-            const int dx = target_x - i + step; 
+        ctx.j = target_y;
+        for(ctx.i = target_x; ctx.i >= 0; --ctx.i) {
+            const int dy = 1;
+            const int dx = target_x - ctx.i + 1; 
 
             const Float wx = dy / static_cast<Float>(dx + dy);
             const Float wy = dx / static_cast<Float>(dx + dy);
 
-            solution = lut.at(i / step, target_y / step - 1) * wy + lut.at(target_x / step + 1, target_y / step) * wx;
+            solution = ctx.at(ctx.i, target_y - 1, ctx.k) * wy + ctx.at(target_x + 1, target_y, ctx.k) * wx;
 
-            a = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(i / step, target_y / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
-
+        spec::print_progress(color_processed);
         //over y
-        a = target_x / 255.0f;
-        for(int i = target_y + step; i <= 255; i += step) {
-            const int dx = step;
-            const int dy = i - target_y + step; 
+        ctx.i = target_x;
+        for(ctx.j = target_y + 1; ctx.j < ctx.size; ++ctx.j) {
+            const int dy = 1;
+            const int dx = ctx.j - target_y + 1; 
 
             const Float wy = dx / static_cast<Float>(dx + dy);
             const Float wx = dy / static_cast<Float>(dx + dy);
 
-            solution = lut.at(target_x / step + 1, i / step) * wx + lut.at(target_x / step, target_y / step - 1) * wy;
+            solution = ctx.at(target_x + 1, ctx.j, ctx.k) * wx + ctx.at(target_x, target_y - 1, ctx.k) * wy;
 
-            b = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(target_x / step, i / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+        spec::print_progress(color_processed);
     }
 
-    void fill_10(LUT &lut, int target_x, int target_y, int step, int zeroed_idx)
+    void fill_10(LutBuilder &ctx, int target_x, int target_y)
     {
         vec3d solution;
 
-        Float a, b = target_y / 255.0f;
-
         //over x
-        for(int i = target_x; i <= 255; i += step) {
-            const int dy = step;
-            const int dx = i - target_x + step; 
+        ctx.j = target_y;
+        for(ctx.i = target_x; ctx.i < ctx.size; ++ctx.i) {
+            const int dy = 1;
+            const int dx = ctx.i - target_x + 1; 
 
             const Float wx = dy / static_cast<Float>(dx + dy);
             const Float wy = dx / static_cast<Float>(dx + dy);
 
-            solution = lut.at(i / step, target_y / step + 1) * wy + lut.at(target_x / step - 1, target_y / step) * wx;
+            solution = ctx.at(ctx.i, target_y + 1, ctx.k) * wy + ctx.at(target_x - 1, target_y, ctx.k) * wx;
 
-            a = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(i / step, target_y / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
-
+        spec::print_progress(color_processed);
         //over y
-        a = target_x / 255.0f;
-        for(int i = target_y - step; i >= 0; i -= step) {
-            const int dx = step;
-            const int dy = target_y - i + step; 
+        ctx.i = target_x;
+        for(ctx.j = target_y - 1; ctx.j >= 0; --ctx.j) {
+            const int dy = 1;
+            const int dx = target_y - ctx.j + 1; 
 
             const Float wy = dx / static_cast<Float>(dx + dy);
             const Float wx = dy / static_cast<Float>(dx + dy);
 
-            solution = lut.at(target_x / step - 1, i / step) * wx + lut.at(target_x / step, target_y / step + 1) * wy;
+            solution = ctx.at(target_x - 1, ctx.j, ctx.k) * wx + ctx.at(target_x, target_y + 1, ctx.k) * wy;
 
-            b = i / 255.0f;
-            solve_for_rgb_d(fill_vector(zeroed_idx, a, b), solution);
-            lut.at(target_x / step, i / step) = solution;
+            solve_for_rgb_d(ctx.spaced_color(), solution);
+            ctx.current() = solution;
             color_processed += 1;
         }
-        spec::print_progress(color_processed / static_cast<float>(color_count));
+        spec::print_progress(color_processed);
     }
 
 }
 
+#include <iostream>
 
 LUT generate_lut(int zeroed_idx, int step, int stable_val)
 {
-    const bool force_last_layer = (256 % step) != 0;
-    const unsigned lut_size = 256 / step + force_last_layer;
+    LutBuilder ctx{zeroed_idx, step, stable_val};
 
-    color_count = lut_size * lut_size;
-    color_processed = 0;
+    color_processed = 0u;
 
-    spec::init_progress_bar();
+    spec::init_progress_bar(ctx.size * ctx.size * ctx.size);
 
-    LUT lut{lut_size};
+    fill_main(ctx);
 
-    fill_main(lut, stable_val, step, zeroed_idx);
-    for(int i = stable_val - step; i >= 0; i -= step) {
-        fill_00(lut, i, step, zeroed_idx);
+    for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
+        for(int i = ctx.stable_id - 1; i >= 0; --i) {
+            fill_00(ctx, i);
+        }
+       // std::cout << "00 - " << ctx.k << std::endl;
+        for(int i = ctx.stable_id + 1; i < ctx.size; ++i) {
+            fill_11(ctx, i);
+        }
+      //  std::cout << "11 - " << ctx.k << std::endl;
+        for(int i = ctx.stable_id - 1, j = ctx.stable_id + 1; i >= 0 && j < ctx.size; --i, ++j) {
+            fill_01(ctx, i, j);
+      //      std::cout << "01 - " << ctx.i << " " << j << std::endl;
+        }
+        for(int i = ctx.stable_id + 1, j = ctx.stable_id - 1; j >= 0 && i < ctx.size; ++i, --j) {
+            fill_10(ctx, i, j);
+        }
+     //   std::cout << "10 - " << ctx.k << std::endl;
     }
-    for(int i = stable_val + step; i <= 255; i += step) {
-        fill_11(lut, i, step, zeroed_idx);
-    }
-    for(int i = stable_val - step, j = stable_val + step; i >= 0 && j <= 255; i -= step, j += step) {
-        fill_01(lut, i, j, step, zeroed_idx);
-    }
-    for(int i = stable_val + step, j = stable_val - step; i <= 255 && j >= 0; i += step, j -= step) {
-        fill_10(lut, i, j, step, zeroed_idx);
-    }   
     spec::finish_progress_bar();
 
-    return lut;
+    return ctx.build_and_clear();
 }

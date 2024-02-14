@@ -3,11 +3,11 @@
 
 namespace spec {
 
-    void init_progress_bar();
+    void init_progress_bar(unsigned maxcount);
 
     void finish_progress_bar();
 
-    void print_progress(float p);
+    void print_progress(unsigned count);
 
 
     bool is_little_endian();

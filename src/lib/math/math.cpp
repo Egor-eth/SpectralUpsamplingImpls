@@ -28,6 +28,17 @@ namespace spec {
             return sigmoid(std::fma(std::fma(coef[0], x, coef[1]), x, coef[2]));
         }
         
+        Float smoothstep(Float x)
+        {
+            x = clamp(x, 0.0f, 1.0f);
+            const Float x2 = x * x;
+            return 3.0f * x2 - 2.0f * x2 * x;
+        }
+
+        Float inv_smoothstep(Float x) {
+            return 0.5f - std::sin(std::asin(std::fma(-2.0f, x, 1.0f)) / 3.0f);
+        }
+
     }
 
 }

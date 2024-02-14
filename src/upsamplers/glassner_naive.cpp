@@ -41,9 +41,8 @@ namespace spec {
     ISpectralImage::ptr GlassnerUpsampler::upsample(const Image &sourceImage) const
     {
         BasicSpectralImage *dest = new BasicSpectralImage(sourceImage.get_width(), sourceImage.get_height());
-        init_progress_bar();
         const long img_size = sourceImage.get_width() * sourceImage.get_height();
-        const double wh = 1.0 / img_size;
+        init_progress_bar(img_size);
 
         dest->set_wavelenghts({590.0f, 560.0f, 440.0f});
 
@@ -52,7 +51,7 @@ namespace spec {
         BasicSpectrum *s_ptr = dest->raw_data();
         for(int i = 0; i < img_size; ++i) {
             upsample_pixel_to(ptr[i], s_ptr[i]);
-            print_progress((i + 1) * wh);
+            print_progress(i + 1);
         }
         finish_progress_bar();
         return ISpectralImage::ptr(dest);

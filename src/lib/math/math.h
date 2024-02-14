@@ -17,6 +17,20 @@ namespace spec {
         vec3 clamp(const vec3 &x, Float a, Float b);
 
         Float sigmoid_polynomial(Float x, const Float coef[3]);
+
+        Float smoothstep(Float x);
+        
+        inline Float smoothstep2(Float x)
+        {
+            return smoothstep(smoothstep(x));
+        }
+
+        Float inv_smoothstep(Float x);
+
+        inline Float inv_smoothstep2(Float x)
+        {
+            return inv_smoothstep(inv_smoothstep(x));
+        }
     }
 
     using math::mat3;

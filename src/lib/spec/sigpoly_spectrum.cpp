@@ -5,7 +5,7 @@ namespace spec {
 
     Float SigPolySpectrum::get_or_interpolate(Float w) const
     {
-        return math::sigmoid_polynomial(w, coef);
+        return math::sigmoid_polynomial(w, coef.v);
     }
     
     template class SpectralImage<SigPolySpectrum>;

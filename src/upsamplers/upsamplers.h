@@ -10,6 +10,7 @@ namespace spec {
     namespace upsamplers {
         extern const IUpsampler::shared_ptr glassner;
         extern const IUpsampler::shared_ptr smits;
+        extern const IUpsampler::shared_ptr sigpoly;
     }
 }
 #endif

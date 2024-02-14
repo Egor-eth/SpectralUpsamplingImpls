@@ -17,7 +17,7 @@ namespace spec {
         SigPolySpectrum(const SigPolySpectrum &s) = default;
 
         SigPolySpectrum(const vec3 &c) noexcept(true)
-            : ISpectrum(), coef{c.x, c.y, c.z} {}
+            : ISpectrum(), coef{c} {}
         
         Float &operator[](int i) noexcept(true)
         {
@@ -34,7 +34,7 @@ namespace spec {
         SigPolySpectrum &operator=(const SigPolySpectrum &other) = default;
 
     private:
-        Float coef[3];
+        vec3 coef;
     };
 
     extern template class SpectralImage<SigPolySpectrum>;

@@ -43,12 +43,14 @@ int main(int argc, char **argv)
 
     int zeroed_idx = spec::parse<int>(argv[1]);
 
-    LUT lut = generate_lut(zeroed_idx, 1);
+    LUT lut = generate_lut(zeroed_idx, 4, 24);
+    std::string output_path = spec::format("output/sp_lut%d.slf", zeroed_idx);
+    std::ofstream output{output_path};
 
-    std::ofstream output{spec::format("output/lut_%d.slf", zeroed_idx)};
+    std::cout << "Writing data to " << output_path << "." << std::endl;
     write_header(output);
     write_lut(output, lut);
-
+    std::cout << "Successfully written data." << std::endl;
 
     return 0;
 } 

@@ -14,10 +14,14 @@ public:
     LazyValue(LazyValue &&other)
         : value(std::move(other.value)) {}
 
+    LazyValue(const LazyValue &) = delete;
+
+    LazyValue &operator=(const LazyValue &) = delete;
+
     inline const T &get() const
     {
         if(!value) {
-            value = std::optional(std::move(constructor()));
+            value.emplace(std::move(constructor()));
         }
         return *value;
     }

@@ -3,21 +3,25 @@
 
 
 namespace spec {
-    void init_progress_bar() {
+    unsigned _progress_max_count = 1;
+
+    void init_progress_bar(unsigned maxcount) {
+        _progress_max_count = maxcount;
         std::cout << std::endl;
     }
 
     void finish_progress_bar() {
+        print_progress(_progress_max_count);
         std::cout << "\033[A\033[2K\r";
     }
 
-    void print_progress(float p) 
+    void print_progress(unsigned count) 
     {
-        const int bar_length = 100;
-        int progress_points = bar_length * p;
+        static const unsigned bar_length = 100;
+        unsigned progress_points = bar_length * (count / static_cast<float>(_progress_max_count));
         std::cout << "\033[F[";
         std::cout << std::string(progress_points, '*') + std::string(bar_length - progress_points, ' ');
-        std::cout << "]\n";
+        std::cout << "] " << count << "/" << _progress_max_count << " - " << progress_points << "%\n";
     }
 
     bool is_little_endian()

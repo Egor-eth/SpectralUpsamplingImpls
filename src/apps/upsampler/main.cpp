@@ -22,6 +22,7 @@ std::unordered_map<std::string, IUpsampler::shared_ptr> upsampler_by_name;
 void fill_method_map() {
     upsampler_by_name["glassner"] = spec::upsamplers::glassner;
     upsampler_by_name["smits"] = spec::upsamplers::smits;
+    upsampler_by_name["sigpoly"] = spec::upsamplers::sigpoly;
 }
 
 const IUpsampler *get_upsampler_by_name(const std::string &method_name)
@@ -63,6 +64,9 @@ int upsample(const Args &args) {
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         std::cout << "Saving..." << std::endl;
+
+        vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectral_img->at(0, 0)));
+        std::cout << "Downsampled RGB: " << downsampled_rgb << std::endl;
 
         if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
             std::cerr << "[!] Error saving image." << std::endl;

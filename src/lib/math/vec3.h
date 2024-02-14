@@ -1,6 +1,7 @@
 #ifndef MATH_VEC3_H
 #define MATH_VEC3_H
 #include <ostream>
+#include <cstddef>
 #include "math_fwd.h"
 
 namespace spec::math {
@@ -134,6 +135,11 @@ namespace spec::math {
             return *this;
         }
 
+        bool operator==(const base_vec3 &v) noexcept(true)
+        {
+            return x == v.x && y == v.y && z == v.z;
+        }
+
         T sum() const noexcept(true)
         {
             return x + y + z;
@@ -174,7 +180,8 @@ namespace spec::math {
     {
         str << '{' << v.x << ", " << v.y << ", " << v.z << "}";
         return str;
-    }
+    }  
+
 
     extern template union base_vec3<Float>;
     extern template std::ostream &operator<<(std::ostream &str, const base_vec3<Float> &v);
@@ -184,5 +191,15 @@ namespace spec::math {
     using vec3f = base_vec3<float>;
 
 }
+
+template<typename T>
+struct std::hash<spec::math::base_vec3<T>> {
+    std::size_t operator()(const spec::math::base_vec3<T> &s) const noexcept {
+        std::size_t h1 = std::hash<T>{}(s.x);
+        std::size_t h2 = std::hash<T>{}(s.y);
+        std::size_t h3 = std::hash<T>{}(s.z);
+        return ((h1 * 31) + h2) * 31 + h3;
+    }
+};
 
 #endif
