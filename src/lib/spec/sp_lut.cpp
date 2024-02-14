@@ -41,8 +41,8 @@ namespace spec {
 
         const int a1_id = a / step;
         const int a2_id = safe_int(a1_id + 1, size);
-        const int b1_id = a / step;
-        const int b2_id = safe_int(a1_id + 1, size);
+        const int b1_id = b / step;
+        const int b2_id = safe_int(b1_id + 1, size);
 
         const int a1 = safe_int(a1_id * step, 256);
         const int a2 = a == 255 ? 256 : safe_int(a2_id * step, 256);

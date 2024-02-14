@@ -50,9 +50,9 @@ namespace {
         int i = 0, j = 0, k = 0;
 
         LutBuilder(int main_channel, int step, int stable)
-            : main_channel{main_channel}, step{step}, size{256 / step + (256 % step != 0)},
+            : main_channel{main_channel}, step{step}, size{256 / step + (255 % step != 0)},
               stable{stable}, stable_id{stable / step}, 
-              force_last{256 % step != 0}, data{new vec3[size * size * size]} {}
+              force_last{255 % step != 0}, data{new vec3[size * size * size]} {}
 
         ~LutBuilder()
         {
@@ -85,11 +85,11 @@ namespace {
 
         void init_solution(vec3d &solution) const
         {
-            if(k <= stable_id) {
+            if(k == stable_id) {
                 std::fill_n(solution.v, 3, 0.0);
             }
             else {
-                solution = at(i, j, k - 1);
+                solution = at(i, j, k < stable_id ? k + 1 : k - 1);
             }
         }
 
@@ -334,6 +334,22 @@ namespace {
         spec::print_progress(color_processed);
     }
 
+    void fill_stupid(LutBuilder &ctx)
+    {
+        vec3d solution;
+        for(ctx.i = 0; ctx.i < ctx.size; ++ctx.i) {
+            for(ctx.j = 0; ctx.j < ctx.size; ++ctx.j) {
+                ctx.init_solution(solution);
+
+                solve_for_rgb_d(ctx.spaced_color(), solution);
+                ctx.current() = solution;
+                color_processed += 1;
+            }
+            spec::print_progress(color_processed);
+        }
+
+    }
+
 }
 
 #include <iostream>
@@ -346,9 +362,17 @@ LUT generate_lut(int zeroed_idx, int step, int stable_val)
 
     spec::init_progress_bar(ctx.size * ctx.size * ctx.size);
 
+    for(ctx.k = ctx.stable_id; ctx.k >= 0; --ctx.k) {
+        fill_stupid(ctx);
+    }
+    for(ctx.k = ctx.stable_id + 1; ctx.k < ctx.size; ++ctx.k) {
+        fill_stupid(ctx);
+    }
+
+    /*
     fill_main(ctx);
 
-    for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
+    for(ctx.k = ctx.stable_id; ctx.k >= 0; --ctx.k) {
         for(int i = ctx.stable_id - 1; i >= 0; --i) {
             fill_00(ctx, i);
         }
@@ -366,7 +390,25 @@ LUT generate_lut(int zeroed_idx, int step, int stable_val)
         }
      //   std::cout << "10 - " << ctx.k << std::endl;
     }
-    spec::finish_progress_bar();
 
+    for(ctx.k = ctx.stable_id + 1; ctx.k < ctx.size; ++ctx.k) {
+        for(int i = ctx.stable_id - 1; i >= 0; --i) {
+            fill_00(ctx, i);
+        }
+       // std::cout << "00 - " << ctx.k << std::endl;
+        for(int i = ctx.stable_id + 1; i < ctx.size; ++i) {
+            fill_11(ctx, i);
+        }
+      //  std::cout << "11 - " << ctx.k << std::endl;
+        for(int i = ctx.stable_id - 1, j = ctx.stable_id + 1; i >= 0 && j < ctx.size; --i, ++j) {
+            fill_01(ctx, i, j);
+      //      std::cout << "01 - " << ctx.i << " " << j << std::endl;
+        }
+        for(int i = ctx.stable_id + 1, j = ctx.stable_id - 1; j >= 0 && i < ctx.size; ++i, --j) {
+            fill_10(ctx, i, j);
+        }
+     //   std::cout << "10 - " << ctx.k << std::endl;
+    }*/
+    spec::finish_progress_bar();
     return ctx.build_and_clear();
 }

@@ -11,9 +11,9 @@ namespace spec {
     public:
         static constexpr uint64_t FILE_MARKER = 0xfafa0000ab0ba000;
 
-        LUT(vec3 *data, unsigned step) : step{step}, size{256 / step + (256 % step != 0)}, data{data} {}
+        LUT(vec3 *data, unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{data} {}
 
-        LUT(unsigned step) : step{step}, size{256 / step + (256 % step != 0)}, data{new vec3[size * size * size]} {}
+        LUT(unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{new vec3[size * size * size]} {}
 
         LUT(const LUT &) = delete;
         LUT &operator=(const LUT &) = delete;
@@ -54,7 +54,7 @@ namespace spec {
 
         const vec3 &at(int i, int j, int k) const
         {
-            return data[(k * size + i) * size + j];
+            return data[((k * size) + i) * size + j];
         }
         Float aid_to_alpha(int c) const;
     };

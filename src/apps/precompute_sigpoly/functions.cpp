@@ -46,7 +46,6 @@ vec3d solve_for_rgb(const vec3 &rgb, const vec3d &init)
 
     // Run the solver!
     Solver::Options options;
-    options.num_threads = 4;
     options.max_num_iterations = 100;
     options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = enable_logging;

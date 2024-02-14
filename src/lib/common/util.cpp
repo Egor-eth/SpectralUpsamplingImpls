@@ -12,7 +12,7 @@ namespace spec {
 
     void finish_progress_bar() {
         print_progress(_progress_max_count);
-        std::cout << "\033[A\033[2K\r";
+        //std::cout << "\033[A\033[2K\r";
     }
 
     void print_progress(unsigned count) 
