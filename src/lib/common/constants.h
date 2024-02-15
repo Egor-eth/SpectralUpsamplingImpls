@@ -2,8 +2,11 @@
 #define COMMON_CONSTANTS_H
 #include <string>
 #include "math/math.h"
+#include <cinttypes>
 
 namespace spec {
+
+    using imgsize_t = uint32_t;
 
     constexpr Float EPSILON = 1e-6f;
 

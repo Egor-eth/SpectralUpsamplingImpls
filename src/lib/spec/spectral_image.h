@@ -3,6 +3,7 @@
 #include "spectrum.h"
 #include <memory>
 
+
 namespace spec {
    
     template <typename SpectrumType>
@@ -14,10 +15,10 @@ namespace spec {
         SpectralImage()
             : SpectralImage(nullptr, 0, 0) {}
 
-        SpectralImage(int w, int h)
+        SpectralImage(unsigned w, unsigned h)
             : SpectralImage(new SpectrumType[w * h], w, h) {}
 
-        SpectralImage(int w, int h, const SpectrumType &p)
+        SpectralImage(unsigned w, unsigned h, const SpectrumType &p)
             : SpectralImage(w, h)
         {
             std::fill(this->data.get(), this->data.get() + w * h, p);
@@ -68,7 +69,7 @@ namespace spec {
     protected:
         std::unique_ptr<SpectrumType []> data;
 
-        SpectralImage(SpectrumType *ptr, int width, int height)
+        SpectralImage(SpectrumType *ptr, unsigned width, unsigned height)
             : ISpectralImage(width, height), data(ptr) {}
 
 

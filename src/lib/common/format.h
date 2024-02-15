@@ -1,9 +1,9 @@
 #ifndef COMMON_FORMAT_H
 #define COMMON_FORMAT_H
 #include <cstdio>
-#include <memory>
 
 namespace spec {
+    
     template<typename ...Args>
     std::string format(const std::string &fmt, Args ...args)
     {
@@ -12,5 +12,7 @@ namespace spec {
         std::snprintf(ptr.get(), size, fmt.c_str(), args...);
         return std::string(ptr.get());
     }
+
 }
+
 #endif

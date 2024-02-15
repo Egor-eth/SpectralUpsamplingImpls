@@ -4,6 +4,7 @@
 #include <vector>
 #include <ostream>
 #include <istream>
+#include <cinttypes>
 #include "basic_spectrum.h"
 #include "sigpoly_spectrum.h"
 #include "common/lazy_value.h"
@@ -16,6 +17,8 @@ namespace spec
         extern const LazyValue<BasicSpectrum> CIE_D6500;
 
         extern const std::string META_FILENAME;
+
+        constexpr uint64_t SIGPOLY_FILE_MARKER = 0xfafa0000ab0bab0b;
 
         struct SavingResult
         {
@@ -94,6 +97,13 @@ namespace spec
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectrum &s);
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectralImage &s);
 
+        BasicSpectralImage load_png1(const std::string &meta_path);
+
+        SigPolySpectrum load_sigpoly(const std::string &path);
+        SigPolySpectralImage load_sigpoly_img(const std::string &path);
+
+        bool load(const std::string path, ISpectrum::ptr &s);
+        bool load(const std::string path, ISpectralImage::ptr &img);
     }
 
 }

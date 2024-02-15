@@ -38,7 +38,7 @@ namespace spec {
                 a = pixel.rgba[(amax + 1) % 3] / static_cast<Float>(alpha) * 255.0f;
                 b = pixel.rgba[(amax + 2) % 3] / static_cast<Float>(alpha) * 255.0f;
             }
-            std::cout << "amax: " << amax << " a, b, alpha: " << a << " " << b << " " << alpha << std::endl;
+           // std::cout << "amax: " << amax << " a, b, alpha: " << a << " " << b << " " << alpha << std::endl;
 
             s = SigPolySpectrum(LUTS[amax]->eval(a, b, alpha));
         }
@@ -57,16 +57,16 @@ namespace spec {
         SigPolySpectralImage *dest = new SigPolySpectralImage(sourceImage.get_width(), sourceImage.get_height());
        
         const long img_size = sourceImage.get_width() * sourceImage.get_height();
-       // init_progress_bar(img_size);
+        init_progress_bar(img_size);
 
         const Pixel *ptr = sourceImage.raw_data();
         SigPolySpectrum *s_ptr = dest->raw_data();
         for(int i = 0; i < img_size; ++i) {
             upsample_pixel_to(ptr[i], s_ptr[i]);
-            //print_progress(i + 1);
+            print_progress(i + 1);
         }
 
-        //finish_progress_bar();
+        finish_progress_bar();
         return ISpectralImage::ptr(dest);
     }
 

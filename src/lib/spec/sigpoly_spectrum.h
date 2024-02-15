@@ -29,6 +29,16 @@ namespace spec {
             return coef[i];
         }
 
+        const vec3 &get() const
+        {
+            return coef;
+        }
+
+        void set(const vec3 &c)
+        {
+            coef = c;
+        }
+
         Float get_or_interpolate(Float w) const override;
 
         SigPolySpectrum &operator=(const SigPolySpectrum &other) = default;

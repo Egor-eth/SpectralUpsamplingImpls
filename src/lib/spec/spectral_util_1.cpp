@@ -6,9 +6,10 @@
 #include <filesystem>
 #include <stb_image_write.h>
 #include <nlohmannjson/json.hpp>
-#include "common/format.h"
+#include "serialization/binary.h"
 #include "common/constants.h"
 #include "common/refl.h"
+#include "common/format.h"
 
 namespace fs = std::filesystem;
 using namespace spec;
@@ -232,6 +233,19 @@ namespace spec
             std::ofstream file(path, std::ios::trunc);
             if(!file) throw std::runtime_error("Cannot open file");
 
+            const unsigned size = img.get_height() * img.get_width();
+
+            //HEADER
+            binary::write<uint64_t>(file, SIGPOLY_FILE_MARKER);
+            binary::write<uint16_t>(file, sizeof(Float));
+            binary::write<uint32_t>(file, img.get_width());
+            binary::write<uint32_t>(file, img.get_height());
+
+            //DATA
+            const auto *ptr = img.raw_data();
+            for(unsigned i = 0; i < size; ++i) {
+                binary::write_vec<Float>(file, ptr[i].get());
+            }
 
             file.flush();
             return false;

@@ -13,6 +13,7 @@ namespace spec {
     bool is_little_endian();
 
     void serial_copy(const char *src, char *dst, unsigned size);
+
 }
 
 #endif
