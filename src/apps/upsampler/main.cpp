@@ -4,7 +4,7 @@
 #include <fstream>
 #include <memory>
 #include <unordered_map>
-#include "upsamplers/upsamplers.h"
+#include "upsample/upsamplers.h"
 #include "imageutil/image.h"
 #include "spec/basic_spectrum.h"
 #include "spec/spectral_util.h"
@@ -17,19 +17,19 @@ using std::chrono::duration_cast;
 
 using namespace spec;
 
-std::unordered_map<std::string, IUpsampler::shared_ptr> upsampler_by_name;
+std::unordered_map<std::string, const LazyPtr<IUpsampler> *> upsampler_by_name;
 
 void fill_method_map() {
-    upsampler_by_name["glassner"] = spec::upsamplers::glassner;
-    upsampler_by_name["smits"] = spec::upsamplers::smits;
-    upsampler_by_name["sigpoly"] = spec::upsamplers::sigpoly;
+    upsampler_by_name["glassner"] = &spec::upsamplers::glassner;
+    upsampler_by_name["smits"] = &spec::upsamplers::smits;
+    upsampler_by_name["sigpoly"] = &spec::upsamplers::sigpoly;
 }
 
 const IUpsampler *get_upsampler_by_name(const std::string &method_name)
 {
     const auto it = upsampler_by_name.find(method_name);
     if(it == upsampler_by_name.end()) return nullptr;
-    return it->second.get();
+    return it->second->get();
 }
 
 int downsample(const Args &args) {

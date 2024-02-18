@@ -1,5 +1,5 @@
-set(MODULE_NAME upsamplers)
-set(MODULE_PATH ${SRC}/upsamplers)
+set(MODULE_NAME upsample)
+set(MODULE_PATH ${SRC}/spectral/upsample)
 
 set(MODULE_SOURCES
     glassner_naive.cpp
@@ -9,5 +9,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    spectral
+    common math spec imageutil
 )

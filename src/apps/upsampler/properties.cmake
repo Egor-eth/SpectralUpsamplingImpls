@@ -7,5 +7,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    spectral upsamplers
+    spectral
 )

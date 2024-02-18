@@ -113,6 +113,19 @@ namespace spec
 
         void Metadata::load(std::istream &stream)
         {
+           /* json meta;
+            stream >> meta;
+
+            meta.at("width").get_to(width);
+            meta.at("height").get_to(height);
+
+            meta.at("format").get_to(format);
+            for(const auto &e : meta.at("wavelenghts")) {
+                MetadataEntry entry;
+                e.at("filename").get_to(entry.filename);
+                e.at("targets.")
+            }
+            */
             (void) stream;
         }
 

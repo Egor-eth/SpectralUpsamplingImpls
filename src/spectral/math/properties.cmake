@@ -1,5 +1,5 @@
 set(MODULE_NAME math)
-set(MODULE_PATH ${SRC}/lib/math)
+set(MODULE_PATH ${SRC}/spectral/math)
 
 set(MODULE_SOURCES
     mat3.cpp

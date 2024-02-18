@@ -1,5 +1,5 @@
-#ifndef UPSAMPLERS_UPSAMPLER_H
-#define UPSAMPLERS_UPSAMPLER_H
+#ifndef UPSAMPLE_UPSAMPLER_H
+#define UPSAMPLE_UPSAMPLER_H
 #include "spec/spectrum.h"
 #include "imageutil/image.h"
 #include <memory>

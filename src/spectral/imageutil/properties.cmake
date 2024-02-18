@@ -1,5 +1,5 @@
 set(MODULE_NAME imageutil)
-set(MODULE_PATH ${SRC}/lib/imageutil)
+set(MODULE_PATH ${SRC}/spectral/imageutil)
 
 set(MODULE_SOURCES
     pixel.cpp

@@ -1,5 +1,5 @@
 set(MODULE_NAME spec)
-set(MODULE_PATH ${SRC}/lib/spec)
+set(MODULE_PATH ${SRC}/spectral/spec)
 
 set(MODULE_SOURCES
     spectral_util_1.cpp
