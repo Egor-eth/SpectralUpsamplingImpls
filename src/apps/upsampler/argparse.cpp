@@ -32,7 +32,7 @@ bool parse_args(int argc, char **argv, Args &args)
             break;
         case 'c':
             if(input_type != InputType::NONE) return false;
-            args.color = Pixel::from_argb(std::stoi(optarg, nullptr, 16));
+            args.color = Pixel::from_rgb(std::stoi(optarg, nullptr, 16));
             input_type = InputType::COLOR;
             break;
         case 'f':

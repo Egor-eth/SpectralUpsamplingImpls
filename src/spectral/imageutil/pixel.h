@@ -7,47 +7,49 @@
 namespace spec {
 
 	#pragma pack(push, 1)
-	union PixelRGBA {
-		uint8_t rgba[4];
+	union PixelRGB {
+		uint8_t rgb[3];
 		struct {
-			uint8_t r, g, b, a;
+			uint8_t r, g, b;
 		};
 		//required for triviality
-		PixelRGBA() = default; // @suppress("Class members should be properly initialized")
-		PixelRGBA(const PixelRGBA &) = default;
-		PixelRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF);
-		PixelRGBA &operator=(const PixelRGBA&) = default;
+		PixelRGB() = default; // @suppress("Class members should be properly initialized")
+		PixelRGB(const PixelRGB &) = default;
+		PixelRGB(uint8_t r, uint8_t g, uint8_t b);
+		PixelRGB &operator=(const PixelRGB&) = default;
 		
-		PixelRGBA(uint32_t argb) {
-			*this = argb;
+		PixelRGB(uint32_t rgb) 
+		{
+			*this = rgb;
 		}
 
-		PixelRGBA &operator=(uint32_t argb);
+		PixelRGB &operator=(uint32_t rgb);
 
-		operator uint32_t() const;
+		operator uint32_t() const
+		{
+			return as_rgb();
+		}
 
 		uint8_t operator[](int i) const
 		{
-			return rgba[i];
+			return rgb[i];
 		}
 		uint8_t &operator[](int i)
 		{
-			return rgba[i];
+			return rgb[i];
 		}
 
 		math::vec3 to_vec3() const;
 		
+		uint32_t as_rgb() const;
 
-		uint32_t argb() const;
-
-		static PixelRGBA from_argb(uint32_t argb);
-		static PixelRGBA from_rgb(uint32_t rgb);
-		static PixelRGBA from_vec3(const math::vec3 &rgb);
-		static const PixelRGBA none;
+		static PixelRGB from_rgb(uint32_t rgb);
+		static PixelRGB from_vec3(const math::vec3 &rgb);
+		static const PixelRGB none;
 	};
 	#pragma pack(pop)
 
-	using Pixel = PixelRGBA;
+	using Pixel = PixelRGB;
 
 	static_assert(std::is_trivial<Pixel>() && std::is_standard_layout<Pixel>(), "Requires being trivial standard layout object for outputting");
 

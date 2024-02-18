@@ -2,70 +2,53 @@
 
 namespace spec {
 
-	PixelRGBA::PixelRGBA(uint8_t r, uint8_t g, uint8_t b, uint8_t a)
+	PixelRGB::PixelRGB(uint8_t r, uint8_t g, uint8_t b)
 	{
-		rgba[0] = r;
-		rgba[1] = g;
-		rgba[2] = b;
-		rgba[3] = a;
+		rgb[0] = r;
+		rgb[1] = g;
+		rgb[2] = b;
 	}
 
-	PixelRGBA &PixelRGBA::operator=(uint32_t rgba_in)
+	PixelRGB &PixelRGB::operator=(uint32_t rgb_in)
 	{
-		rgba[0] = (rgba_in >> 24);
-		rgba[1] = (rgba_in >> 16) & 0xFF;
-		rgba[2] = (rgba_in >> 8) & 0xFF;
-		rgba[3] = rgba_in & 0xFF;
+		rgb[0] = (rgb_in >> 24);
+		rgb[1] = (rgb_in >> 16) & 0xFF;
+		rgb[2] = (rgb_in >> 8) & 0xFF;
 		return *this;
 	}
 
-	PixelRGBA::operator uint32_t() const
+	uint32_t PixelRGB::as_rgb() const
 	{
-		return (rgba[0] << 24) | (rgba[1] << 16) | (rgba[2] << 8) | rgba[3];
+		return (rgb[0] << 16) | (rgb[1] << 8) | rgb[2];
 	}
 
-	uint32_t PixelRGBA::argb() const
-	{
-		return (rgba[0] << 16) | (rgba[1] << 8) | rgba[2] | (rgba[3] << 24);
-	}
-
-	math::vec3 PixelRGBA::to_vec3() const
+	math::vec3 PixelRGB::to_vec3() const
 	{
 		return {
-			rgba[0] / 255.0f,
-			rgba[1] / 255.0f,
-			rgba[2] / 255.0f
+			rgb[0] / 255.0f,
+			rgb[1] / 255.0f,
+			rgb[2] / 255.0f
 		};
 	}
 
-	PixelRGBA PixelRGBA::from_argb(uint32_t argb)
+	PixelRGB PixelRGB::from_rgb(uint32_t rgb)
 	{
-		return PixelRGBA(
-				(argb >> 16) & 0xFF,
-				(argb >> 8) & 0xFF,
-				argb & 0xFF,
-				argb >> 24
-				);
-	}
-
-	PixelRGBA PixelRGBA::from_rgb(uint32_t rgb)
-	{
-		return PixelRGBA(
+		return PixelRGB(
 				(rgb >> 16) & 0xFF,
 				(rgb >> 8) & 0xFF,
 				(rgb) & 0xFF
 				);
 	}
 
-	PixelRGBA PixelRGBA::from_vec3(const math::vec3 &rgb)
+	PixelRGB PixelRGB::from_vec3(const math::vec3 &rgb)
 	{
-		return PixelRGBA(
+		return PixelRGB(
 				static_cast<uint8_t>(rgb.x * 255.999),
 				static_cast<uint8_t>(rgb.y * 255.999),
 				static_cast<uint8_t>(rgb.z * 255.999)
 				);
 	}
 
-	const PixelRGBA PixelRGBA::none{0, 0, 0};
+	const PixelRGB PixelRGB::none{0, 0, 0};
 
 }
