@@ -13,7 +13,7 @@ Simply run
 ## Usage
 Run
 ~~~
-./build/upsampler
+./build/converter
 ~~~
 Parameters: 
 * -f \<path\> : input file;
