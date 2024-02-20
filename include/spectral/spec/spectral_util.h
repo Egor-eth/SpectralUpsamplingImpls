@@ -38,13 +38,13 @@ namespace spec
 
         struct Metadata
         {
-            int width;
-            int height;
+            unsigned width;
+            unsigned height;
             std::string format;
             std::vector<MetadataEntry> wavelenghts;
 
             void save(std::ostream &stream) const;
-            void load(std::istream &stream);
+            static Metadata load(std::istream &stream);
         };
 
 
@@ -86,19 +86,16 @@ namespace spec
 
         bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
 
-        bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
-
-    //    bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
-
-
         bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum);
         bool save_sigpoly_img(const std::string path, const SigPolySpectralImage &img);
 
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectrum &s);
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectralImage &s);
 
-        BasicSpectralImage load_png1(const std::string &meta_path);
+        BasicSpectralImage load_jsonmeta(const std::string &meta_path);
 
+        BasicSpectralImage load_envi_hdr(const std::string &meta_path, const std::string &raw_path);
+        BasicSpectralImage load_envi_hdr(const std::string &meta_path);
         SigPolySpectrum load_sigpoly(const std::string &path);
         SigPolySpectralImage load_sigpoly_img(const std::string &path);
 

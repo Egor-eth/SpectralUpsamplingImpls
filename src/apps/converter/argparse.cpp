@@ -63,7 +63,7 @@ bool parse_args(int argc, char **argv, Args &args)
         std::cerr << "[!] No input specified." << std::endl;
         return false;
     }
-    if(!args.downsample_mode && !args.output_name) {
+    if(!args.output_name) {
         fs::path p1{args.input_path};
         args.output_name.emplace(p1.stem());
     }

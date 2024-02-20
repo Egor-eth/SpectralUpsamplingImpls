@@ -5,8 +5,10 @@
 #include <spec/spectral_util.h>
 #include <spec/conversions.h>
 #include <internal/common/format.h>
+#include <internal/common/util.h>
 #include <chrono>
 #include <stdexcept>
+#include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <memory>
@@ -16,7 +18,7 @@ using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 
 using namespace spec;
-
+namespace fs = std::filesystem;
 std::unordered_map<std::string, const LazyPtr<IUpsampler> *> upsampler_by_name;
 
 void fill_method_map() {
@@ -32,12 +34,50 @@ const IUpsampler *get_upsampler_by_name(const std::string &method_name)
     return it->second->get();
 }
 
-int downsample(const Args &args) {
-    BasicSpectrum spectrum = spec::util::load_spd(args.input_path);
+//https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
+inline bool string_ends_with(const std::string &value, const std::string &ending)
+{
+    if (ending.size() > value.size()) return false;
+    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+}
 
-    std::cout << "Converting spectum to RGB" << std::endl;
-    vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectrum));
-    std::cout << "Downsampled RGB: " << downsampled_rgb << std::endl;
+int downsample(const Args &args) {
+
+    std::cout << "Loading file..." << std::endl;
+    ISpectralImage::ptr spec_img;
+    ISpectrum::ptr spec;
+    const std::string output_path = (fs::path(args.output_dir) / fs::path(*args.output_name)).string();
+
+    if(!spec::util::load(args.input_path, spec_img)) {
+        if(!spec::util::load(args.input_path, spec)) {
+            std::cerr << "Unknown file format" << std::endl;
+            return 2;
+        }        
+        std::cout << "Converting spectum to RGB..." << std::endl;
+        vec3 downsampled_rgb = xyz2rgb(spectre2xyz(*spec));
+        std::ofstream output{output_path + ".txt"};
+        output << downsampled_rgb.x << " " << downsampled_rgb.y << " " << downsampled_rgb.z << std::endl; 
+        return 0;
+    }
+
+    const int w = spec_img->get_width();
+    const int h = spec_img->get_height();
+    Image img{w, h};
+
+
+    std::cout << "Converting spectral image to png..." << std::endl;
+    init_progress_bar(w * h, 10);
+
+    for(int j = 0; j < h; ++j) {
+        for(int i = 0; i < w; ++i) {
+            img.at(i, j) = Pixel::from_vec3(xyz2rgb(spectre2xyz(spec_img->at(i, j))));
+            print_progress(j * w + i);
+        }
+    }
+    finish_progress_bar();
+
+    img.save(output_path + ".png");
+
     return 0;
 }
 
@@ -64,9 +104,6 @@ int upsample(const Args &args) {
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
         std::cout << "Saving..." << std::endl;
-
-        vec3 downsampled_rgb = xyz2rgb(spectre2xyz(spectral_img->at(0, 0)));
-        std::cout << "Downsampled RGB: " << downsampled_rgb << std::endl;
 
         if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
             std::cerr << "[!] Error saving image." << std::endl;

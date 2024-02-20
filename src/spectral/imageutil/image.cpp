@@ -4,7 +4,9 @@
 #include <stdexcept>
 #include <stb_image.h>
 #include <stb_image_write.h>
+#include <filesystem>
 
+namespace fs = std::filesystem;
 
 namespace spec {
 
@@ -32,10 +34,15 @@ namespace spec {
 
     bool Image::save(const std::string &path, const std::string &format) const
     {
-        if(format == "png") {
+        std::string fmt = format;
+        if(fmt == "") {
+            fmt = fs::path(path).extension().string().substr(1);
+        }
+
+        if(fmt == "png") {
             return stbi_write_png(path.c_str(), width, height, sizeof(Pixel), reinterpret_cast<const unsigned char *>(data.get()), 0) != 0;
         }
-        if(format == "jpg") {
+        if(fmt == "jpg") {
             return stbi_write_jpg(path.c_str(), width, height, sizeof(Pixel), reinterpret_cast<const unsigned char *>(data.get()), 90) != 0;
         }
         return false;

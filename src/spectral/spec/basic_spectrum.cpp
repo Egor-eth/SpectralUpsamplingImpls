@@ -104,20 +104,15 @@ namespace spec {
             PNG1 = 0,
             PNG3,
             PNG1_JSON = 0xf000,
-            PNG1_ZIP,
-            PNG3_JSON,
-            PNG3_ZIP,
+       //     PNG1_ZIP,
             ONE_SPECTRE
         };
 
         const std::unordered_map<std::string, SaveFormat> str_to_format{
             {"png1", PNG1},
             {"json", PNG1_JSON},
-            {"zip", PNG1_ZIP},
-            {"png1_zip", PNG1_ZIP},
-            {"png3", PNG3},
-            {"json3", PNG3_JSON},
-            {"png3_zip", PNG3_ZIP},
+          //  {"zip", PNG1_ZIP},
+         //   {"png1_zip", PNG1_ZIP},
             {"one_spectre", ONE_SPECTRE},
             {"spd", ONE_SPECTRE}
         };
@@ -137,7 +132,7 @@ namespace spec {
             std::string extension = p.extension();
             if(extension.empty()) return PNG1;
             else if(extension == ".json") return PNG1_JSON;
-            else if(extension == ".zip") return PNG1_ZIP;
+            //else if(extension == ".zip") return PNG1_ZIP;
             else if(extension == ".spd") return ONE_SPECTRE;
             return UNKNOWN;
         }
@@ -206,11 +201,6 @@ namespace spec {
                     [[fallthrough]];
                 case PNG1_JSON:
                     return util::save_as_png1(*this, target_directory, target_file);
-                case PNG3:
-                    target_file = util::META_FILENAME;
-                    [[fallthrough]];
-                case PNG3_JSON:
-                    return util::save_as_png3(*this, target_directory, target_file);
                 default:
                     return false;
                 }

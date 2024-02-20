@@ -19,7 +19,7 @@ namespace
     const std::string IMG_FILENAME_FORMAT = "w_" + FLOAT_FORMAT + ".png";
     const std::string SPD_OUTPUT_FORMAT = FLOAT_FORMAT + " " + FLOAT_FORMAT + "\n";
 
-    void __to_stream(void *context, void *data, int size) 
+    void _to_stream(void *context, void *data, int size) 
     {
 
         std::ostream *stream = reinterpret_cast<std::ostream *>(context);
@@ -29,7 +29,7 @@ namespace
 
     int write_png_to_stream(std::ostream &stream, int width, int height, int channels, const unsigned char *buf) noexcept(true)
     {
-        return stbi_write_png_to_func(__to_stream, reinterpret_cast<void *>(&stream), width, height, channels, buf, 0);
+        return stbi_write_png_to_func(_to_stream, reinterpret_cast<void *>(&stream), width, height, channels, buf, 0);
     }
 
     void normalize_and_convert_to_rgb(const BasicSpectralImage &img, unsigned char *dst, const std::vector<Float> &wavelenghts, int channels, Float &range_out, Float &min_val_out)
@@ -111,22 +111,35 @@ namespace spec
             stream.flush();
         }
 
-        void Metadata::load(std::istream &stream)
-        {
-           /* json meta;
+        Metadata Metadata::load(std::istream &stream)
+        {   
+
+            Metadata metadata;
+            json meta;
             stream >> meta;
 
-            meta.at("width").get_to(width);
-            meta.at("height").get_to(height);
+            meta.at("width").get_to(metadata.width);
+            meta.at("height").get_to(metadata.height);
 
-            meta.at("format").get_to(format);
-            for(const auto &e : meta.at("wavelenghts")) {
-                MetadataEntry entry;
+            meta.at("format").get_to(metadata.format);
+
+
+            const auto &wlarray = meta.at("wavelenghts");
+            for(const auto &e : wlarray) {
+                metadata.wavelenghts.push_back({});
+                MetadataEntry &entry = metadata.wavelenghts.back();
+
                 e.at("filename").get_to(entry.filename);
-                e.at("targets.")
+                const auto &targets_arr = e.at("targets");
+
+                for(const auto &elem : targets_arr) {
+                    entry.targets.push_back(elem.get<Float>());
+                }
+                e.at("norm_min_val").get_to(entry.norm_min_val);
+                e.at("norm_range").get_to(entry.norm_range);
             }
-            */
-            (void) stream;
+            metadata.wavelenghts.shrink_to_fit();
+            return metadata;
         }
 
         void save_spd(const std::string &path, const BasicSpectrum &spectre)
@@ -152,10 +165,6 @@ namespace spec
 
 
             std::unique_ptr<unsigned char[]> buf{new unsigned char[width * height * channels]};
-            if(!buf){
-                res.success = false;
-                throw std::bad_alloc();
-            }
 
             normalize_and_convert_to_rgb(img, buf.get(), wavelenghts, channels, res.norm_range, res.norm_min);
 
@@ -172,10 +181,6 @@ namespace spec
             const int width = img.get_width();
             const int height = img.get_height();
             std::unique_ptr<unsigned char[]> buf{new unsigned char[width * height]};
-            if(!buf) {
-                res.success = false;
-                throw std::bad_alloc();
-            }
 
             normalize_and_convert_to_rgb(img, buf.get(), {wavelenght}, 1, res.norm_range, res.norm_min);
 
@@ -220,14 +225,6 @@ namespace spec
             meta_file.close();
 
             return true;
-        }
-
-        bool save_as_png3(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename)
-        {
-            (void) image;
-            (void) dir;
-            (void) meta_filename;
-            return false;
         }
 
         bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum)
@@ -290,7 +287,7 @@ namespace spec
             }
             if(isa<SigPolySpectralImage>(s)) {
                 const SigPolySpectralImage &img = static_cast<const SigPolySpectralImage &>(s);
-                return save_sigpoly_img(p / (input_filename + ".spspec"), img);
+                return save_sigpoly_img(p / (input_filename + ".sif"), img);
             }
             return false;
         }

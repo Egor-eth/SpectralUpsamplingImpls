@@ -11,7 +11,8 @@ namespace spec {
     class BaseImage
     {
     private:
-        static void default_deleter(PixelType *ptr) {
+        static void default_deleter(PixelType *ptr)
+        {
             delete[] ptr;
         }
     public:

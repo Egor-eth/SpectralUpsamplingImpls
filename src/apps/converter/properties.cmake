@@ -1,5 +1,5 @@
-set(MODULE_NAME upsampler)
-set(MODULE_PATH ${SRC}/apps/upsampler)
+set(MODULE_NAME converter)
+set(MODULE_PATH ${SRC}/apps/converter)
 
 set(MODULE_SOURCES
     main.cpp
