@@ -2,7 +2,7 @@
 #define ARGPARSE_H
 #include <string>
 #include <optional>
-#include "imageutil/pixel.h"
+#include <imageutil/pixel.h>
 
 
 struct Args {

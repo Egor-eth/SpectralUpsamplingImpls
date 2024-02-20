@@ -1,9 +1,7 @@
-#include "glassner_naive.h" 
-#include "spec/conversions.h"
-#include "common/util.h"
-#include "math/math.h"
-
-
+#include <upsample/glassner_naive.h> 
+#include <spec/conversions.h>
+#include <internal/common/util.h>
+#include <internal/math/math.h>
 
 namespace spec {
 

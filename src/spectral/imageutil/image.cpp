@@ -1,9 +1,9 @@
-#include "image.h"
+#include <imageutil/image.h>
+#include <internal/common/format.h>
 #include <utility>
 #include <stdexcept>
 #include <stb_image.h>
 #include <stb_image_write.h>
-#include "common/format.h"
 
 
 namespace spec {

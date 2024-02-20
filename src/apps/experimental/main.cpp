@@ -1,9 +1,9 @@
-#include "spec/sp_lut.h"
-#include "math/math.h"
+#include <spec/sp_lut.h>
+#include <internal/math/math.h>
+#include <spec/sigpoly_spectrum.h>
+#include <spec/conversions.h>
 #include <iostream>
 #include <fstream>
-#include "spec/sigpoly_spectrum.h"
-#include "spec/conversions.h"
 
 using namespace spec;
 

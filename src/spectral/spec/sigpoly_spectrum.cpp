@@ -1,5 +1,5 @@
-#include "sigpoly_spectrum.h"
-#include "math/math.h"
+#include <spec/sigpoly_spectrum.h>
+#include <internal/math/math.h>
 
 namespace spec {
 

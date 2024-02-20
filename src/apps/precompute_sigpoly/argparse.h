@@ -1,6 +1,6 @@
 #ifndef ARGPARSE_H
 #define ARGPARSE_H
-#include "imageutil/pixel.h"
+#include <imageutil/pixel.h>
 #include <string>
 #include <optional>
 

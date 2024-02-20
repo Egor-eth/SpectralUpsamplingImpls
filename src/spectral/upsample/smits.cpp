@@ -1,7 +1,7 @@
-#include "smits.h"
-#include "common/util.h"
-#include "math/math.h"
-#include "spec/basic_spectrum.h"
+#include <upsample/smits.h>
+#include <internal/common/util.h>
+#include <internal/math/math.h>
+#include <spec/basic_spectrum.h>
 
 namespace spec {
 

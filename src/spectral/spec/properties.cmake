@@ -11,5 +11,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    stb nlohmannjson imageutil common math
+    stb nlohmannjson spectral-internal
 )

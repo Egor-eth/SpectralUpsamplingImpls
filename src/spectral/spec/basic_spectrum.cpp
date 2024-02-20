@@ -1,15 +1,14 @@
-#include "basic_spectrum.h"
+#include <spec/basic_spectrum.h>
+#include <spec/spectral_util.h>
+#include <internal/math/math.h>
+#include <internal/common/constants.h>
+#include <internal/common/format.h>
 #include <stdexcept>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <algorithm>
 #include <unordered_map>
-#include "spectral_util.h"
-#include "math/math.h"
-#include "common/constants.h"
-#include "common/format.h"
-
 
 namespace spec {
 

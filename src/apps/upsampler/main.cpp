@@ -1,16 +1,16 @@
+#include "argparse.h"
+#include <upsample/upsamplers.h>
+#include <imageutil/image.h>
+#include <spec/basic_spectrum.h>
+#include <spec/spectral_util.h>
+#include <spec/conversions.h>
+#include <internal/common/format.h>
 #include <chrono>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
 #include <memory>
 #include <unordered_map>
-#include "upsample/upsamplers.h"
-#include "imageutil/image.h"
-#include "spec/basic_spectrum.h"
-#include "spec/spectral_util.h"
-#include "spec/conversions.h"
-#include "common/format.h"
-#include "argparse.h"
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;

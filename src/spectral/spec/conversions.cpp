@@ -1,7 +1,7 @@
-#include "conversions.h" 
+#include <spec/conversions.h> 
+#include <spec/spectral_util.h>
+#include <internal/common/lazy_value.h>
 #include <memory>
-#include "spec/spectral_util.h"
-#include "common/lazy_value.h"
 
 namespace spec {
     namespace {

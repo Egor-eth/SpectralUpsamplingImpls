@@ -1,4 +1,4 @@
-#include "pixel.h"
+#include <imageutil/pixel.h>
 
 namespace spec {
 

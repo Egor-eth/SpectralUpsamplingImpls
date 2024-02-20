@@ -2,9 +2,9 @@
 #define FUNCTIONS_H
 #include <optional>
 #include <utility>
-#include "math/math.h"
-#include "common/constants.h"
-#include "spec/spectral_util.h"
+#include <internal/math/math.h>
+#include <internal/common/constants.h>
+#include <spec/spectral_util.h>
 
 
 using spec::math::base_vec3;

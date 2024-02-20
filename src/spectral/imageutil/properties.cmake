@@ -7,5 +7,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    math stb
+    stb spectral-internal
 )

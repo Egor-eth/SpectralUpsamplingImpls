@@ -1,10 +1,10 @@
 #ifndef LUTWORKS_H
 #define LUTWORKS_H
 #include "functions.h"
+#include <spec/sp_lut.h>
 #include <istream>
 #include <ostream>
 #include <cinttypes>
-#include "spec/sp_lut.h"
 
 using spec::LUT;
 

@@ -1,4 +1,8 @@
-#include "spectral_util.h"
+#include <spec/spectral_util.h>
+#include <internal/serialization/binary.h>
+#include <internal/common/constants.h>
+#include <internal/common/refl.h>
+#include <internal/common/format.h>
 #include <fstream>
 #include <stdexcept>
 #include <memory>
@@ -6,10 +10,6 @@
 #include <filesystem>
 #include <stb_image_write.h>
 #include <nlohmannjson/json.hpp>
-#include "serialization/binary.h"
-#include "common/constants.h"
-#include "common/refl.h"
-#include "common/format.h"
 
 namespace fs = std::filesystem;
 using namespace spec;

@@ -1,8 +1,8 @@
-#include "sp_lut.h"
-#include "math/math.h"
+#include <spec/sp_lut.h>
+#include <internal/math/math.h>
+#include <internal/serialization/binary.h>
 #include <cinttypes>
 #include <stdexcept>
-#include "serialization/binary.h"
 
 namespace spec {
 

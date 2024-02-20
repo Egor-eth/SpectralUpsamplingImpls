@@ -1,6 +1,6 @@
 #include "lutworks.h"
-#include "serialization/binary.h"
-#include "common/util.h"
+#include <internal/serialization/binary.h>
+#include <internal/common/util.h>
 
 namespace bin = spec::binary;
 

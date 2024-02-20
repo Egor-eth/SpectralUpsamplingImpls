@@ -9,5 +9,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-    common math spec imageutil
+    spec imageutil spectral-internal
 )

@@ -1,9 +1,9 @@
-#include "spectral_util.h"
+#include <spec/spectral_util.h>
+#include <internal/math/math.h>
+#include <internal/serialization/csv.h>
+#include <internal/serialization/binary.h>
 #include <fstream>
 #include <stdexcept>
-#include "math/math.h"
-#include "serialization/csv.h"
-#include "serialization/binary.h"
 #include <vector>
 #include <tuple>
 #include <unordered_map>

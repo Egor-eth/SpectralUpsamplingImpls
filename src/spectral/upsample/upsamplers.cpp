@@ -1,7 +1,7 @@
-#include "upsamplers.h"
-#include "glassner_naive.h"
-#include "smits.h"
-#include "sigpoly.h"
+#include <upsample/upsamplers.h>
+#include <upsample/glassner_naive.h>
+#include <upsample/smits.h>
+#include <upsample/sigpoly.h>
 
 namespace spec {
     namespace upsamplers {

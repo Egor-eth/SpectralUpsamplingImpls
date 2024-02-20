@@ -1,6 +1,6 @@
-#include "sigpoly.h"
+#include <upsample/sigpoly.h>
+#include <internal/common/util.h>
 #include <fstream>
-#include "common/util.h"
 
 #include <iostream>
 

@@ -20,6 +20,6 @@ add_library(${MODULE_NAME} SHARED)
 #    ${MODULE_SOURCES}
 #)
 
-target_link_libraries(${MODULE_NAME} PRIVATE
+target_link_libraries(${MODULE_NAME} PUBLIC
     ${MODULE_LIBS}
 )
