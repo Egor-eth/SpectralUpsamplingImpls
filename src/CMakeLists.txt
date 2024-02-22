@@ -10,7 +10,7 @@ endif()
 find_package(Ceres REQUIRED)
 
 
-if(NOT PROJECT_IS_TOP_LEVEL)
+if(PROJECT_IS_TOP_LEVEL)
     add_compile_options(-Wall -Wextra -Werror -Wcast-qual)
 endif()
 
