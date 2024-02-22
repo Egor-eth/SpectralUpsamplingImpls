@@ -8,6 +8,24 @@
 namespace spec::binary {
 
     template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
+    void write_ordered(std::ostream &dst, const T val, bool to_big_endian)
+    {
+        char buf[sizeof(T)];
+        spec::convert_from_native_order(reinterpret_cast<const char *>(&val), buf, sizeof(T), to_big_endian);
+        dst.write(buf, sizeof(T));
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
+    T read_ordered(std::istream &src, bool from_big_endian)
+    {
+        char buf[sizeof(T)];
+        T val;
+        src.read(buf, sizeof(T));
+        spec::convert_to_native_order(buf, reinterpret_cast<char *>(&val), sizeof(T), from_big_endian);
+        return val;
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>, void>>
     void write(std::ostream &dst, const T val)
     {
         char buf[sizeof(T)];

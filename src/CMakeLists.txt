@@ -1,26 +1,29 @@
-cmake_minimum_required(VERSION 3.12)
-
 enable_language(CXX)
 enable_language(C)
-
 set(CMAKE_CXX_STANDARD 17)
 
 #Because eigen3 doesn't want to work without it
-include_directories(/usr/include/eigen3)
-
-add_compile_options(-m64)
-
-SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
-
-set(SRC ${CMAKE_SOURCE_DIR})
-set(PROJECT_NAME spectral_upsampling_impls)
-
+if(UNIX)
+    include_directories(/usr/include/eigen3)
+endif()
 
 find_package(Ceres REQUIRED)
-find_package(nlohmann_json REQUIRED)
 
-project(${PROJECT_NAME})
 
-include(${SRC}/includes.cmake)
+add_compile_options(-Wall -Wextra)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-O0 -g)
+else()
+    add_compile_options(-O1)
+endif()
+
+if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+    add_compile_options(-g)
+endif()
+
+
+
 
 include(properties.cmake)
+

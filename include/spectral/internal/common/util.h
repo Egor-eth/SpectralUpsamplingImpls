@@ -13,6 +13,8 @@ namespace spec {
     bool is_little_endian();
 
     void serial_copy(const char *src, char *dst, unsigned size);
+    void convert_to_native_order(const char *src, char *dst, unsigned size, bool from_big_endian);
+    void convert_from_native_order(const char *src, char *dst, unsigned size, bool to_big_endian);
 
 }
 

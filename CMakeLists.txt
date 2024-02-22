@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.12)
+
+set(SPECTRAL_PROJECT_ROOT ${CMAKE_SOURCE_DIR})
+set(SPECTRAL_LIB_SRC_DIR ${SPECTRAL_PROJECT_ROOT}/lib)
+set(SPECTRAL_APPS_SRC_DIR ${SPECTRAL_PROJECT_ROOT}/src)
+set(SPECRAL_PROJECT_NAME spectral_upsampling_impls)
+
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+
+project(${SPECTRAL_PROJECT_NAME} CXX)
+
+include(cmake/includes.cmake)
+
+add_subdirectory(${SPECTRAL_LIB_SRC_DIR})
+add_subdirectory(${SPECTRAL_APPS_SRC_DIR})
+

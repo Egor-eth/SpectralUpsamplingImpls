@@ -1,0 +1,5 @@
+include_directories(include)
+include_directories(include/spectral)
+include_directories(${SPECTRAL_LIB_SRC_DIR}/3rd_party)
+include_directories(${SPECTRAL_LIB_SRC_DIR}/3rd_party/stb) 
+include_directories(${SPECTRAL_LIB_SRC_DIR}/3rd_party/include) 
