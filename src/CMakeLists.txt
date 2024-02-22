@@ -10,7 +10,9 @@ endif()
 find_package(Ceres REQUIRED)
 
 
-add_compile_options(-Wall -Wextra -Werror)
+if(NOT PROJECT_IS_TOP_LEVEL)
+    add_compile_options(-Wall -Wextra -Werror -Wcast-qual)
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-O0 -g)

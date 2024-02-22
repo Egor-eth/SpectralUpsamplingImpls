@@ -7,7 +7,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-Wno-inconsistent-missing-override)
 endif()
 
-add_compile_options(-Wall -Wextra -Werror -Wcast-qual)
+if(NOT PROJECT_IS_TOP_LEVEL)
+    add_compile_options(-Wall -Wextra -Werror -Wcast-qual)
+endif()
 
 add_compile_options(-m64)
 
