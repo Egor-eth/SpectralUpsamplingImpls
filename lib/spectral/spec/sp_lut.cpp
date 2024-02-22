@@ -51,8 +51,8 @@ namespace spec {
 
 
         const Float alphaf = alpha / 255.0f;
-        const int alpha1_id = static_cast<int>((size - 1) * math::inv_smoothstep2(alphaf)); 
-        const int alpha2_id = alpha1_id == size - 1 ? size - 1 : alpha1_id + 1;
+        const unsigned alpha1_id = static_cast<int>((size - 1) * math::inv_smoothstep2(alphaf)); 
+        const unsigned alpha2_id = alpha1_id == size - 1 ? size - 1 : alpha1_id + 1;
         const Float alphaf1 = aid_to_alpha(alpha1_id);
         const Float alphaf2 = alpha1_id == alpha2_id ? 2.0f : aid_to_alpha(alpha2_id);
 

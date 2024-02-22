@@ -20,7 +20,7 @@ namespace spec {
         template<typename Head>
         std::optional<std::tuple<Head>> parse_line(const std::string &str, char delim = ',', size_t pos = 0, bool ignore_comments = true)
         {
-            if(pos == std::string::npos || str[pos] == COMMENT_SYM) return {};
+            if(pos == std::string::npos || (ignore_comments && str[pos] == COMMENT_SYM)) return {};
             size_t nextpos = str.find(delim, pos);
             std::string word = str.substr(pos, nextpos);
             return {parse<Head>(word)};
@@ -30,12 +30,12 @@ namespace spec {
         std::enable_if_t<(sizeof...(Columns) > 0), std::optional<std::tuple<Head, Columns...>>> 
         parse_line(const std::string &str, char delim = ',', size_t pos = 0, bool ignore_comments = true)
         {
-            if(pos == std::string::npos || str[pos] == COMMENT_SYM) return {};
+            if(pos == std::string::npos || (ignore_comments && str[pos] == COMMENT_SYM)) return {};
             size_t nextpos = str.find(delim, pos);
             std::string word = str.substr(pos, nextpos);
             std::tuple<Head> t1{parse<Head>(word)};
             if(nextpos != std::string::npos) nextpos += 1;
-            std::optional<std::tuple<Columns...>> t2 = parse_line<Columns...>(str, delim, nextpos);
+            std::optional<std::tuple<Columns...>> t2 = parse_line<Columns...>(str, delim, nextpos, ignore_comments);
             if(!t2) throw std::runtime_error("Unfinished csv line");
             return std::tuple_cat<>(t1, *t2);
         }
@@ -45,7 +45,7 @@ namespace spec {
         {
             std::string str;
             std::getline(stream, str);
-            return parse_line<Head, Columns...>(str, delim);
+            return parse_line<Head, Columns...>(str, delim, ignore_comments);
         }
 
 
@@ -54,7 +54,7 @@ namespace spec {
         {  
             std::vector<std::tuple<Head, Columns...>> res;
             while(stream.peek() != EOF) {
-                auto data = parse_line<Head, Columns...>(stream, delim);
+                auto data = parse_line<Head, Columns...>(stream, delim, ignore_comments);
                 if(data) {
                     res.push_back(*data);
                 }

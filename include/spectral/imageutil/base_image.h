@@ -32,7 +32,7 @@ namespace spec {
         }    
 
         BaseImage(const BaseImage &image)
-            : BaseImage(new PixelType[width * height], image.width, image.height)
+            : BaseImage(new PixelType[image.width * image.height], image.width, image.height)
         {
             std::copy(image.data.get(), image.data.get() + width * height, data.get());
         }

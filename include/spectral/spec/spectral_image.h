@@ -25,7 +25,7 @@ namespace spec {
         }    
 
         SpectralImage(const SpectralImage &image)
-            : SpectralImage(new SpectrumType[width * height], image.width, image.height)
+            : SpectralImage(new SpectrumType[image.width * image.height], image.width, image.height)
         {
             std::copy(image.data.get(), image.data.get() + width * height, data.get());
         }

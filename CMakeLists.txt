@@ -13,4 +13,5 @@ include(cmake/includes.cmake)
 
 add_subdirectory(${SPECTRAL_LIB_SRC_DIR})
 add_subdirectory(${SPECTRAL_APPS_SRC_DIR})
+add_subdirectory(3rd_party)
 

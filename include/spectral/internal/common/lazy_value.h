@@ -10,10 +10,10 @@ class LazyValue
 public:
     template<typename P>
     LazyValue(const P &init)
-        : constructor([init]() -> T { return init(); }) {}
+        : constructor{[init]() -> T { return init(); }}, value{} {}
 
     LazyValue(LazyValue &&other)
-        : value(std::move(other.value)) {}
+        : constructor{}, value(std::move(other.value)) {}
 
     LazyValue(const LazyValue &) = delete;
 

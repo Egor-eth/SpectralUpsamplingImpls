@@ -27,7 +27,7 @@ namespace spec::util
     Float get_cie_y_integral()
     {
         static LazyValue<Float> value{[]() -> Float { 
-            Float val;
+            Float val = 0.0f;
             for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
             //for(int lambda : wl) {
                 Float lightval = CIE_D6500->get_or_interpolate(lambda);
@@ -105,7 +105,7 @@ namespace spec::util
             std::ifstream file{directory / entry.filename, std::ios::binary | std::ios::in};
             int w, h;
             STBImageUniquePtr data = load_image(file, &w, &h, entry.targets.size());
-            if(w != meta.width || h != meta.height) {
+            if(static_cast<unsigned>(w) != meta.width || static_cast<unsigned>(h) != meta.height) {
                 throw std::runtime_error("Incorrect image shape");
             }
 
@@ -161,10 +161,10 @@ namespace spec::util
 
             size_t count = 0;
 
-            for(int w = 0; w < meta.wavelength.size(); ++w) {
+            for(unsigned w = 0; w < meta.wavelength.size(); ++w) {
                 Float wl = meta.wavelength[w];
-                for(int j = 0; j < meta.lines; ++j) {
-                    for(int i = 0; i < meta.samples; ++i) {
+                for(unsigned j = 0; j < meta.lines; ++j) {
+                    for(unsigned i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
                         img.at(i, j).set(wl, value);
                         print_progress(++count);
@@ -182,8 +182,8 @@ namespace spec::util
         {
             for(Float wl : meta.wavelength) {
 
-                for(int j = 0; j < meta.lines; ++j) {
-                    for(int i = 0; i < meta.samples; ++i) {
+                for(unsigned j = 0; j < meta.lines; ++j) {
+                    for(unsigned i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
                         img.at(i, j).set(wl, value);
                     }
@@ -195,9 +195,9 @@ namespace spec::util
         template<typename T>
         void load_bip(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
         {
-            for(int j = 0; j < meta.lines; ++j) {
+            for(unsigned j = 0; j < meta.lines; ++j) {
                 for(Float wl : meta.wavelength) {
-                    for(int i = 0; i < meta.samples; ++i) {
+                    for(unsigned i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
                         img.at(i, j).set(wl, value);
                     }

@@ -16,7 +16,7 @@ namespace spec {
 
         std::string ltrim(const std::string &str)
         {
-            for(int i = 0; i < str.size(); ++i) {
+            for(unsigned i = 0; i < str.size(); ++i) {
                 if(!std::isspace(str[i])) {
                     return str.substr(i);
                 }
@@ -51,27 +51,6 @@ namespace spec {
             return trim(line);
         }
 
-        std::string read_block(std::istream &str)
-        {
-            if(str.peek() == '{') {
-                str.get();
-                std::string block_string;
-                std::string line;
-                while(str.peek(), !str.eof()) {
-                    line = tgetline(str);
-                    if(line.back() == '}') {
-                        block_string += line.substr(0, line.size() - 1);
-                        return block_string;
-                    }
-                    else {
-                        block_string += line;
-                    }
-                }
-
-            }
-            return "";
-        }
-
         inline bool get(std::istream &str, int &c) {
             c = str.get();
             return !str.eof();
@@ -91,7 +70,6 @@ namespace spec {
             while(file.peek(), !file.eof()) {
                 std::string var_name{};
                 std::string var_content{};
-                bool new_var = true;
                 bool is_block = false;
                 int block_level = 0;
                 bool found_eq = false;
@@ -119,6 +97,7 @@ namespace spec {
                             if(block_level == 0) {
                                 goto out;
                             }
+                            break;
                         case '\n':
                             if(is_block) {
                                 var_content += c;
