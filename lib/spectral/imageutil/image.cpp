@@ -27,7 +27,7 @@ namespace spec {
         unsigned char *ptr = stbi_load(path.c_str(), &width, &height, &n, sizeof(Pixel));
         if(ptr == nullptr) {
             stbi_failure_reason();
-            throw std::runtime_error(format("Error reading image at %s", path));
+            throw std::runtime_error(format("Error reading image at %s", path.c_str()));
         }
         data = std::unique_ptr<Pixel[], BaseImage<Pixel>::DeleterType>(reinterpret_cast<Pixel *>(ptr), free_image);
     }
