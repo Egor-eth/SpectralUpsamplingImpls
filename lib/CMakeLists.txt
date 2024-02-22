@@ -2,7 +2,7 @@ enable_language(CXX)
 enable_language(C)
 set(CMAKE_CXX_STANDARD 17)
 
-add_compile_options(-Wall -Wextra -Werror -Wcast-qual -Wshadow=compatible-local)
+add_compile_options(-Wall -Wextra -Werror -Wcast-qual)
 
 add_compile_options(-m64)
 
