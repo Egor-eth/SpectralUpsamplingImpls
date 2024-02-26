@@ -42,7 +42,6 @@ namespace spec::util
     {
         std::ifstream file{path};
         if(!file) throw std::runtime_error("Cannot open file");
-
         BasicSpectrum sp;
 
         std::vector<std::tuple<Float, Float>> loaded = csv::load_as_vector<Float, Float>(file, ' ');
