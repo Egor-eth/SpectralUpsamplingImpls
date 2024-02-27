@@ -89,4 +89,16 @@ namespace spec {
         return xyz;
     }
 
+    std::pair<Float, Float> color2ior(Float r, Float g)
+    {
+        r = math::clamp(r, 0.0f, 0.9999999f);
+
+        const Float r_sqrt = std::sqrt(r);
+
+        const Float n = g * (1 - r) / (1 + r) + (1 - g) * (1 + r_sqrt) / (1 - r_sqrt);
+        const Float k = std::sqrt((r * (n + 1) * (n + 1) - (n - 1) * (n - 1)) / (1 - r));
+
+        return {n, k};
+    }
+
 }

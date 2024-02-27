@@ -9,18 +9,17 @@
 #include <limits>
 #include <optional>
 
-#include <iostream>
 
 namespace spec {
 
     namespace csv {
-        struct PlaceHolder {};
+        struct skip {};
     }
 
     template<>
-    struct Parser<csv::PlaceHolder>
+    struct Parser<csv::skip>
     {
-        static csv::PlaceHolder parse(const std::string &)
+        static csv::skip parse(const std::string &)
         {
             return {};
         }
@@ -40,6 +39,7 @@ namespace spec {
             if(pos == std::string::npos || (ignore_comments && str[pos] == COMMENT_SYM)) return {};
             size_t nextpos = str.find(delim, pos);
             std::string word = str.substr(pos, nextpos);
+
             pos = nextpos + (nextpos != std::string::npos);
             return {parse<Head>(word)};
         }
@@ -51,6 +51,7 @@ namespace spec {
             if(pos == std::string::npos || (ignore_comments && str[pos] == COMMENT_SYM)) return {};
             size_t nextpos = str.find(delim, pos);
             std::string word = str.substr(pos, nextpos);
+
             std::tuple<Head> t1{parse<Head>(word)};
 
             pos = nextpos + (nextpos != std::string::npos);
@@ -90,46 +91,55 @@ namespace spec {
 
         // Multicolumn versions
 
-        template<typename... Columns, typename T>
-        std::vector<std::tuple<Columns..., std::vector<T>>> parse_line_m(const std::string &str, char delim = ',', size_t pos = 0, bool ignore_comments = true)
+        template<typename T>
+        std::optional<std::tuple<std::vector<T>>> parse_line_m(const std::string &str, char delim = ',', size_t pos = 0, bool ignore_comments = true)
         {
-            const auto pre = _parse_line<Columns...>(str, delim, pos, ignore_comments);
-            if(!pre) throw std::runtime_error("No data found");
-
             std::vector<T> vec;
             while(pos != std::string::npos && (!ignore_comments || str[pos] != COMMENT_SYM)) {
 
                 size_t nextpos = str.find(delim, pos);
+
                 std::string word = str.substr(pos, nextpos);
+
                 vec.push_back(parse<T>(word));
-                pos = std::string::npos ? nextpos : nextpos + 1;
-    
+                pos = nextpos + (nextpos != std::string::npos);
             }
-            return std::tuple_cat<>(*pre, vec);
+            return {vec};
         }
 
-        template<typename... Columns, typename T>
-        std::vector<std::tuple<Columns..., std::vector<T>>> parse_line_m(std::istream &stream, char delim = ',', bool ignore_comments = true)
+        template<typename T, typename... Columns, typename = std::enable_if_t<(sizeof...(Columns) > 0), void>>
+        std::optional<std::tuple<std::vector<T>, Columns...>> parse_line_m(const std::string &str, char delim = ',', size_t pos = 0, bool ignore_comments = true)
+        {
+            //std::cout << str << std::endl;
+            const auto pre = _parse_line<Columns...>(str, delim, pos, ignore_comments);
+            if(!pre) throw std::runtime_error("No data found");
+
+            const auto post = parse_line_m<T>(str, delim, pos, ignore_comments);
+            return std::tuple_cat<>(*post, *pre);
+        }
+
+        template<typename T, typename... Columns>
+        std::optional<std::tuple<std::vector<T>, Columns...>> parse_line_m(std::istream &stream, char delim = ',', bool ignore_comments = true)
         {
             std::string str;
             std::getline(stream, str);
-            return parse_line_m<Columns..., std::vector<T>>(str, delim, ignore_comments);
+            return parse_line_m<T, Columns...>(str, delim, 0, ignore_comments);
         }
 
-        template<typename... Columns, typename T>
-        std::vector<std::tuple<Columns..., std::vector<T>>> load_as_vector_m(std::istream &stream, char delim = ',', int skip = 0, bool ignore_comments = true)
+
+        template<typename T, typename... Columns>
+        std::vector<std::tuple<std::vector<T>, Columns...>> load_as_vector_m(std::istream &stream, char delim = ',', int skip = 0, bool ignore_comments = true)
         {  
             for(; skip > 0; --skip) stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::vector<std::tuple<Columns..., std::vector<T>>> res;
+            std::vector<std::tuple<std::vector<T>, Columns...>> res;
             while(stream.peek() != EOF) {
-                auto data = parse_line_m<Columns..., std::vector<T>>(stream, delim, ignore_comments);
+                auto data = parse_line_m<T, Columns...>(stream, delim, ignore_comments);
                 if(data) {
                     res.push_back(*data);
                 }
             }
             return res;
         }
-
 
     }
 }

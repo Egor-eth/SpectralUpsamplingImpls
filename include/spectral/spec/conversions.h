@@ -2,6 +2,7 @@
 #define INCLUDE_SPECTRAL_SPEC_CONVERSIONS_H
 #include <spectral/internal/math/math.h>
 #include <spectral/spec/basic_spectrum.h>
+#include <utility>
 
 namespace spec {
 
@@ -25,6 +26,15 @@ namespace spec {
     vec3 spectre2xyz(const ISpectrum &spectre);
 
     vec3 sigpoly2xyz(Float a1, Float a2, Float a3);
+
+
+    //Approximation based on http://jcgt.org/published/0003/04/03/paper.pdf
+    std::pair<Float, Float> color2ior(Float reflectivity, Float edgetint);
+
+    inline std::pair<Float, Float> color2ior(Float color)
+    {
+        return color2ior(color, color);
+    }
 
 }
 #endif
