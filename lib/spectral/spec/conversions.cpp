@@ -65,7 +65,7 @@ namespace spec {
         const Float coef[3]{a1, a2, a3};
         unsigned idx = 0u;
         for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-            const Float val_lv = math::sigmoid_polynomial(lambda, coef) * util::CIE_D6500->get_or_interpolate(lambda);
+            const Float val_lv = math::sigmoid_polynomial(lambda, coef) * util::CIE_D6500.get_or_interpolate(lambda);
             
             xyz.x += X_CURVE[idx] * val_lv;
             xyz.y += Y_CURVE[idx] * val_lv;

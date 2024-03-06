@@ -2,7 +2,6 @@
 #define INCLUDE_SPECTRAL_SPEC_SPECTRAL_UTIL_H
 #include <spectral/spec/basic_spectrum.h>
 #include <spectral/spec/sigpoly_spectrum.h>
-#include <spectral/internal/common/lazy_value.h>
 #include <string>
 #include <vector>
 #include <ostream>
@@ -14,7 +13,7 @@ namespace spec
 
     namespace util {
 
-        extern const LazyValue<BasicSpectrum> CIE_D6500;
+        extern const BasicSpectrum CIE_D6500;
 
         extern const std::string META_FILENAME;
 
@@ -82,7 +81,7 @@ namespace spec
 
         void save_wavelenght_to_png1(std::ostream &stream, const BasicSpectralImage &img, Float wavelenght, SavingResult &res);
 
-        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME, const ISpectrum &lightsource = *CIE_D6500);
+        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME, const ISpectrum &lightsource = CIE_D6500);
 
         bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum);
         bool save_sigpoly_img(const std::string path, const SigPolySpectralImage &img);

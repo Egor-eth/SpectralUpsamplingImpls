@@ -24,12 +24,7 @@ namespace spec {
         return xyz2cielab(rgb2xyz(rgb));
     }
 
-    vec3 spectre2xyz(const ISpectrum &spectre, const ISpectrum &light);
-    inline vec3 spectre2xyz(const ISpectrum &spectre)
-    {
-        return spectre2xyz(spectre, *util::CIE_D6500);
-    }
-
+    vec3 spectre2xyz(const ISpectrum &spectre, const ISpectrum &light = util::CIE_D6500);
     vec3 sigpoly2xyz(Float a1, Float a2, Float a3);
 
 

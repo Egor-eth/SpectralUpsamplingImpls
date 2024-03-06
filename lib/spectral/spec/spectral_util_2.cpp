@@ -23,30 +23,11 @@ namespace fs = std::filesystem;
 
 namespace spec::util
 {
-    const LazyValue<BasicSpectrum> CIE_D6500{[]() -> auto { return load_spd("resources/cie.stdillum.D6500.spd"); }};
-    
-    Float get_cie_y_integral()
-    {
-        static LazyValue<Float> value{[]() -> Float { return get_cie_y_integral(*CIE_D6500); }};
-        std::cout << *value << std::endl;
-        return *value;
-    }
-
-    Float get_cie_y_integral(const ISpectrum &light)
-    {
-        Float val = 0.0f;
-        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-        //for(int lambda : wl) {
-            Float lightval = light.get_or_interpolate(lambda);
-            val += _interp<Y_CURVE>(lambda) * CURVES_WAVELENGHTS_STEP * lightval;
-        }
-        return val;
-    }
 
     namespace {
         inline void _d6500ptr(ISpectrum::csptr &dest)
         {
-            dest.reset(&(*CIE_D6500), [](ISpectrum const *) -> void {});
+            dest.reset(&CIE_D6500, [](ISpectrum const *) -> void {});
         }
     }
 

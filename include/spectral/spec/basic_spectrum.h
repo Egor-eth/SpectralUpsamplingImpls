@@ -3,6 +3,7 @@
 #include <spectral/spec/spectrum.h>
 #include <spectral/spec/spectral_image.h>
 #include <spectral/internal/common/constants.h>
+#include <initializer_list>
 #include <map>
 #include <set>
 
@@ -15,6 +16,9 @@ namespace spec {
 
         BasicSpectrum()
             : spectre() {}
+
+        BasicSpectrum(std::initializer_list<std::pair<const Float, Float>> l) 
+            : spectre(l) {}
 
         BasicSpectrum(const BasicSpectrum &s) = default;
 
