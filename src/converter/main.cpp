@@ -46,15 +46,16 @@ int downsample(const Args &args) {
     std::cout << "Loading file..." << std::endl;
     ISpectralImage::ptr spec_img;
     ISpectrum::ptr spec;
+    ISpectrum::csptr illum;
     const std::string output_path = (fs::path(args.output_dir) / fs::path(*args.output_name)).string();
 
-    if(!spec::util::load(args.input_path, spec_img)) {
-        if(!spec::util::load(args.input_path, spec)) {
+    if(!spec::util::load_spectral_image(args.input_path, spec_img, illum)) {
+        if(!spec::util::load_spectrum(args.input_path, spec, illum)) {
             std::cerr << "Unknown file format" << std::endl;
             return 2;
         }        
         std::cout << "Converting spectum to RGB..." << std::endl;
-        vec3 downsampled_rgb = xyz2rgb(spectre2xyz(*spec));
+        vec3 downsampled_rgb = xyz2rgb(spectre2xyz(*spec, *illum));
         std::ofstream output{output_path + ".txt"};
         output << downsampled_rgb.x << " " << downsampled_rgb.y << " " << downsampled_rgb.z << std::endl; 
         return 0;
@@ -70,7 +71,7 @@ int downsample(const Args &args) {
 
     for(int j = 0; j < h; ++j) {
         for(int i = 0; i < w; ++i) {
-            img.at(i, j) = Pixel::from_vec3(xyz2rgb(spectre2xyz(spec_img->at(i, j))));
+            img.at(i, j) = Pixel::from_vec3(xyz2rgb(spectre2xyz(spec_img->at(i, j), *illum)));
             print_progress(j * w + i);
         }
     }

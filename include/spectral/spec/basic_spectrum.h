@@ -19,7 +19,7 @@ namespace spec {
         BasicSpectrum(const BasicSpectrum &s) = default;
 
         BasicSpectrum(BasicSpectrum &&s)
-            : ISpectrum(s), cached_wavelenghts(std::move(s.cached_wavelenghts)), modified(std::move(s.modified)), spectre(std::move(s.spectre)), last_wavelenght(spectre.begin()) {}
+            : ISpectrum(s), cached_wavelenghts(std::move(s.cached_wavelenghts)), modified(std::move(s.modified)), spectre(std::move(s.spectre)) {}
 
         void set(Float wavelenght, Float value);
 
@@ -34,7 +34,7 @@ namespace spec {
         Float get_or_interpolate(Float w) const override;
 
         BasicSpectrum &operator=(const BasicSpectrum &other) = default;
-        BasicSpectrum &operator=(const BasicSpectrum &&other);
+        BasicSpectrum &operator=(BasicSpectrum &&other);
 
         const std::map<Float, Float> &get_map() const {
             return spectre;
@@ -46,7 +46,6 @@ namespace spec {
         mutable std::set<Float> cached_wavelenghts{};
         mutable bool modified = true;
         std::map<Float, Float> spectre;
-        mutable decltype(spectre)::const_iterator last_wavelenght;
     };
 
     /**

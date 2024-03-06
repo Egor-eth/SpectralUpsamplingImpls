@@ -84,7 +84,7 @@ namespace spec {
         return math::interpolate(w, a, b, f_a, f_b);
     }
 
-    BasicSpectrum &BasicSpectrum::operator=(const BasicSpectrum &&other)
+    BasicSpectrum &BasicSpectrum::operator=(BasicSpectrum &&other)
     {
         if(this != &other) { 
             cached_wavelenghts = std::move(other.cached_wavelenghts);

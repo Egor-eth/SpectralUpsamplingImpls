@@ -2,6 +2,7 @@
 #define INCLUDE_SPECTRAL_SPEC_CONVERSIONS_H
 #include <spectral/internal/math/math.h>
 #include <spectral/spec/basic_spectrum.h>
+#include <spectral/spec/spectral_util.h>
 #include <utility>
 
 namespace spec {
@@ -23,7 +24,11 @@ namespace spec {
         return xyz2cielab(rgb2xyz(rgb));
     }
 
-    vec3 spectre2xyz(const ISpectrum &spectre);
+    vec3 spectre2xyz(const ISpectrum &spectre, const ISpectrum &light);
+    inline vec3 spectre2xyz(const ISpectrum &spectre)
+    {
+        return spectre2xyz(spectre, *util::CIE_D6500);
+    }
 
     vec3 sigpoly2xyz(Float a1, Float a2, Float a3);
 

@@ -3,6 +3,7 @@
 #include <internal/common/lazy_value.h>
 #include <memory>
 
+#include <iostream>
 namespace spec {
     namespace {
 
@@ -19,42 +20,28 @@ namespace spec {
         }
     }
 
-
-    vec3 spectre2xyz_old(const ISpectrum &spectre)
+    vec3 spectre2xyz(const ISpectrum &spectrum, const ISpectrum &light)
     {
-        vec3 xyz{0.0f, 0.0f, 0.0f};
-        //const auto &wl = spectre.get_wavelenghts();
-
-        int count = 0;
-        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-        //for(int lambda : wl) {
-            Float val = spectre(lambda);
-            Float lightval = util::CIE_D6500->get_or_interpolate(lambda);
-            count += val != 0.0f;
-            
-
-            xyz.x += util::_interp<X_CURVE>(lambda) * val * lightval;
-            xyz.y += util::_interp<Y_CURVE>(lambda) * val * lightval;
-            xyz.z += util::_interp<Z_CURVE>(lambda) * val * lightval;
+        static Float cieyint = -1.0f;
+        static const ISpectrum *src = nullptr;
+        if(src != &light) {
+            cieyint = util::get_cie_y_integral(light);
+            std::cout << cieyint << std::endl;
+            src = &light;
         }
-        xyz /= util::get_cie_y_integral();
-        return xyz;
-    }
 
-    vec3 spectre2xyz(const ISpectrum &spectrum)
-    {
         vec3 xyz{0.0f, 0.0f, 0.0f};
 
         unsigned idx = 0u;
         for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-            const Float val_lv = spectrum(lambda) * util::CIE_D6500->get_or_interpolate(lambda);
+            const Float val_lv = spectrum(lambda) * light.get_or_interpolate(lambda);
             
             xyz.x += X_CURVE[idx] * val_lv;
             xyz.y += Y_CURVE[idx] * val_lv;
             xyz.z += Z_CURVE[idx] * val_lv;
             idx += 1;
         }
-        xyz /= util::get_cie_y_integral();
+        xyz /= cieyint;
         return xyz;
     }
 

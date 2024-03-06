@@ -192,7 +192,7 @@ namespace spec
             res.channels_used = 1;
         }
 
-        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename) {
+        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename, const ISpectrum &lightsource) {
 
             Metadata metadata;
             metadata.width = image.get_width();
@@ -203,6 +203,11 @@ namespace spec
             const fs::path dir_path{dir};
             fs::create_directories(dir_path);
             
+            if(!isa<BasicSpectrum>(lightsource)) return false;
+
+
+            save_spd(dir_path / "light.spd", static_cast<const BasicSpectrum &>(lightsource));
+
             SavingResult saving_result;
             for(Float w : image.get_wavelenghts()) {
                 //save as 1-channel png

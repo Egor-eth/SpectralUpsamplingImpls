@@ -19,12 +19,17 @@ public:
 
     LazyValue &operator=(const LazyValue &) = delete;
 
-    inline const T &get() const
+    const T &get() const
     {
         if(!value) {
             value.emplace(std::move(constructor()));
         }
         return *value;
+    }
+
+    T &get() 
+    {
+        return const_cast<T &>(const_cast<const LazyValue<T> *>(this)->get());
     }
 
     const T &operator*() const
@@ -33,6 +38,16 @@ public:
     }
 
     const T *operator->() const
+    {
+        return &get();
+    }
+
+    T &operator*()
+    {
+        return get();
+    }
+
+    T *operator->()
     {
         return &get();
     }
@@ -63,16 +78,6 @@ public:
         std::swap(value, other.value);
     }
 
-    ~LazyPtr()
-    {
-        if constexpr(std::is_array<T>::value) {
-            delete[] value;
-        }
-        else {
-            delete value;
-        }
-    }
-
     LazyPtr(const LazyPtr &) = delete;
 
     LazyPtr &operator=(const LazyPtr &) = delete;
@@ -81,12 +86,23 @@ public:
         std::swap(value, other.value);
     }
 
-    inline const T *get() const
+    const T *get() const
     {
-        if(value == nullptr) {
-            value = constructor();
-            if(value == nullptr) throw std::runtime_error("Incorrect constructor in LazyPtr");
+        if(!value) {
+            value = std::shared_ptr<T>(constructor());
+            if(!value) throw std::runtime_error("Incorrect constructor in LazyPtr");
         }
+        return value.get();
+    }
+
+    T *get()
+    {
+        return const_cast<T *>(const_cast<const LazyValue<T> *>(this)->get());
+    }
+
+    std::shared_ptr<T> get_shared() const
+    {
+        get();
         return value;
     }
 
@@ -100,9 +116,19 @@ public:
         return get();
     }
 
+    T &operator*()
+    {
+        return *get();
+    }
+
+    T *operator->()
+    {
+        return get();
+    }
+
 private:
     const std::function<T *()> constructor;
-    mutable T *value = nullptr;
+    mutable std::shared_ptr<T> value;
 };
 
 template<typename T, typename P, typename = std::enable_if_t<!std::is_same<T, P>::value, void>>

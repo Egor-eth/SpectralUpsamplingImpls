@@ -14,6 +14,8 @@
 #include <filesystem>
 #include <iostream>
 
+#include <cstring>
+
 #include <internal/common/util.h>
 
 using namespace spec;
@@ -21,21 +23,31 @@ namespace fs = std::filesystem;
 
 namespace spec::util
 {
-
     const LazyValue<BasicSpectrum> CIE_D6500{[]() -> auto { return load_spd("resources/cie.stdillum.D6500.spd"); }};
-
+    
     Float get_cie_y_integral()
     {
-        static LazyValue<Float> value{[]() -> Float { 
-            Float val = 0.0f;
-            for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
-            //for(int lambda : wl) {
-                Float lightval = CIE_D6500->get_or_interpolate(lambda);
-                val += _interp<Y_CURVE>(lambda) * CURVES_WAVELENGHTS_STEP * lightval;
-            }
-            return val;
-        }};
-       return *value;
+        static LazyValue<Float> value{[]() -> Float { return get_cie_y_integral(*CIE_D6500); }};
+        std::cout << *value << std::endl;
+        return *value;
+    }
+
+    Float get_cie_y_integral(const ISpectrum &light)
+    {
+        Float val = 0.0f;
+        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+        //for(int lambda : wl) {
+            Float lightval = light.get_or_interpolate(lambda);
+            val += _interp<Y_CURVE>(lambda) * CURVES_WAVELENGHTS_STEP * lightval;
+        }
+        return val;
+    }
+
+    namespace {
+        inline void _d6500ptr(ISpectrum::csptr &dest)
+        {
+            dest.reset(&(*CIE_D6500), [](ISpectrum const *) -> void {});
+        }
     }
 
     BasicSpectrum load_spd(const std::string &path)
@@ -48,7 +60,14 @@ namespace spec::util
         for(const auto &p : loaded) {
             sp.set(std::get<0>(p), std::get<1>(p));
         }
+
         return sp;
+    }
+
+    BasicSpectrum load_spd(const std::string &path, ISpectrum::csptr &lightsource)
+    {
+        _d6500ptr(lightsource);
+        return load_spd(path);
     }
 
     namespace {
@@ -89,7 +108,7 @@ namespace spec::util
             stbi_image_free(ptr);
         }
 
-        STBImageUniquePtr load_image(std::istream &stream, int *width, int *height, int desired_channels)
+        STBImageUniquePtr _load_image(std::istream &stream, int *width, int *height, int desired_channels)
         {
             int channels;
             STBImageUniquePtr data{
@@ -99,11 +118,11 @@ namespace spec::util
             return data;
         }
 
-        void load_from_file(const fs::path &directory, const Metadata &meta, const MetadataEntry &entry, BasicSpectralImage &img)
+        void _load_from_file(const fs::path &directory, const Metadata &meta, const MetadataEntry &entry, BasicSpectralImage &img)
         {
             std::ifstream file{directory / entry.filename, std::ios::binary | std::ios::in};
             int w, h;
-            STBImageUniquePtr data = load_image(file, &w, &h, entry.targets.size());
+            STBImageUniquePtr data = _load_image(file, &w, &h, entry.targets.size());
             if(static_cast<unsigned>(w) != meta.width || static_cast<unsigned>(h) != meta.height) {
                 throw std::runtime_error("Incorrect image shape");
             }
@@ -126,7 +145,7 @@ namespace spec::util
     }
 
 
-    BasicSpectralImage load_json_meta(const std::string &meta_path)
+    BasicSpectralImage load_json_meta(const std::string &meta_path, ISpectrum::csptr &lightsource)
     {
         fs::path p{meta_path};
         std::ifstream meta_file{meta_path};
@@ -144,9 +163,10 @@ namespace spec::util
             if(entry.targets.size() < 1 && entry.targets.size() > 4) {
                 throw std::runtime_error("Too many wavelenghts per image");
             }
-            load_from_file(p.parent_path(), meta, entry, image);
+            _load_from_file(p.parent_path(), meta, entry, image);
         }
 
+        lightsource.reset(new BasicSpectrum(load_spd(p.parent_path() / "light.spd")));
 
         return image;
     }
@@ -154,14 +174,14 @@ namespace spec::util
     namespace {
 
         template<typename T>
-        void load_bsq(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
+        void _load_bsq(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
         {   
-            init_progress_bar(meta.wavelength.size() * meta.lines * meta.samples, 100);
+            init_progress_bar(meta.bands * meta.lines * meta.samples, 1000);
 
             size_t count = 0;
-
-            for(unsigned w = 0; w < meta.wavelength.size(); ++w) {
+            for(unsigned w = 0; w < meta.bands; ++w) {
                 Float wl = meta.wavelength[w];
+                img.add_wavelenght(wl);
                 for(unsigned j = 0; j < meta.lines; ++j) {
                     for(unsigned i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
@@ -171,16 +191,15 @@ namespace spec::util
                 }
 
             }
-
             finish_progress_bar();
 
         }
 
         template<typename T>
-        void load_bil(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
+        void _load_bil(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
         {
             for(Float wl : meta.wavelength) {
-
+                img.add_wavelenght(wl);
                 for(unsigned j = 0; j < meta.lines; ++j) {
                     for(unsigned i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
@@ -192,7 +211,7 @@ namespace spec::util
         }
 
         template<typename T>
-        void load_bip(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
+        void _load_bip(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
         {
             for(unsigned j = 0; j < meta.lines; ++j) {
                 for(Float wl : meta.wavelength) {
@@ -201,16 +220,24 @@ namespace spec::util
                         img.at(i, j).set(wl, value);
                     }
                 }
-
             }
+            for(Float wl : meta.wavelength) {
+                img.add_wavelenght(wl);
+            }
+
         }
 
 
     }
 
-    BasicSpectralImage load_envi_hdr(const std::string &meta_path, const std::string &raw_path)
+    BasicSpectralImage load_envi_hdr(const std::string &meta_path, const std::string &raw_path, ISpectrum::csptr &lightsource)
     {
         MetaENVI meta = MetaENVI::load(meta_path);
+
+        //meta.byte_order = MetaENVI::ByteOrder::LITTLE_ENDIAN_ORDER;
+
+        std::cout << meta_path << " " << raw_path << std::endl;
+
         if(meta.wavelength_units == MetaENVI::UnitType::UNSUPPORTED || meta.data_type == MetaENVI::DataType::UNSUPPORTED) {
             throw std::runtime_error("Unsupported file format");
         }
@@ -224,40 +251,46 @@ namespace spec::util
         switch(meta.interleave) {
         case MetaENVI::Interleave::BSQ:
             if(meta.data_type == MetaENVI::DataType::FLOAT32) {
-                load_bsq<float>(meta, file, img);
+                _load_bsq<float>(meta, file, img);
             }
             else {
-                load_bsq<double>(meta, file, img);
+                _load_bsq<double>(meta, file, img);
             }
             break;
         case MetaENVI::Interleave::BIL:
             if(meta.data_type == MetaENVI::DataType::FLOAT32) {
-                load_bil<float>(meta, file, img);
+                _load_bil<float>(meta, file, img);
             }
             else {
-                load_bil<double>(meta, file, img);
+                _load_bil<double>(meta, file, img);
             }
             break;
         case MetaENVI::Interleave::BIP:
             if(meta.data_type == MetaENVI::DataType::FLOAT32) {
-                load_bip<float>(meta, file, img);
+                _load_bip<float>(meta, file, img);
             }
             else {
-                load_bip<double>(meta, file, img);
+                _load_bip<double>(meta, file, img);
             }
             break;
         }
 
+        BasicSpectrum *ls = new BasicSpectrum();
+
+        for(unsigned w = 0; w < meta.bands; ++w) {
+            ls->set(meta.wavelength[w], static_cast<Float>(meta.illuminant[w]));
+        }
+        lightsource.reset(ls);
         return img;
     }
 
-    BasicSpectralImage load_envi_hdr(const std::string &meta_path)
+    BasicSpectralImage load_envi_hdr(const std::string &meta_path, ISpectrum::csptr &lightsource)
     {
         fs::path p{meta_path};
-        return load_envi_hdr(meta_path, p.stem().string() + ".raw");
+        return load_envi_hdr(meta_path, p.replace_extension("raw").string(), lightsource);
     }
 
-    SigPolySpectrum load_sigpoly(const std::string &path)
+    SigPolySpectrum load_sigpoly(const std::string &path, ISpectrum::csptr &lightsource)
     {
         std::ifstream file(path);
         if(!file) throw std::runtime_error("Cannot open file");
@@ -267,10 +300,12 @@ namespace spec::util
             throw std::runtime_error("Error reading data");
         }
 
+        _d6500ptr(lightsource);
+
         return {{std::get<0>(*loaded), std::get<1>(*loaded), std::get<2>(*loaded)}};
     }
 
-    SigPolySpectralImage load_sigpoly_img(const std::string &path)
+    SigPolySpectralImage load_sigpoly_img(const std::string &path, ISpectrum::csptr &lightsource)
     {
         std::ifstream file{path};
         if(!file) throw std::runtime_error("Cannot open file");
@@ -288,6 +323,8 @@ namespace spec::util
         for(uint32_t i = 0; i < width * height; ++i) {
             ptr[i].set(binary::read_vec<Float>(file));
         }
+
+        _d6500ptr(lightsource);
 
         return img;
     }
@@ -339,23 +376,23 @@ namespace spec::util
 
     }
 
-    bool load(const std::string path, ISpectrum::ptr &s)
+    bool load_spectrum(const std::string path, ISpectrum::ptr &s, ISpectrum::csptr &lightsource)
     {
         fs::path p{path};
         SpectrumFormat f = _guess_spec_format(p.extension());
         switch(f) {
         case SpectrumFormat::SIGPOLY:
-            s.reset(new SigPolySpectrum(load_sigpoly(path)));
+            s.reset(new SigPolySpectrum(load_sigpoly(path, lightsource)));
             return true;
         case SpectrumFormat::BASIC_SPD:
-            s.reset(new BasicSpectrum(load_spd(path)));
+            s.reset(new BasicSpectrum(load_spd(path, lightsource)));
             return true;
         default:
             return false;
         }
     }
 
-    bool load(const std::string path, ISpectralImage::ptr &img)
+    bool load_spectral_image(const std::string path, ISpectralImage::ptr &img, ISpectrum::csptr &lightsource)
     {
         fs::path p{path};
 
@@ -363,13 +400,13 @@ namespace spec::util
         try {
             switch(f) {
             case SpectralImgFormat::SIGPOLY_SIF:
-                img.reset(new SigPolySpectralImage(load_sigpoly_img(path)));
+                img.reset(new SigPolySpectralImage(load_sigpoly_img(path, lightsource)));
                 return true;
             case SpectralImgFormat::BASIC_JSON:
-                img.reset(new BasicSpectralImage(load_json_meta(path)));
+                img.reset(new BasicSpectralImage(load_json_meta(path, lightsource)));
                 return true;
             case SpectralImgFormat::BASIC_ENVI_HDR:
-                img.reset(new BasicSpectralImage(load_envi_hdr(path)));
+                img.reset(new BasicSpectralImage(load_envi_hdr(path, lightsource)));
                 return true;
             default:
                 return false;

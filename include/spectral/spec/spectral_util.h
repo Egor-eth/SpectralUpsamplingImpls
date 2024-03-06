@@ -43,10 +43,9 @@ namespace spec
             std::string format;
             std::vector<MetadataEntry> wavelenghts;
 
-            void save(std::ostream &stream) const;
-            static Metadata load(std::istream &stream);
+            void save(std::ostream &dest) const;
+            static Metadata load(std::istream &src);
         };
-
 
         using XYZArray_t = Float[CURVES_ARRAY_LEN];
 
@@ -70,10 +69,9 @@ namespace spec
         }
 
         Float get_cie_y_integral();
+        Float get_cie_y_integral(const ISpectrum &light);
 
         void save_spd(const std::string &path, const BasicSpectrum &spectre);
-
-        BasicSpectrum load_spd(const std::string &path);
 
         /**
          *  Saves specified wavelenghts of spectral image in multichannel png file (up to 4 channels).
@@ -84,7 +82,7 @@ namespace spec
 
         void save_wavelenght_to_png1(std::ostream &stream, const BasicSpectralImage &img, Float wavelenght, SavingResult &res);
 
-        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME);
+        bool save_as_png1(const BasicSpectralImage &image, const std::string &dir, const std::string &meta_filename = META_FILENAME, const ISpectrum &lightsource = *CIE_D6500);
 
         bool save_sigpoly(const std::string path, const SigPolySpectrum &spectrum);
         bool save_sigpoly_img(const std::string path, const SigPolySpectralImage &img);
@@ -92,15 +90,19 @@ namespace spec
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectrum &s);
         bool save(const std::string &directory_path, const std::string &input_filename, const ISpectralImage &s);
 
-        BasicSpectralImage load_jsonmeta(const std::string &meta_path);
 
-        BasicSpectralImage load_envi_hdr(const std::string &meta_path, const std::string &raw_path);
-        BasicSpectralImage load_envi_hdr(const std::string &meta_path);
-        SigPolySpectrum load_sigpoly(const std::string &path);
-        SigPolySpectralImage load_sigpoly_img(const std::string &path);
+        BasicSpectrum load_spd(const std::string &path);
+        BasicSpectrum load_spd(const std::string &path, ISpectrum::csptr &lightsource);
 
-        bool load(const std::string path, ISpectrum::ptr &s);
-        bool load(const std::string path, ISpectralImage::ptr &img);
+        BasicSpectralImage load_jsonmeta(const std::string &meta_path, ISpectrum::csptr &lightsource);
+
+        BasicSpectralImage load_envi_hdr(const std::string &meta_path, const std::string &raw_path, ISpectrum::csptr &lightsource);
+        BasicSpectralImage load_envi_hdr(const std::string &meta_path, ISpectrum::csptr &lightsource);
+        SigPolySpectrum load_sigpoly(const std::string &path, ISpectrum::csptr &lightsource);
+        SigPolySpectralImage load_sigpoly_img(const std::string &path,  ISpectrum::csptr &lightsource);
+
+        bool load_spectrum(const std::string path, ISpectrum::ptr &s, ISpectrum::csptr &lightsource);
+        bool load_spectral_image(const std::string path, ISpectralImage::ptr &img, ISpectrum::csptr &lightsource);
     }
 
 }

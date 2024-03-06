@@ -18,6 +18,10 @@ namespace spec {
         static const ISpectrum &none();
 
         using ptr = std::unique_ptr<ISpectrum>;
+        using uptr = std::unique_ptr<ISpectrum>;
+        using sptr = std::shared_ptr<ISpectrum>;
+
+        using csptr = std::shared_ptr<ISpectrum const>;
     };
 
     class ISpectralImage {
@@ -36,6 +40,8 @@ namespace spec {
         virtual ~ISpectralImage() = default;
 
         using ptr = std::unique_ptr<ISpectralImage>;
+        using uptr = std::unique_ptr<ISpectralImage>;
+        using sptr = std::shared_ptr<ISpectralImage>;
 
     protected:
         int width, height;

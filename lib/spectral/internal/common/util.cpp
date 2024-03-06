@@ -1,6 +1,6 @@
 #include <internal/common/util.h>
 #include <iostream>
-
+#include <algorithm>
 
 namespace spec {
     unsigned _progress_max_count = 1;
@@ -39,26 +39,18 @@ namespace spec {
 
     void serial_copy(const char *src, char *dst, unsigned size)
     {
+        std::copy(src, src + size, dst);
         if(is_little_endian()) {
-            for(unsigned i = 0; i < size; ++i) {
-                dst[i] = src[size - i - 1];
-            }
-        }  
-        else {
-            std::copy(src, src + size, dst);
-        }
+            std::reverse(dst, dst + size);
+        } 
     }
 
     void convert_to_native_order(const char *src, char *dst, unsigned size, bool from_big_endian)
-    {
+    { 
+        std::copy(src, src + size, dst);
         if(is_little_endian() ^ !from_big_endian) {
-            for(unsigned i = 0; i < size; ++i) {
-                dst[i] = src[size - i - 1];
-            }
-        }  
-        else {
-            std::copy(src, src + size, dst);
-        }
+            std::reverse(dst, dst + size);
+        } 
     }
 
     void convert_from_native_order(const char *src, char *dst, unsigned size, bool to_big_endian)
