@@ -135,7 +135,7 @@ namespace spec::math {
             return *this;
         }
 
-        bool operator==(const base_vec3 &v) noexcept(true)
+        bool operator==(const base_vec3 &v) const noexcept(true)
         {
             return x == v.x && y == v.y && z == v.z;
         }
