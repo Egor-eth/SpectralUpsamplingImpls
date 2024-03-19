@@ -6,11 +6,11 @@ namespace bin = spec::binary;
 
 void write_header(std::ostream &dst)
 {
-    bin::write<uint64_t>(dst, spec::LUT::FILE_MARKER);
+    bin::write<uint64_t>(dst, spec::SigpolyLUT::FILE_MARKER);
     bin::write<uint16_t>(dst, sizeof(Float));
 }
 
-void write_lut(std::ostream &dst, const LUT &lut)
+void write_lut(std::ostream &dst, const SigpolyLUT &lut)
 {  
     unsigned step = lut.get_step();
     bin::write<uint16_t>(dst, step);
@@ -59,11 +59,11 @@ namespace {
             delete[] data;
         }
 
-        LUT build_and_clear()
+        SigpolyLUT build_and_clear()
         {
             vec3 *d = data;
             data = nullptr;
-            return LUT(d, step);
+            return SigpolyLUT(d, step);
         }
 
         int idx_to_color(int i) const
@@ -142,7 +142,7 @@ namespace {
 
 #include <iostream>
 
-LUT generate_lut(int zeroed_idx, int step, int stable_val)
+SigpolyLUT generate_lut(int zeroed_idx, int step, int stable_val)
 {
     LutBuilder ctx{zeroed_idx, step, stable_val};
 

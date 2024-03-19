@@ -14,7 +14,7 @@ namespace spec {
         ISpectrum::ptr upsample_pixel(const Pixel &src) const override;
         ~SigPolyUpsampler() = default;
     private:
-        const LUT luts[3];
+        const SigpolyLUT luts[3];
 
         void upsample_pixel_to(const Pixel &pixel, SigPolySpectrum &s) const;
     };

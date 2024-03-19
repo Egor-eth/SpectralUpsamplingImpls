@@ -1,16 +1,16 @@
-#ifndef LUTWORKS_H
-#define LUTWORKS_H
+#ifndef SigpolyLUTWORKS_H
+#define SigpolyLUTWORKS_H
 #include "functions.h"
 #include <spec/sp_lut.h>
 #include <istream>
 #include <ostream>
 #include <cinttypes>
 
-using spec::LUT;
+using spec::SigpolyLUT;
 
 void write_header(std::ostream &dst);
-void write_lut(std::ostream &dst, const LUT &lut);
+void write_lut(std::ostream &dst, const SigpolyLUT &lut);
 
-LUT generate_lut(int zeroed_idx, int step = 4, int stable_val = 24);
+SigpolyLUT generate_lut(int zeroed_idx, int step = 4, int stable_val = 24);
 
 #endif

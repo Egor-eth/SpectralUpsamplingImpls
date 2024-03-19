@@ -1,29 +1,29 @@
-#ifndef INCLUDE_SPECTRAL_SPEC_SP_LUT_H
-#define INCLUDE_SPECTRAL_SPEC_SP_LUT_H
+#ifndef INCLUDE_SPECTRAL_SPEC_SP_SigpolyLUT_H
+#define INCLUDE_SPECTRAL_SPEC_SP_SigpolyLUT_H
 #include <spectral/internal/math/math.h>
 #include <cinttypes>
 #include <istream>
 
 namespace spec {
     
-    class LUT
+    class SigpolyLUT
     {
     public:
         static constexpr uint64_t FILE_MARKER = 0xfafa0000ab0ba000;
 
-        LUT(vec3 *data, unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{data} {}
+        SigpolyLUT(vec3 *data, unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{data} {}
 
-        LUT(unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{new vec3[size * size * size]} {}
+        SigpolyLUT(unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{new vec3[size * size * size]} {}
 
-        LUT(const LUT &) = delete;
-        LUT &operator=(const LUT &) = delete;
+        SigpolyLUT(const SigpolyLUT &) = delete;
+        SigpolyLUT &operator=(const SigpolyLUT &) = delete;
 
-        LUT(LUT &&l) : step{l.step}, size{l.size}, data{}
+        SigpolyLUT(SigpolyLUT &&l) : step{l.step}, size{l.size}, data{}
         {
             std::swap(data, l.data);
         }
 
-        ~LUT()
+        ~SigpolyLUT()
         {
             delete[] data;
         }
@@ -45,7 +45,7 @@ namespace spec {
 
         vec3 eval(int a, int b, int alpha) const;
 
-        static LUT load_from(std::istream &src);
+        static SigpolyLUT load_from(std::istream &src);
 
     private:
         const unsigned step;

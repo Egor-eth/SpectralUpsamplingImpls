@@ -24,16 +24,16 @@ namespace spec {
             uint16_t floatsize = binary::read<uint16_t>(src);
             if(!src) return false;
 
-            return marker == LUT::FILE_MARKER && floatsize == sizeof(Float);
+            return marker == SigpolyLUT::FILE_MARKER && floatsize == sizeof(Float);
         }
     }
 
-    Float LUT::aid_to_alpha(int alpha_id) const
+    Float SigpolyLUT::aid_to_alpha(int alpha_id) const
     {
         return math::smoothstep2(alpha_id / static_cast<Float>(size - 1));
     }
 
-    vec3 LUT::eval(int a, int b, int alpha) const
+    vec3 SigpolyLUT::eval(int a, int b, int alpha) const
     {   
         if(!validate_c(a, b, alpha)) {
             return {};
@@ -80,11 +80,11 @@ namespace spec {
              + at(a2_id, b2_id, alpha2_id) * daf1 * dbf1 * dalphaf1 * div;
     }
 
-    LUT LUT::load_from(std::istream &src)
+    SigpolyLUT SigpolyLUT::load_from(std::istream &src)
     {
         if(!validate_header(src)) throw std::invalid_argument("Unsupported file");
         uint16_t step = binary::read<uint16_t>(src);
-        LUT lut{step};
+        SigpolyLUT lut{step};
         const unsigned size = lut.size * lut.size * lut.size;
         for(unsigned i = 0; i < size; ++i) {
             lut.data[i] = binary::read_vec<Float>(src);

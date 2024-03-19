@@ -6,6 +6,9 @@ set(MODULE_SOURCES
     smits.cpp
     upsamplers.cpp
     sigpoly.cpp
+    functional/smits.cpp
+    functional/glassner.cpp
+    functional/sigpoly.cpp
 )
 
 set(MODULE_LIBS

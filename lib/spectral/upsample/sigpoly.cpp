@@ -1,39 +1,18 @@
 #include <upsample/sigpoly.h>
+#include <upsample/functional/sigpoly.h>
 #include <internal/common/util.h>
 #include <fstream>
-
-#include <iostream>
 
 namespace spec {
 
     namespace {
 
-        LUT load_from_file(const std::string &path)
+        SigpolyLUT load_from_file(const std::string &path)
         {
             std::ifstream file{path};
-            return LUT::load_from(file);
+            return SigpolyLUT::load_from(file);
         }
 
-        int argmax(const Pixel &p)
-        {
-            int m = p[0] >= p[1] ? 0 : 1;
-            return p[m] >= p[2] ? m : 2;
-        }
-
-    }
-
-    void SigPolyUpsampler::upsample_pixel_to(const Pixel &pixel, SigPolySpectrum &s) const
-    {
-        int amax = argmax(pixel);
-        int a = 0, b = 0;
-        int alpha = pixel[amax];
-        if(alpha != 0) {
-            a = pixel[(amax + 1) % 3] / static_cast<Float>(alpha) * 255.0f;
-            b = pixel[(amax + 2) % 3] / static_cast<Float>(alpha) * 255.0f;
-        }
-       // std::cout << "amax: " << amax << " a, b, alpha: " << a << " " << b << " " << alpha << std::endl;
-
-        s = SigPolySpectrum(luts[amax].eval(a, b, alpha));
     }
 
     SigPolyUpsampler::SigPolyUpsampler()
@@ -44,9 +23,7 @@ namespace spec {
 
     ISpectrum::ptr SigPolyUpsampler::upsample_pixel(const Pixel &src) const
     {
-        SigPolySpectrum *spectrum = new SigPolySpectrum();
-        upsample_pixel_to(src, *spectrum);
-        return ISpectrum::ptr(spectrum);
+        return ISpectrum::ptr(new SigPolySpectrum(upsample::sigpoly_int(src, luts)));
     }
 
     ISpectralImage::ptr SigPolyUpsampler::upsample(const Image &sourceImage) const
@@ -59,7 +36,7 @@ namespace spec {
         const Pixel *ptr = sourceImage.raw_data();
         SigPolySpectrum *s_ptr = dest->raw_data();
         for(int i = 0; i < img_size; ++i) {
-            upsample_pixel_to(ptr[i], s_ptr[i]);
+            s_ptr[i] = upsample::sigpoly_int(ptr[i], luts);
             print_progress(i + 1);
         }
 
