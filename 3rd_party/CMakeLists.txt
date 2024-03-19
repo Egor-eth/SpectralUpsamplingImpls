@@ -1,3 +1,5 @@
+enable_language(C)
+enable_language(CXX)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_compile_options(-O0 -g)

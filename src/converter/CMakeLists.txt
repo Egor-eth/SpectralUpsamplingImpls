@@ -5,5 +5,5 @@ add_executable(${MODULE_NAME}
 )
 
 target_link_libraries(${MODULE_NAME}
-    ${MODULE_LIBS}
+    ${MODULE_LIBS} spectral_apps_compile_options
 )

@@ -6,5 +6,5 @@ set(MODULE_SOURCES
 )
 
 set(MODULE_LIBS
-	
+	spectral_proj_compile_options
 )

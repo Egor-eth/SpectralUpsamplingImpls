@@ -1,6 +1,9 @@
 enable_language(CXX)
 enable_language(C)
-set(CMAKE_CXX_STANDARD 17)
+
+add_library(spectral_apps_compile_options INTERFACE)
+target_link_libraries(spectral_apps_compile_options INTERFACE spectral_proj_compile_options)
+target_compile_options(spectral_apps_compile_options INTERFACE -m64)
 
 #Because eigen3 doesn't want to work without it
 if(UNIX)
@@ -11,20 +14,18 @@ find_package(Ceres REQUIRED)
 
 
 if(PROJECT_IS_TOP_LEVEL)
-    add_compile_options(-Wall -Wextra -Werror -Wcast-qual)
+    target_compile_options(spectral_apps_compile_options INTERFACE -Wall -Wextra -Werror -Wcast-qual)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    add_compile_options(-O0 -g)
+    target_compile_options(spectral_apps_compile_options INTERFACE -O0 -g)
 else()
-    add_compile_options(-O1)
+    target_compile_options(spectral_apps_compile_options INTERFACE -O1)
 endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-    add_compile_options(-g)
+    target_compile_options(spectral_apps_compile_options INTERFACE -g)
 endif()
-
-
 
 
 include(properties.cmake)

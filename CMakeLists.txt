@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
-set(SPECRAL_PROJECT_NAME Spectral)
-project(${SPECTRAL_PROJECT_NAME} CXX)
+project(Spectral CXX)
+
+add_library(spectral_proj_compile_options INTERFACE)
+target_compile_features(spectral_proj_compile_options INTERFACE cxx_std_17)
 
 option(SPECTRAL_LIB_ONLY "Only compile library")
 

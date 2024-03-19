@@ -7,5 +7,5 @@ add_library(${MODULE_NAME} STATIC)
 #)
 
 target_link_libraries(${MODULE_NAME} PRIVATE
-    ${MODULE_LIBS}
+    ${MODULE_LIBS} spectral_lib_compile_options
 )

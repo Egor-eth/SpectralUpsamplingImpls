@@ -7,5 +7,5 @@ target_sources(${MODULE_NAME} PRIVATE
 )
 
 target_link_libraries(${MODULE_NAME}
-    ${MODULE_LIBS}
+    ${MODULE_LIBS} spectral_lib_compile_options
 )
