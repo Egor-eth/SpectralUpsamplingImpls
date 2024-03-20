@@ -9,6 +9,8 @@ namespace spec {
     {
     public:
         SigPolyUpsampler();
+        SigPolyUpsampler(SigpolyLUT &&lut0, SigpolyLUT &&lut1, SigpolyLUT &&lut2)
+            : luts{std::move(lut0), std::move(lut1), std::move(lut2)} {}
 
         ISpectralImage::ptr upsample(const Image &sourceImage) const override;
         ISpectrum::ptr upsample_pixel(const Pixel &src) const override;
