@@ -1,5 +1,7 @@
 #include "argparse.h"
-#include <upsample/upsamplers.h>
+#include <upsample/glassner_naive.h>
+#include <upsample/smits.h>
+#include <upsample/sigpoly.h>
 #include <imageutil/image.h>
 #include <spec/basic_spectrum.h>
 #include <spec/spectral_util.h>
@@ -12,26 +14,26 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <unordered_map>
 
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 
 using namespace spec;
 namespace fs = std::filesystem;
-std::unordered_map<std::string, const LazyPtr<IUpsampler> *> upsampler_by_name;
 
-void fill_method_map() {
-    upsampler_by_name["glassner"] = &spec::upsamplers::glassner;
-    upsampler_by_name["smits"] = &spec::upsamplers::smits;
-    upsampler_by_name["sigpoly"] = &spec::upsamplers::sigpoly;
-}
-
-const IUpsampler *get_upsampler_by_name(const std::string &method_name)
+std::unique_ptr<IUpsampler> get_upsampler_by_name(const std::string &method_name)
 {
-    const auto it = upsampler_by_name.find(method_name);
-    if(it == upsampler_by_name.end()) return nullptr;
-    return it->second->get();
+    IUpsampler *ptr = nullptr;
+    if(method_name == "glassner") {
+        ptr = new GlassnerUpsampler();
+    }
+    else if(method_name == "sigpoly") {
+        ptr = new SigPolyUpsampler();
+    }
+    else if(method_name == "smits") {
+        ptr = new SmitsUpsampler();
+    }
+    return std::unique_ptr<IUpsampler>(ptr);
 }
 
 //https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
@@ -83,8 +85,8 @@ int downsample(const Args &args) {
 }
 
 int upsample(const Args &args) {
-    const IUpsampler *upsampler = get_upsampler_by_name(*args.method);
-    if(upsampler == nullptr) {
+    auto upsampler = get_upsampler_by_name(*args.method);
+    if(!upsampler) {
         std::cerr << "[!] Unknown method." << std::endl;
         return 1;
     }
@@ -123,8 +125,6 @@ int upsample(const Args &args) {
  */
 int main(int argc, char **argv)
 {
-    fill_method_map();
-
     Args args;
     if(!parse_args(argc, argv, args)) return 1;
 

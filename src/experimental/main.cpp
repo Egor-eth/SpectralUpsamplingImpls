@@ -3,7 +3,6 @@
 #include <spec/conversions.h>
 #include <internal/serialization/csv.h>
 #include <internal/math/math.h>
-#include <upsample/upsamplers.h>
 #include <numeric>
 #include <iostream>
 #include <fstream>

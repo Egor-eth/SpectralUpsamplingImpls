@@ -3,7 +3,7 @@
 #include <spec/conversions.h>
 #include <internal/serialization/csv.h>
 #include <internal/math/math.h>
-#include <upsample/upsamplers.h>
+#include <upsample/glassner_naive.h>
 #include <numeric>
 #include <iostream>
 #include <fstream>
@@ -52,10 +52,12 @@ int main()
 
     int successful = 0;
     std::vector<double> losses;
+    GlassnerUpsampler upsampler{};
+
 
     for(unsigned i = 0; i < xyz_values.size(); ++i) {
         vec3 rgb = xyz2rgb(xyz_values[i]);
-        ISpectrum::ptr spec = upsamplers::glassner->upsample_pixel(Pixel::from_vec3(rgb));
+        ISpectrum::ptr spec = upsampler.upsample_pixel(Pixel::from_vec3(rgb));
 
         vec3 lab = xyz2cielab(spectre2xyz(*spec));
         Float distance = vec3::distance(lab, xyz2cielab(xyz_values[i]));
