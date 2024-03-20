@@ -1,4 +1,4 @@
-#include <spec/sp_lut.h>
+#include <spec/sigpoly_lut.h>
 #include <internal/math/math.h>
 #include <internal/serialization/binary.h>
 #include <cinttypes>

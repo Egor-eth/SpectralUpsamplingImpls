@@ -1,7 +1,7 @@
 #ifndef INCLUDE_SPECTRAL_UPSAMPLERS_SIGPOLY_H
 #define INCLUDE_SPECTRAL_UPSAMPLERS_SIGPOLY_H
 #include <spectral/upsample/upsampler.h>
-#include <spectral/spec/sp_lut.h>
+#include <spectral/spec/sigpoly_lut.h>
 #include <spectral/spec/sigpoly_spectrum.h>
 
 namespace spec {

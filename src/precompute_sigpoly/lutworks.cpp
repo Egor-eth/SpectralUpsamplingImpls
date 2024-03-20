@@ -1,6 +1,7 @@
 #include "lutworks.h"
 #include <internal/serialization/binary.h>
 #include <internal/common/util.h>
+#include <vector>
 
 namespace bin = spec::binary;
 
@@ -52,18 +53,12 @@ namespace {
         LutBuilder(int main_channel, int step, int stable)
             : main_channel{main_channel}, step{step}, size{256 / step + (255 % step != 0)},
               stable{stable}, stable_id{stable / step}, 
-              force_last{255 % step != 0}, data{new vec3[size * size * size]} {}
-
-        ~LutBuilder()
-        {
-            delete[] data;
-        }
+              force_last{255 % step != 0}, data(size * size * size) {}
 
         SigpolyLUT build_and_clear()
         {
-            vec3 *d = data;
-            data = nullptr;
-            return SigpolyLUT(d, step);
+            data.shrink_to_fit();
+            return SigpolyLUT(std::move(data), step);
         }
 
         int idx_to_color(int i) const
@@ -110,7 +105,7 @@ namespace {
 
         vec3 spaced_color() const;
     private:
-        vec3 *data;
+        std::vector<vec3> data;
     };
 
     vec3 LutBuilder::spaced_color() const

@@ -2,7 +2,7 @@
 #define INCLUDE_SPECTRAL_UPSAMPLE_FUNCTIONAL_SIGPOLY_H
 #include <spectral/spec/sigpoly_spectrum.h>
 #include <spectral/internal/math/math.h>
-#include <spectral/spec/sp_lut.h>
+#include <spectral/spec/sigpoly_lut.h>
 #include <spectral/imageutil/pixel.h>
 
 namespace spec::upsample {

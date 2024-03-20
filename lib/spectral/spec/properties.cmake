@@ -8,7 +8,7 @@ set(MODULE_SOURCES
     basic_spectrum.cpp
     sigpoly_spectrum.cpp
     conversions.cpp
-    sp_lut.cpp
+    sigpoly_lut.cpp
 )
 
 set(MODULE_LIBS

@@ -1,6 +1,7 @@
-#ifndef INCLUDE_SPECTRAL_SPEC_SP_SigpolyLUT_H
-#define INCLUDE_SPECTRAL_SPEC_SP_SigpolyLUT_H
+#ifndef INCLUDE_SPECTRAL_SPEC_SIGPOLY_LUT_H
+#define INCLUDE_SPECTRAL_SPEC_SIGPOLY_LUT_H
 #include <spectral/internal/math/math.h>
+#include <vector>
 #include <cinttypes>
 #include <istream>
 
@@ -11,21 +12,24 @@ namespace spec {
     public:
         static constexpr uint64_t FILE_MARKER = 0xfafa0000ab0ba000;
 
-        SigpolyLUT(vec3 *data, unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{data} {}
+        SigpolyLUT(std::vector<vec3> &&data, unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{std::move(data)} {}
 
-        SigpolyLUT(unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data{new vec3[size * size * size]} {}
+        SigpolyLUT(unsigned step) : step{step}, size{256 / step + (255 % step != 0)}, data(size * size * size) {}
 
         SigpolyLUT(const SigpolyLUT &) = delete;
         SigpolyLUT &operator=(const SigpolyLUT &) = delete;
 
-        SigpolyLUT(SigpolyLUT &&l) : step{l.step}, size{l.size}, data{}
+        SigpolyLUT(SigpolyLUT &&other) : step{}, size{}, data{}
         {
-            std::swap(data, l.data);
+            *this = std::move(other);
         }
 
-        ~SigpolyLUT()
+        SigpolyLUT &operator=(SigpolyLUT &&other)
         {
-            delete[] data;
+            data = std::move(other.data);
+            std::swap(step, other.step);
+            std::swap(size, other.size);
+            return *this;
         }
 
         unsigned get_size() const
@@ -40,7 +44,7 @@ namespace spec {
 
         const vec3 *get_raw_data() const
         {
-            return data;
+            return data.data();
         }
 
         vec3 eval(int a, int b, int alpha) const;
@@ -48,9 +52,9 @@ namespace spec {
         static SigpolyLUT load_from(std::istream &src);
 
     private:
-        const unsigned step;
-        const unsigned size;
-        vec3 *data;
+        unsigned step;
+        unsigned size;
+        std::vector<vec3> data;
 
         const vec3 &at(int i, int j, int k) const
         {

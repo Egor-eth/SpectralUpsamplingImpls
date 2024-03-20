@@ -1,7 +1,7 @@
 #ifndef SigpolyLUTWORKS_H
 #define SigpolyLUTWORKS_H
 #include "functions.h"
-#include <spec/sp_lut.h>
+#include <spec/sigpoly_lut.h>
 #include <istream>
 #include <ostream>
 #include <cinttypes>
