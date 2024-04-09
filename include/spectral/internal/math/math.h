@@ -8,6 +8,11 @@ namespace spec {
 
     namespace math {
 
+        constexpr Float PI = 3.14159265358979323846f;
+        constexpr Float INV_PI = 1.0f / PI;
+        constexpr Float TWO_PI = 2.0f * PI;
+        constexpr Float INV_TWO_PI = 1.0f / TWO_PI;
+
         inline Float interpolate(Float point, Float a, Float b, Float f_a, Float f_b)
         {
             return f_a + (f_b - f_a) * (point - a) / (b - a);

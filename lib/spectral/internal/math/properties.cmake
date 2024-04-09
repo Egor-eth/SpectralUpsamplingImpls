@@ -5,6 +5,7 @@ set(MODULE_SOURCES
     mat3.cpp
     vec3.cpp
     math.cpp
+    fourier.cpp
 )
 
 set(MODULE_LIBS
