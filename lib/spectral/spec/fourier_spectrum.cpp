@@ -2,9 +2,21 @@
 
 namespace spec {
 
-    Float FourierSpectrum::get_or_interpolate(Float w) const
+    Float MFourierSpectrum::get_or_interpolate(Float w) const
     {
-        return 0.0f;//TODO   
+        if(lagrange_m.empty()) {
+            lagrange_m = math::lagrange_multipliers(coef);
+        }
+
+        return math::bounded_mese_l(math::to_phase(w), lagrange_m);
     }
+
+    Float LFourierSpectrum::get_or_interpolate(Float w) const
+    {
+        return math::bounded_mese_l(math::to_phase(w), coef);  
+    }
+
+    template class SpectralImage<MFourierSpectrum>;
+    template class SpectralImage<LFourierSpectrum>;
 
 }
