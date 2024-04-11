@@ -26,7 +26,6 @@ namespace spec {
         static const ISpectrum *src = nullptr;
         if(src != &light) {
             cieyint = util::get_cie_y_integral(light);
-            std::cout << cieyint << std::endl;
             src = &light;
         }
 
