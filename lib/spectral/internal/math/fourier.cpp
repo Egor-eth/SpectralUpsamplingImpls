@@ -11,7 +11,7 @@ namespace spec::math {
         return std::fma(PI, (wl - start) / (end - start), -PI);
     }
 
-    std::vector<Float> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n)
+    std::vector<Float> real_fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n)
     {
         const unsigned N = phases.size();
         assert(N == values.size());
@@ -22,8 +22,23 @@ namespace spec::math {
             for(unsigned j = 0; j < N; ++j) {
                 val += values[j] * std::exp(-I * Float(i) * phases[j]);
             }
-            //std::cout << val;
-            moments[i] = std::real(val) / Float(N); //using 1/pi instead 1/2pi, thus no need to multiply by 2
+            moments[i] = std::real(val) / Float(N);
+        }
+        return moments;
+    }
+
+    std::vector<Complex> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n)
+    {
+        const unsigned N = phases.size();
+        assert(N == values.size());
+        int M = n - 1;
+        std::vector<Complex> moments(M + 1);
+        for(int i = 0; i <= M; ++i) {
+            Complex val{0.0f, 0.0f};
+            for(unsigned j = 0; j < N; ++j) {
+                val += values[j] * std::exp(-I * Float(i) * phases[j]);
+            }
+            moments[i] = val / Float(N);
         }
         return moments;
     }
@@ -98,6 +113,35 @@ namespace spec::math {
         } 
 
         return INV_PI * std::atan(sum) + 0.5f;
+    }
+
+    std::vector<Float> mese(std::vector<Float> phases, const std::vector<Float> &gamma)
+    {
+        int M = gamma.size() - 1;
+        std::vector<Float> e0(M + 1, 0.0f);
+        e0[0] = 1.0f;
+
+        std::vector<Complex> data(2 * M + 1); //Matrix values
+        data[M] = INV_TWO_PI * gamma[0];
+        for(int i = 1; i <= M; ++i) {
+            data[M + i] = INV_TWO_PI * gamma[i];
+            data[M - i] = INV_TWO_PI * std::conj(gamma[i]);
+        }
+
+        std::vector<Complex> q = levinson<Complex>(data, e0);
+
+        for(unsigned k = 0; k < phases.size(); ++k) {
+         //   for(int i = 0; i <= M; ++i) y[i] = INV_TWO_PI * std::exp(-I * Float(i) * phases[k]);
+            Complex t = 0.0f;
+            for(int i = 0; i <= M; ++i) t += INV_TWO_PI * std::conj(q[i]) * std::exp(-I * Float(i) * phases[k]); 
+
+
+            Float div = std::fabs(t);
+            div *= div;
+
+            phases[k] = INV_TWO_PI * std::real(q[0]) / div;
+        }
+        return phases;
     }
 
 }

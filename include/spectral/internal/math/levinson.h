@@ -4,8 +4,8 @@
 #include <cassert>
 namespace spec::math {
 
-    template<typename T>
-    std::vector<T> levinson(const std::vector<T> &data, const std::vector<Float> &y)
+    template<typename T, typename P>
+    std::vector<T> levinson(const std::vector<T> &data, const std::vector<P> &y)
     {
         const int N = (data.size() - 1) / 2;
 

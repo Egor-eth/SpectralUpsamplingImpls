@@ -10,6 +10,7 @@ set(MODULE_SOURCES
     conversions.cpp
     sigpoly_lut.cpp
     fourier_spectrum.cpp
+   # fourier_lut.cpp
 )
 
 set(MODULE_LIBS

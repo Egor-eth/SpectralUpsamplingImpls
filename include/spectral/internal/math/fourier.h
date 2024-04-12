@@ -21,7 +21,9 @@ namespace spec {
             return wavelenghts;
         }
 
-        std::vector<Float> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n);
+        std::vector<Float> real_fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n);
+
+        std::vector<Complex> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n);
 
         std::vector<Complex> lagrange_multipliers(const std::vector<Float> &moments);
 
@@ -30,6 +32,14 @@ namespace spec {
         inline Float bounded_mese_m(Float phase, const std::vector<Float> &moments)
         {
             return bounded_mese_l(phase, lagrange_multipliers(moments));
+        }
+
+
+        std::vector<Float> mese(std::vector<Float> phases, const std::vector<Float> &moments);
+
+        inline Float mese(Float phase, const std::vector<Float> &moments)
+        {
+            return mese(std::vector<Float>{phase}, moments)[0];
         }
 
     }

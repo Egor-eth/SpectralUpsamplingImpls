@@ -12,6 +12,11 @@ namespace spec {
         return RGB_TO_XYZ * rgb;
     }
 
+    inline vec3 xyz2rgb_unsafe(const vec3 &xyz)
+    {
+        return XYZ_TO_RGB * xyz;
+    }
+
     inline vec3 xyz2rgb(const vec3 &xyz)
     {
         return math::clamp(XYZ_TO_RGB * xyz, 0.0f, 1.0f);
