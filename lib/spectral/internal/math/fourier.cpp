@@ -1,5 +1,8 @@
 #include <internal/math/fourier.h>
+#include <internal/math/levinson.h>
 #include <cassert>
+
+#include <iostream>
 
 namespace spec::math {
 
@@ -8,90 +11,38 @@ namespace spec::math {
         return std::fma(PI, (wl - start) / (end - start), -PI);
     }
 
-    std::vector<Float> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int m)
+    std::vector<Float> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n)
     {
         const unsigned N = phases.size();
         assert(N == values.size());
-        std::vector<Float> moments(m + 1);
-        for(int i = 0; i <= m; ++i) {
+        int M = n - 1;
+        std::vector<Float> moments(M + 1);
+        for(int i = 0; i <= M; ++i) {
             Complex val{0.0f, 0.0f};
             for(unsigned j = 0; j < N; ++j) {
-                val += INV_TWO_PI * values[j] * std::exp(-I * Float(i) * phases[j]);
+                val += values[j] * std::exp(-I * Float(i) * phases[j]);
             }
-            moments[i] = std::real(val);
+            //std::cout << val;
+            moments[i] = std::real(val) / Float(N); //using 1/pi instead 1/2pi, thus no need to multiply by 2
         }
         return moments;
     }
 
     namespace {
 
-        std::vector<Complex> levinson(const std::vector<Complex> &gamma, const std::vector<Float> &y)
-        {
-            const int M = gamma.size() - 1;
-
-            std::vector<Complex> data(2 * M + 1); //Matrix values
-            data[M] = gamma[0];
-            for(int i = M; i > 0; --i) {
-                data[M - i] = gamma[i];
-                data[M + i] = std::conj(gamma[i]);
-            }
-            auto t = 1.0f / gamma[0];
-            std::vector<Complex> fn{t};
-            std::vector<Complex> bn{t};
-            std::vector<Complex> xn{y[0] / data[M]};
-
-            for(int i = 1; i <= M + 1; ++i) {
-                Complex ef1{0.0f, 0.0f};
-                Complex eb1{0.0f, 0.0f};
-                Complex ex1{0.0f, 0.0f};
-
-                for(int j = 1; j < i; ++j) { //check bounds
-                    ef1 += data[2 * M + 1 - j] * fn[i];
-                    ex1 += data[2 * M + 1 - j] * xn[i];
-                    eb1 += data[M - j] * bn[i];
-                }
-
-
-                std::vector<Complex> xn1(i + 1);
-                std::vector<Complex> fn1(i + 1);
-                std::vector<Complex> bn1(i + 1);
-
-                Complex div = 1.0f / (1.0f - ef1 * eb1);
-                for(int j = 0; j < i; ++j) {
-                    fn1[j] = div * fn[j];
-                    bn1[j] = -div * fn[j];
-                }
-                for(int j = 0; j < i; ++j) {
-                    fn1[j + 1] -= div * bn[j];
-                    bn1[j + 1] += -div * bn[j];
-                }
-
-                Complex mul = y[i] - ex1; //is it e_x+1 ??
-                for(int j = 0; j < i; ++j) {
-                    xn1[j] = xn[j] + mul * bn1[j];
-                }
-                xn1[i] = mul * bn1[i];
-
-                fn = std::move(fn1);
-                bn = std::move(bn1);
-                xn = std::move(xn1);
-            }
-            return xn;
-        }
-
         std::vector<Complex> exponential_moments(const std::vector<Float> moments, Complex &gamma0)
         {
             gamma0 = 0.5f * INV_TWO_PI * std::exp(PI * I * (moments[0] - 0.5f));
             const int M = moments.size() - 1;
             std::vector<Complex> res(M + 1);
-            res[0] = 2 * gamma0.real();
+            res[0] = 2.0f * gamma0.real();
             for(int i = 1; i <= M; ++i) {
                 Complex sm{0.0f, 0.0f};
                 for(int j = 1; j <= i - 1; ++j) {
                     sm += Float(i - j) * res[j] * moments[i - j]; 
                 }
 
-                res[i] = TWO_PI * I / Float(i) * (Float(i) * gamma0 * moments[i] + sm);
+                res[i] = TWO_PI * I * (Float(i) * gamma0 * moments[i] + sm) / Float(i);
             }
             return res;
         }
@@ -104,9 +55,24 @@ namespace spec::math {
         Complex gamma0;
         std::vector<Complex> gamma = exponential_moments(moments, gamma0);
 
-        std::vector<Float> e0(M + 1);
+        //Calculating q
+        std::vector<Float> e0(M + 1, 0.0f);
         e0[0] = 1.0f;
-        std::vector<Complex> q = levinson(gamma, e0);
+        std::vector<Complex> data(2 * M + 1); //Matrix values
+        data[M] = INV_TWO_PI * gamma[0];
+        for(int i = 1; i <= M; ++i) {
+            data[M + i] = INV_TWO_PI * gamma[i];
+            data[M - i] = INV_TWO_PI * std::conj(gamma[i]);
+        }
+        std::vector<Complex> q = levinson<Complex>(data, e0);
+
+      /*  std::cout << "q: ";
+        for(const auto &v : q) {
+            std::cout << v << " ";
+        }
+        std::cout << std::endl;
+       */
+
         std::vector<Complex> lambda(M + 1);
         for(int i = 0; i <= M; ++i) {
             Complex t{0.0f, 0.0f};

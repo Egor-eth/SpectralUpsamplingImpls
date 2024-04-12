@@ -21,7 +21,7 @@ namespace spec {
             return wavelenghts;
         }
 
-        std::vector<Float> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int m);
+        std::vector<Float> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n);
 
         std::vector<Complex> lagrange_multipliers(const std::vector<Float> &moments);
 
