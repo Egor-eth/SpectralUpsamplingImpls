@@ -11,6 +11,7 @@
 #include <numeric>
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include <internal/math/levinson.h>
 
@@ -96,10 +97,41 @@ void dataset_tests()
     std::vector<unsigned> wavelenghts = std::get<0>(*csv::parse_line_m<unsigned>(file));
     auto data = csv::load_as_vector_m<Float>(file);
 
-    std::ofstream output("output/rgbs_blue.csv");
+    std::ofstream output("output/d65.csv");
     int n = 0;
+    assert(wavelenghts.size() != 0);
+
+    Float ciey = util::get_cie_y_integral();
+
+    std::vector<Float> d65_1(wavelenghts.size());
+    for(unsigned i = 0; i < wavelenghts.size(); ++i) d65_1[i] = util::CIE_D6500.get_or_interpolate(wavelenghts[i]) / ciey;
+
+    for(unsigned i = 0; i < d65_1.size() - 1; ++i) {
+        output << d65_1[i] << ",";
+    }
+    output << d65_1.back() << std::endl;
+    return;
+
+    data.push_back(std::make_tuple<>(std::move(d65_1)));
+    
+
+
+    d65_1.resize(wavelenghts.size());
+    for(unsigned i = 0; i < wavelenghts.size(); ++i) d65_1[i] = 1.0f;
+    data.push_back(std::make_tuple<>(std::move(d65_1)));
+    std::cout << data.size() << std::endl;
+
+
+
+    for(unsigned i = 0; i < wavelenghts.size() - 1; ++i) {
+        output << wavelenghts[i] << ",";
+    }
+    output << wavelenghts.back() << std::endl;
+
     for(const auto &e : data) {
         const std::vector<Float> &spec = std::get<0>(e);
+        assert(spec.size() == wavelenghts.size());
+
         Float max = 0.0f;
         for(unsigned i = 0; i < spec.size(); ++i) {
             if(spec[i] > max) max = spec[i];
@@ -110,17 +142,24 @@ void dataset_tests()
             sp.set(wavelenghts[i], spec[i] / max);
         }
         vec3 xyz = spectre2xyz(sp);
-        xyz /= xyz.y;
+        //xyz /= xyz.y;
         vec3 rgb = xyz2rgb_unsafe(xyz);
-        int t = rgb.x >= 0.0f && rgb.x <= 1.0f && rgb.y >= 0.0f && rgb.y <= 1.0f && rgb.z >= 0.0f && rgb.z <= 1.0f;
+        bool t = rgb.x >= 0.0f && rgb.x <= 1.0f && rgb.y >= 0.0f && rgb.y <= 1.0f && rgb.z >= 0.0f && rgb.z <= 1.0f;
 
-        if(true) {
+        if(t) {
             int amax = rgb[0] > rgb[1] ? 0 : 1;
             amax = rgb[amax] > rgb[2] ? amax : 2;
 
-            bool singlecolor = rgb[amax] > 1.25f * (rgb[(amax + 1) % 3] + rgb[(amax + 2) % 3]);
+            bool constraint = rgb.sum() >= 2.0f;//rgb[amax] > 1.25f * (rgb[(amax + 1) % 3] + rgb[(amax + 2) % 3]);
 
-            if(singlecolor && amax == 2) output << format("%f,%f,%f:%d", rgb.x, rgb.y, rgb.z, n) << std::endl;
+            if(constraint) {
+               // std::cout << "1" << std::endl;
+                output << format("%d,%d,%d:%d", int(rgb.x * 255.999f), int(rgb.y * 255.999f), int(rgb.z * 255.999f), n) << std::endl;
+               /* for(unsigned i = 0; i < spec.size() - 1; ++i) {
+                    output << std::fixed << spec[i] << ",";
+                }
+                output << spec.back() << std::endl;*/
+            }
         }
         n += 1;
     }
@@ -139,7 +178,7 @@ int main(int argc, char **argv)
 
     util::save_as_png1(*dyn_cast<BasicSpectralImage>(img.get()), "output/result", util::META_FILENAME, *lightsource);
     */
-    fourier_tests1();
+    dataset_tests();
     /*
     std::vector<double> d{5.0f, -1.0f, 1.0f, 2.0f, 3.0f};
     std::vector<double> y{2.0f, 3.0f, 1.0f};

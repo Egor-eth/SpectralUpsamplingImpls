@@ -6,6 +6,8 @@
 #include <limits>
 #include <algorithm>
 
+#include <iostream>
+
 namespace bin = spec::binary;
 
 void write_header(std::ostream &dst)
@@ -180,14 +182,19 @@ namespace {
 
     }
 
+    void prepare_seeds(std::vector<Float> &seeds, std::vector<vec3ui> &rgbs, int m, int step)
+    {
+        
+    }
+
 }
 
-#include <iostream>
-
-FourierLUT generate_lut(int m, const std::vector<Float> &seeds, const std::vector<vec3ui> &rgbs, int step = 4);
+FourierLUT generate_lut(int m, const std::vector<Float> &seeds, const std::vector<vec3ui> &rgbs, int step = 4)
 {
-    LutBuilder ctx{m, step, seeds, rgbs};
 
+
+
+    LutBuilder ctx{m, step, seeds, rgbs};
     color_processed = 0u;
 
     spec::init_progress_bar(ctx.size * ctx.size * ctx.size);

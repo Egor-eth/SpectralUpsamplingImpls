@@ -14,7 +14,7 @@ using math::base_vec3;
 extern bool enable_logging;
 
 constexpr double XYZ_TO_CIELAB_XYZN[3]{95.0489f, 100.0f, 108.8840f};
-constexpr int M = 3;
+constexpr int M = 4;
 
 template<typename T>
 T _xyz2cielab_f(const T &t)

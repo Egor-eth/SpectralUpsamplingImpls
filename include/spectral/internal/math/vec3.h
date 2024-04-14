@@ -17,6 +17,7 @@ namespace spec::math {
         base_vec3() noexcept(true) : x(), y(), z() {}
         base_vec3(const base_vec3 &v) noexcept(true) : x(v.x), y(v.y), z(v.z) {}
         base_vec3(T x, T y, T z) noexcept(true) : x(x), y(y), z(z) {}
+        base_vec3(T x) noexcept(true) : x(x), y(x), z(x) {}
 
         base_vec3 &operator=(const base_vec3 &v) = default;
 
