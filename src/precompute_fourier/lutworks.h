@@ -1,16 +1,16 @@
-#ifndef SigpolyLUTWORKS_H
-#define SigpolyLUTWORKS_H
+#ifndef LUTWORKS_H
+#define LUTWORKS_H
 #include "functions.h"
-#include <spec/sigpoly_lut.h>
+#include <spec/fourier_lut.h>
 #include <istream>
 #include <ostream>
 #include <cinttypes>
 
-using spec::SigpolyLUT;
+using namespace spec;
 
 void write_header(std::ostream &dst);
-void write_lut(std::ostream &dst, const SigpolyLUT &lut);
+void write_lut(std::ostream &dst, const FourierLUT &lut);
 
-SigpolyLUT generate_lut(int zeroed_idx, int step = 4, int stable_val = 24);
+FourierLUT generate_lut(int m, const std::vector<Float> &seeds, const std::vector<vec3ui> &coords, int step = 4);
 
 #endif

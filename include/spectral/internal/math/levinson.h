@@ -9,26 +9,26 @@ namespace spec::math {
     {
         const int N = (data.size() - 1) / 2;
 
-        auto t = 1.0f / data[N];
+        auto t = T(1.0) / data[N];
         std::vector<T> fn{t};
         std::vector<T> bn{t};
         std::vector<T> xn(N + 1);
         xn[0] = y[0] * t;
 
         for(int i = 1; i <= N; ++i) {
-            T ef1 = 0.0f;
-            T eb1 = 0.0f;
-            T ex1 = 0.0f;
+            T ef1{0.0};
+            T eb1{0.0};
+            T ex1{0.0};
 
             for(int j = 0; j < i; ++j) { //check bounds
                 ef1 += data[N + i - j] * fn[j];
                 ex1 += data[N + i - j] * xn[j];
                 eb1 += data[N - j - 1] * bn[j];
             }
-            std::vector<T> fn1(i + 1, 0.0f);
-            std::vector<T> bn1(i + 1, 0.0f);
+            std::vector<T> fn1(i + 1, T(0.0));
+            std::vector<T> bn1(i + 1, T(0.0));
 
-            T div = 1.0f / (1.0f - ef1 * eb1);
+            T div = T(1.0) / (T(1.0) - ef1 * eb1);
             for(int j = 0; j < i; ++j) {
                 fn1[j] = div * fn[j];
                 bn1[j] = -eb1 * div * fn[j];

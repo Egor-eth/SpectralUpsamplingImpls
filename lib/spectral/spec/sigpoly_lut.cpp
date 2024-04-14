@@ -68,8 +68,9 @@ namespace spec {
         const Float dalphaf1 = alphaf - alphaf1;
         const Float dalphaf2 = alphaf2 - alphaf;
 
-        const Float div = 1.0f / (daf * dbf * dalphaf);
-
+        const Float t = daf * dbf * dalphaf;
+        const Float div = t > 0 ? (1.0f / t) : 1.0f;
+        
         return at(a1_id, b1_id, alpha1_id) * daf2 * dbf2 * dalphaf2 * div
              + at(a1_id, b1_id, alpha2_id) * daf2 * dbf2 * dalphaf1 * div
              + at(a1_id, b2_id, alpha1_id) * daf2 * dbf1 * dalphaf2 * div

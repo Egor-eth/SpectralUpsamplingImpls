@@ -125,7 +125,7 @@ namespace spec::math {
         data[M] = INV_TWO_PI * gamma[0];
         for(int i = 1; i <= M; ++i) {
             data[M + i] = INV_TWO_PI * gamma[i];
-            data[M - i] = INV_TWO_PI * std::conj(gamma[i]);
+            data[M - i] = INV_TWO_PI * gamma[i]; //[std::conj(gamma[i])] in fact;
         }
 
         std::vector<Complex> q = levinson<Complex>(data, e0);

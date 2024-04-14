@@ -1,5 +1,5 @@
 #include "functions.h"
-#include "lutworks.h"
+//#include "lutworks.h"
 #include <internal/serialization/parsers.h>
 #include <internal/common/format.h>
 #include <iostream>
@@ -8,8 +8,11 @@
 
 int main(int argc, char **argv)
 {   
+    (void) argc;
     google::InitGoogleLogging(argv[0]);
 
+
+    /*
     if(argc == 2) {
         int zeroed_idx = spec::parse<int>(argv[1]);
 
@@ -34,6 +37,7 @@ int main(int argc, char **argv)
             std::cout << "Successfully written data." << std::endl;
         }
     }
+    */
 
     return 0;
 } 

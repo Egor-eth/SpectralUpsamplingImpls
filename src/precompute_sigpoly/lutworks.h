@@ -1,5 +1,5 @@
-#ifndef SigpolyLUTWORKS_H
-#define SigpolyLUTWORKS_H
+#ifndef LUTWORKS_H
+#define LUTWORKS_H
 #include "functions.h"
 #include <spec/sigpoly_lut.h>
 #include <istream>

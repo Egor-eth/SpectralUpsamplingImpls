@@ -1,32 +1,20 @@
 #ifndef FUNCTIONS_H
 #define FUNCTIONS_H
-#include <optional>
-#include <utility>
-#include <internal/math/math.h>
+#include <internal/math/fourier.h>
+#include <internal/math/levinson.h>
 #include <internal/common/constants.h>
 #include <spec/spectral_util.h>
+#include <vector>
+#include <optional>
+#include <utility>
 
-
-using spec::math::base_vec3;
-using spec::math::vec3;
-using spec::math::vec3d;
-using spec::Float;
+using namespace spec;
+using math::base_vec3;
 
 extern bool enable_logging;
 
 constexpr double XYZ_TO_CIELAB_XYZN[3]{95.0489f, 100.0f, 108.8840f};
-
-template<typename T>
-inline T _sigmoid(const T &x)
-{
-    return fma(T(0.5), x / sqrt(fma(x, x, T(1))), T(0.5));
-}
-
-template<typename T>
-inline T _sigmoid_polynomial(const T &x, const T coef[3])
-{
-    return _sigmoid<T>(fma(fma(coef[0], x, coef[1]), x, coef[2]));
-}
+constexpr int M = 3;
 
 template<typename T>
 T _xyz2cielab_f(const T &t)
@@ -53,34 +41,80 @@ base_vec3<T> _xyz2cielab(const base_vec3<T> &v)
     };
 }
 
+
+//wavelenghts must be sampled to CURVES_WAVELENGHTS values
 template<typename T>
-base_vec3<T> _sigpoly2xyz(const T *x)
+base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
 {
+    static T cieyint = T(util::get_cie_y_integral());
+
     base_vec3<T> xyz{};
-    //const BasicSpectrum &d65 = get_D6500();
+
     unsigned idx = 0u;
-    for(int lambda = spec::CURVES_WAVELENGHTS_START; lambda <= spec::CURVES_WAVELENGHTS_END; lambda += spec::CURVES_WAVELENGHTS_STEP) {
-        const T val_lv = _sigmoid_polynomial<T>(T(lambda), x) * static_cast<double>(spec::util::CIE_D6500.get_or_interpolate(lambda));
+    for(unsigned i = 0; i < wavelenghts.size(); ++i) {
+        const T val_lv = values[i] * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
         
-        xyz.x += val_lv * static_cast<double>(spec::X_CURVE[idx]);
-        xyz.y += val_lv * static_cast<double>(spec::Y_CURVE[idx]);
-        xyz.z += val_lv * static_cast<double>(spec::Z_CURVE[idx]);
+        xyz.x += T(X_CURVE[idx]) * val_lv;
+        xyz.y += T(Y_CURVE[idx]) * val_lv;
+        xyz.z += T(Z_CURVE[idx]) * val_lv;
         idx += 1;
     }
-    const Float cieyint = spec::util::get_cie_y_integral();
-
-    xyz.x /= cieyint;
-    xyz.y /= cieyint;
-    xyz.z /= cieyint;
+    xyz /= cieyint;
     return xyz;
 }
 
-vec3d solve_for_rgb(const vec3 &rgb, const vec3d &init);
 
-void solve_for_rgb_d(const vec3 &rgb, vec3d &x);
+template<typename T>
+std::vector<T> _real_fourier_moments_of(const std::vector<T> &phases, const std::vector<T> &values, int n)
+{
+    static const std::complex<T> I_VAL{T(0.0), T(1.0)};
+    const unsigned N = phases.size();
+    int M = n - 1;
+    std::vector<T> moments(M + 1);
+    for(int i = 0; i <= M; ++i) {
+        std::complex<T> val = 0.0;
+        for(unsigned j = 0; j < N; ++j) {
+            val += values[j] * std::exp(-I_VAL * T(i) * phases[j]);
+        }
+        moments[i] = std::real(val) / T(N);
+    }
+    return moments;
+}
 
-std::optional<std::pair<vec3, vec3>> find_stable(const vec3d &init, vec3d &solution, int div, int mdiv, spec::Float epsilon);
+template<typename T>
+std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
+{
+    static const std::complex<T> I_VAL{T(0.0), T(1.0)};
 
+    std::vector<T> res(phases.size());
+    std::vector<T> e0(M + 1, T(0.0));
+    e0[0] = T(1.0);
+
+    std::vector<T> data(2 * M + 1); //Matrix values
+    data[M] = T(math::INV_TWO_PI) * gamma[0];
+    for(int i = 1; i <= M; ++i) {
+        data[M + i] = T(math::INV_TWO_PI) * gamma[i];
+        data[M - i] = T(math::INV_TWO_PI) * gamma[i]; 
+    }
+
+    std::vector<T> q = math::levinson<T>(data, e0);
+
+    for(unsigned k = 0; k < phases.size(); ++k) {
+        std::complex<T> t = T(0.0);
+        for(int i = 0; i <= M; ++i) t += T(math::INV_TWO_PI) * q[i] * exp(-I_VAL * T(i) * T(phases[k])); 
+
+
+        T div = std::fabs(t);
+        div *= div;
+
+        res[k] = T(math::INV_TWO_PI) * q[0] / div;
+    }
+    return res;
+}
+
+std::vector<double> solve_for_rgb(const vec3 &rgb, const std::vector<double> &init);
+
+std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
 
 
 #endif

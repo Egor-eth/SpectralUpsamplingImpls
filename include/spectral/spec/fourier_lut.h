@@ -13,7 +13,7 @@ namespace spec {
     public:
         static constexpr uint64_t FILE_MARKER = 0xfafa0000ab0ba001;
 
-        FourierLUT(std::vector<Complex> &&data, unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data{std::move(data)} {}
+        FourierLUT(std::vector<Float> &&data, unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data{std::move(data)} {}
 
         FourierLUT(unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data(size * size * size) {}
 
@@ -49,12 +49,12 @@ namespace spec {
             return m;
         }
 
-        const Complex *get_raw_data() const
+        const Float *get_raw_data() const
         {
             return data.data();
         }
 
-        std::vector<Complex> eval(int r, int g, int b) const;
+        std::vector<Float> eval(int r, int g, int b) const;
 
         static FourierLUT load_from(std::istream &src);
 
@@ -62,7 +62,9 @@ namespace spec {
         unsigned step;
         unsigned size;
         unsigned m;
-        std::vector<Complex> data;
+        std::vector<Float> data;
+
+        void add(std::vector<Float> &res, unsigned r, unsigned g, unsigned b, Float mul) const;
     };
 
 

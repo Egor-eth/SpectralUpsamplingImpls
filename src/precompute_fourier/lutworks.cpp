@@ -1,25 +1,29 @@
 #include "lutworks.h"
 #include <internal/serialization/binary.h>
 #include <internal/common/util.h>
+#include <spec/conversions.h>
 #include <vector>
+#include <limits>
+#include <algorithm>
 
 namespace bin = spec::binary;
 
 void write_header(std::ostream &dst)
 {
-    bin::write<uint64_t>(dst, spec::SigpolyLUT::FILE_MARKER);
+    bin::write<uint64_t>(dst, spec::FourierLUT::FILE_MARKER);
     bin::write<uint16_t>(dst, sizeof(Float));
 }
 
-void write_lut(std::ostream &dst, const SigpolyLUT &lut)
+void write_lut(std::ostream &dst, const FourierLUT &lut)
 {  
     unsigned step = lut.get_step();
     bin::write<uint16_t>(dst, step);
+    bin::write<uint16_t>(dst, lut.get_m());
     unsigned count = lut.get_size();
-    count = count * count * count;
-    const vec3 *ptr = lut.get_raw_data();
+    count = count * count * count * lut.get_m();
+    const Float *ptr = lut.get_raw_data();
     for(unsigned i = 0; i < count ; ++i) {
-        bin::write_vec<Float>(dst, ptr[i]);
+        bin::write<Float>(dst, ptr[i]);
     }
 }
 
@@ -44,21 +48,27 @@ namespace {
     class LutBuilder
     {
     public:
-        const int main_channel;
         const int step, size;
-        const int stable, stable_id;
         const bool force_last;
-        int i = 0, j = 0, k = 0;
+        const int m;
+        unsigned i = 0, j = 0, k = 0;
 
-        LutBuilder(int main_channel, int step, int stable)
-            : main_channel{main_channel}, step{step}, size{256 / step + (255 % step != 0)},
-              stable{stable}, stable_id{stable / step}, 
-              force_last{255 % step != 0}, data(size * size * size) {}
-
-        SigpolyLUT build_and_clear()
+        LutBuilder(int m, int step, const std::vector<Float> &seeds_moments, std::vector<vec3ui> &&seeds_rgb)
+            : m{m}, step{step}, size{256 / step + (255 % step != 0)},
+              force_last{255 % step != 0}, seeds(std::move(seeds_rgb))
+              data(size * size * size * m, 0.0f) 
         {
-            data.shrink_to_fit();
-            return SigpolyLUT(std::move(data), step);
+            for(unsigned k = 0; k < seeds.size(); ++k) {
+                Float *ptr = at(rgb);
+                for(int i = 0u; i <= m; ++i) {
+                    ptr[i] = seeds_moments[m * k + i];
+                }
+            }
+        }
+
+        FourierLUT build_and_clear()
+        {
+            return FourierLUT(std::move(data), step, m);
         }
 
         int idx_to_color(int i) const
@@ -66,69 +76,106 @@ namespace {
             return i == size - 1 ? 255 : i * step;
         }
 
-        void set_target(int i, int j, int k);
+        vec3ui get_target() const
+        {
+            return {idx_to_color(i), idx_to_color(j), idx_to_color(k)};
+        }
 
         int color_to_idx(int c) const
         {
             return c == 255 ? size - 1 : c / step; 
         }
 
-        Float acolorf(int i) const
+        bool init_solution(std::vector<double> &solution, int k) const;
+
+        const Float *at(int i1, int j1, int k1) const
         {
-            return spec::math::smoothstep2(i / static_cast<Float>(size - 1));
+            return data.data() + ((i1 * size) + j1) * size + k1; 
         }
 
-        void init_solution(vec3d &solution) const
+        const Float *at(const vec3ui &rgb) const
         {
-            if(k == stable_id) {
-                std::fill_n(solution.v, 3, 0.0);
-            }
-            else {
-                solution = at(i, j, k < stable_id ? k + 1 : k - 1);
-            }
+            return at(color_to_idx(rgb.x), color_to_idx(rgb.y), color_to_idx(rgb.z))
         }
 
-        const vec3 &at(int i1, int j1, int k1) const
+        const Float *current() const
         {
-            return data[((k1 * size) + i1) * size + j1]; 
+            return data.data() + (((i * size) + j) * size + k) * m; 
         }
 
-        const vec3 &current() const
+        Flaot *current()
         {
-            return data[((k * size) + i) * size + j]; 
+            return data.data() + (((i * size) + j) * size + k) * m; 
         }
 
-        vec3 &current()
-        {
-            return data[((k * size) + i) * size + j]; 
-        }
-
-        vec3 spaced_color() const;
     private:
-        std::vector<vec3> data;
+        const std::vector<vec3ui> seeds;
+        const std::vector<Float> data;
     };
 
-    vec3 LutBuilder::spaced_color() const
-    {
-        Float ac = acolorf(k);
-        return fill_vector(main_channel, ac * idx_to_color(i) / 255.0f, ac * idx_to_color(j) / 255.0f, ac);
+    //res and distances must have size >= k
+    bool k_nearest(const std::vector<vec3ui> &coords, vec3ui v, int k, std::vector<vec3ui> &res, std::vector<double> &distances)
+    {   
+        std::fill_n(distances.begin(), k, std::numeric_limits<double>::infinity());
+        vec3 vf = v.cast<double>();
+        for(const auto &rgb : coords) {
+            double dist = vec3::distance(rgb.cast<double>(), vf);
+            if(dist == 0.0) return false;
+            for(unsigned i = 0; i < distances.size(); ++i) {
+                if(dist < distances[i]) {
+                    distances.insert(distances.begin() + i, dist);
+                    res.insert(res.begin() + i, rgb);
+                    break;
+                }
+            }
+        }
+        res.resize(k);
+        distances.resize(k);
+        return true;
     }
 
+    bool LutBuilder::init_solution(std::vector<double> &solution, int knearest) const
+    {
+        std::vector<vec3ui> nearest(knearest);
+        std::vector<double> distances(knearest);
+        if(k_nearest(seeds, get_target(), knearest, nearest, distances)) {
+
+            solution.resize(m + 1);
+            std::fill_n(solution.begin(), m + 1, 0.0);
+
+            double div = 0.0;
+            for(int i = 0; i < knearest; ++i) div += 1.0 / distances[i];
+
+            for(int i = 0; i < knearest; ++i) {
+                const double mul = (1.0 / distances[i]) / div;
+                const auto &rgb = nearest[i];
+                Float *target = at(rgb);
+                for(int j = 0; j <= m; ++j) {
+                    solution[j] += target[j] * mul;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
 
     unsigned color_processed = 0;
 
-    void fill(LutBuilder &ctx)
+    void fill(LutBuilder &ctx, int knearest)
     {
-        vec3d solution;
+        std::vector<double> solution(ctx.m + 1);
         for(ctx.i = 0; ctx.i < ctx.size; ++ctx.i) {
             for(ctx.j = 0; ctx.j < ctx.size; ++ctx.j) {
-                ctx.init_solution(solution);
-
-                solve_for_rgb_d(ctx.spaced_color(), solution);
-                ctx.current() = solution;
-                color_processed += 1;
+                for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
+                    ctx.init_solution(solution, knearest);
+                    //TODO
+                    solve_for_rgb_d(ctx.spaced_color(), solution, knearest);
+                    ctx.current() = solution;
+                    color_processed += 1;
+                }
             }
             spec::print_progress(color_processed);
+
         }
 
     }
@@ -137,20 +184,15 @@ namespace {
 
 #include <iostream>
 
-SigpolyLUT generate_lut(int zeroed_idx, int step, int stable_val)
+FourierLUT generate_lut(int m, const std::vector<Float> &seeds, const std::vector<vec3ui> &rgbs, int step = 4);
 {
-    LutBuilder ctx{zeroed_idx, step, stable_val};
+    LutBuilder ctx{m, step, seeds, rgbs};
 
     color_processed = 0u;
 
     spec::init_progress_bar(ctx.size * ctx.size * ctx.size);
 
-    for(ctx.k = ctx.stable_id; ctx.k >= 0; --ctx.k) {
-        fill(ctx);
-    }
-    for(ctx.k = ctx.stable_id + 1; ctx.k < ctx.size; ++ctx.k) {
-        fill(ctx);
-    }
+    fill(ctx);
 
     spec::finish_progress_bar();
     return ctx.build_and_clear();

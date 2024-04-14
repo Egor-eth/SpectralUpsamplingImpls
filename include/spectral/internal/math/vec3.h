@@ -112,7 +112,7 @@ namespace spec::math {
 
         base_vec3 &operator/=(T f) noexcept(true)
         {
-            const T invf = 1.0f / f;
+            const T invf = T(1.0f) / f;
             x *= invf;
             y *= invf;
             z *= invf;
@@ -187,6 +187,8 @@ namespace spec::math {
     extern template std::ostream &operator<<(std::ostream &str, const base_vec3<Float> &v);
 
     using vec3 = base_vec3<Float>;
+    using vec3i = base_vec3<int>;
+    using vec3ui = base_vec3<unsigned>;
     using vec3d = base_vec3<double>;
     using vec3f = base_vec3<float>;
 
