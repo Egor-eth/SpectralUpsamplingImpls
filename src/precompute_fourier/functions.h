@@ -8,13 +8,15 @@
 #include <optional>
 #include <utility>
 
+#define PRECOMPUTE_M 4;
+
 using namespace spec;
 using math::base_vec3;
 
 extern bool enable_logging;
 
 constexpr double XYZ_TO_CIELAB_XYZN[3]{95.0489f, 100.0f, 108.8840f};
-constexpr int M = 4;
+constexpr int M = PRECOMPUTE_M;
 
 template<typename T>
 T _xyz2cielab_f(const T &t)
@@ -112,7 +114,7 @@ std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
     return res;
 }
 
-std::vector<double> solve_for_rgb(const vec3 &rgb, const std::vector<double> &init);
+void solve_for_rgb(const vec3 &rgb, std::vector<double> &init);
 
 std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
 

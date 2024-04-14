@@ -9,14 +9,16 @@
 #include <fstream>
 #include <glog/logging.h>
 
+const std::string EMISS_LUT_FILENAME = "output/f_emission_lut.eflf";
+
 int main(int argc, char **argv)
 {   
     (void) argc;
     google::InitGoogleLogging(argv[0]);
 
 
-    std::ifstream file{"input/leds.csv"};
-
+    std::ifstream file{"input/dataset.csv"};
+/*
     std::vector<Float> wavelenghts = std::get<0>(*csv::parse_line_m<Float>(file));
     auto data = csv::load_as_vector_m<Float>(file);
 
@@ -36,33 +38,18 @@ int main(int argc, char **argv)
     vec3 target_color_out = xyz2rgb(_spectre2xyz(wavelenghts, new_values));
 
     std::cout << target_color_out << "<-" << target_color_gt << std::endl;
+*/
+    
+    //int zeroed_idx = spec::parse<int>(argv[1]);
 
-    /*
-    if(argc == 2) {
-        int zeroed_idx = spec::parse<int>(argv[1]);
+    SigpolyLUT lut = generate_lut(zeroed_idx, 4, 24);
+    std::string output_path = spec::format(EMISS_LUT_FILENAME, zeroed_idx);
+    std::ofstream output{output_path};
 
-        SigpolyLUT lut = generate_lut(zeroed_idx, 4, 24);
-        std::string output_path = spec::format("output/sp_lut%d.slf", zeroed_idx);
-        std::ofstream output{output_path};
-
-        std::cout << "Writing data to " << output_path << "." << std::endl;
-        write_header(output);
-        write_lut(output, lut);
-        std::cout << "Successfully written data." << std::endl;
-    }
-    else {
-        for(int i = 0; i < 3; ++i) {
-            SigpolyLUT lut = generate_lut(i, 4, 24);
-            std::string output_path = spec::format("output/sp_lut%d.slf", i);
-            std::ofstream output{output_path};
-
-            std::cout << "Writing data to " << output_path << "." << std::endl;
-            write_header(output);
-            write_lut(output, lut);
-            std::cout << "Successfully written data." << std::endl;
-        }
-    }
-    */
+    std::cout << "Writing data to " << output_path << "." << std::endl;
+    write_header(output);
+    write_lut(output, lut);
+    std::cout << "Successfully written data." << std::endl;
 
     return 0;
 } 

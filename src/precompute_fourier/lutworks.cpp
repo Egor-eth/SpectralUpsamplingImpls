@@ -33,20 +33,6 @@ void write_lut(std::ostream &dst, const FourierLUT &lut)
 
 namespace {
 
-    inline vec3 fill_vector(int main_channel, Float a, Float b, Float alpha)
-    {
-        switch(main_channel) {
-        case 0:
-            return {alpha, a, b};
-        case 1:
-            return {b, alpha, a};
-        case 2:
-            return {a, b, alpha};
-        default:
-            return {};
-        }
-    }
-
     class LutBuilder
     {
     public:
@@ -61,10 +47,9 @@ namespace {
               data(size * size * size * m, 0.0f) 
         {
             for(unsigned k = 0; k < seeds.size(); ++k) {
-                Float *ptr = at(rgb);
-                for(int i = 0u; i <= m; ++i) {
-                    ptr[i] = seeds_moments[m * k + i];
-                }
+                Float *out_ptr = at(rgb);
+                Float *in_ptr = seeds_moments.data() + m * k;
+                std::copy(in_ptr, in_ptr + m + 1, out_ptr);
             }
         }
 
@@ -169,38 +154,61 @@ namespace {
         for(ctx.i = 0; ctx.i < ctx.size; ++ctx.i) {
             for(ctx.j = 0; ctx.j < ctx.size; ++ctx.j) {
                 for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
-                    ctx.init_solution(solution, knearest);
+                    if(ctx.init_solution(solution, knearest)) {
                     //TODO
-                    solve_for_rgb_d(ctx.spaced_color(), solution, knearest);
-                    ctx.current() = solution;
-                    color_processed += 1;
+                        solve_for_rgb(ctx.spaced_color(), solution);
+                        std::copy(solution.begin(), solution.end(), ctx.current());
+                        color_processed += 1;
+                    }
                 }
+                spec::print_progress(color_processed);
             }
-            spec::print_progress(color_processed);
 
         }
 
     }
 
-    void prepare_seeds(std::vector<Float> &seeds, std::vector<vec3ui> &rgbs, int m, int step)
-    {
-        
+    void prepare_seeds(const std::vector<Float> &in_wavelenghts, const std::vector<std::vector<Float>> &in_seeds, std::vector<vec3ui> &rgbs, std::vector<Float> &out_moments, int step)
+    {   
+        init_progress_bar(in_seeds.size());
+        color_processed = 0u;
+
+        auto phases = math::wl_to_phases(wavelenghts);
+        for(unsigned i = 0; i < rgbs.size(); ++i) {
+            vec3ui rgb = rgbs[i];
+            rgb.x = rgb.x == 255 ? 255 : (rgb.x / step) * step;
+            rgb.y = rgb.y == 255 ? 255 : (rgb.y / step) * step;
+            rgb.z = rgb.z == 255 ? 255 : (rgb.z / step) * step;
+
+            if(rgb != rgbs[i]) {
+                std::vector<double> res = adjust_and_compute_moments(rgb, in_wavelenghts, in_seeds[i]);
+                res.resize(M + 1);
+                out_moments.insert(out_moments.end(), res.begin(), res.end());
+            }
+            else {
+                std::vector<Float> res = math::real_fourier_moments_of(phases, in_seeds[i], M + 1);
+                out_moments.insert(out_moments.end(), res.begin(), res.end());
+            }
+            print_progress(++color_processed);
+        }
+        finish_progress_bar();
     }
 
 }
 
-FourierLUT generate_lut(int m, const std::vector<Float> &seeds, const std::vector<vec3ui> &rgbs, int step = 4)
+FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector<std::vector<Float>> &seeds, std::vector<vec3ui> rgbs, int step)
 {
+    std::vector<Float> seeds_moments;
 
-
-
-    LutBuilder ctx{m, step, seeds, rgbs};
+    prepare_seeds(wavelenghts, seeds, rgbs, seeds_moments, step);
+    
     color_processed = 0u;
+    init_progress_bar(ctx.size * ctx.size * ctx.size - seeds.size());
 
-    spec::init_progress_bar(ctx.size * ctx.size * ctx.size);
+    LutBuilder ctx{M, step, seeds_moments, rgbs};
 
     fill(ctx);
 
-    spec::finish_progress_bar();
+    finish_progress_bar();
     return ctx.build_and_clear();
 }

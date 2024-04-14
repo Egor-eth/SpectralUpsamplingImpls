@@ -50,7 +50,7 @@ struct CostFunctorEmissionConstrained {
     }
 };
 
-std::vector<double> solve_for_rgb(const vec3 &rgb, const std::vector<double> &init)
+void solve_for_rgb(const vec3 &rgb, std::vector<double> &init)
 {
     (void) rgb;
     (void) init;
@@ -62,11 +62,8 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std
     std::vector<Float> moments = math::real_fourier_moments_of(math::wl_to_phases(wavelenghts), values, M + 1);
     assert(moments.size() == M + 1);
 
-    std::vector<double> x(M + 1);
-    for(int i = 0; i <= M; ++i) {
-        x[i] = double(moments[i]);
-    //    std::cout << x[i] << std::endl;
-    }
+    std::vector<double> x(moments.begin(), moments.end());
+
 
 
     if(enable_logging) {
