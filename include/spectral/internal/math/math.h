@@ -41,6 +41,8 @@ namespace spec {
     using math::mat3;
     using math::vec3;
     using math::vec3d;
+    using math::vec3ui;
+    using math::vec3i;
 
 }
 

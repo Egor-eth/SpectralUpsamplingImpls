@@ -141,6 +141,32 @@ namespace spec::math {
             return x == v.x && y == v.y && z == v.z;
         }
 
+        bool operator!=(const base_vec3 &v) const noexcept(true)
+        {
+            return x != v.x || y != v.y || z != v.z;
+        }
+
+
+        bool operator<(const base_vec3 &v) const noexcept(true)
+        {
+            return x < v.x || (x == v.x && (y < v.y || (y == v.y && (z < v.z))));
+        }
+
+        bool operator<=(const base_vec3 &v) const noexcept(true)
+        {
+            return x < v.x || (x == v.x && (y < v.y || (y == v.y && (z <= v.z))));
+        }
+
+        bool operator>(const base_vec3 &v) const noexcept(true)
+        {
+            return !(*this <= v);
+        }
+
+        bool operator>=(const base_vec3 &v) const noexcept(true)
+        {
+            return !(*this < v);
+        }
+
         T sum() const noexcept(true)
         {
             return x + y + z;

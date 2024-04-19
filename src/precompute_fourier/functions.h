@@ -65,6 +65,28 @@ base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std::vect
     return xyz;
 }
 
+template<typename T>
+T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
+{
+    T val = 0.0f;
+    for(int i = 0; i <= wavelenghts.size(); ++i) {
+    //for(int lambda : wl) {
+
+        Float delta;
+        if(i == 0) {
+            delta = (wavelenghts[1] - wavelenghts[0]) * 0.5f;
+        }
+        else if(i == wavelenghts.size() - 1) {
+            delta = (wavelenghts.back() - wavelenghts[wavelenghts.size() - 2]) * 0.5f;
+        }
+        else {
+            delta = (wavelenghts[i + 1] - wavelenghts[i - 1]) * 0.5f;
+        }
+
+        val += T(util::_interp<Y_CURVE>(wavelenghts[i])) * T(delta) * values[i];
+    }
+    return val;
+}
 
 template<typename T>
 std::vector<T> _real_fourier_moments_of(const std::vector<T> &phases, const std::vector<T> &values, int n)
@@ -114,7 +136,7 @@ std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
     return res;
 }
 
-void solve_for_rgb(const vec3 &rgb, std::vector<double> &init);
+void solve_for_rgb(const vec3 &rgb, std::vector<double> &x);
 
 std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
 
