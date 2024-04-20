@@ -5,9 +5,11 @@ set(MODULE_SOURCES
     glassner_naive.cpp
     smits.cpp
     sigpoly.cpp
+   #fourier.cpp
     functional/smits.cpp
     functional/glassner.cpp
     functional/sigpoly.cpp
+    functional/fourier.cpp
 )
 
 set(MODULE_LIBS

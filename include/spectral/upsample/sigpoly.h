@@ -17,8 +17,6 @@ namespace spec {
         ~SigPolyUpsampler() = default;
     private:
         const SigpolyLUT luts[3];
-
-        void upsample_pixel_to(const Pixel &pixel, SigPolySpectrum &s) const;
     };
 }
 
