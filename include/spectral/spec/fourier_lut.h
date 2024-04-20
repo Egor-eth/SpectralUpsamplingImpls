@@ -17,6 +17,8 @@ namespace spec {
 
         FourierLUT(unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data(size * size * size * (m + 1)) {}
 
+        FourierLUT() = default;
+        
         FourierLUT(const FourierLUT &) = delete;
         FourierLUT &operator=(const FourierLUT &) = delete;
 
