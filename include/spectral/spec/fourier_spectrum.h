@@ -7,28 +7,28 @@
 
 namespace spec {
 
-    class MFourierSpectrum : public ISpectrum 
+    class FourierReflectanceSpectrum : public ISpectrum 
     {
     public:
-        INJECT_REFL(MFourierSpectrum);
+        INJECT_REFL(FourierReflectanceSpectrum);
 
-        MFourierSpectrum()
+        FourierReflectanceSpectrum()
             : coef{} {}
 
-        MFourierSpectrum(const std::vector<Float> &coef)
+        FourierReflectanceSpectrum(const std::vector<Float> &coef)
             : coef(coef) {}
 
-        MFourierSpectrum(std::vector<Float> &&coef)
+        FourierReflectanceSpectrum(std::vector<Float> &&coef)
             : coef(std::move(coef)) {}
 
-        MFourierSpectrum(const MFourierSpectrum &other) = default;
+        FourierReflectanceSpectrum(const FourierReflectanceSpectrum &other) = default;
 
-        MFourierSpectrum(MFourierSpectrum &&other)
+        FourierReflectanceSpectrum(FourierReflectanceSpectrum &&other)
             : coef(std::move(other.coef)) {}
 
-        MFourierSpectrum &operator=(const MFourierSpectrum &other) = default;
+        FourierReflectanceSpectrum &operator=(const FourierReflectanceSpectrum &other) = default;
 
-        MFourierSpectrum &operator=(MFourierSpectrum &&other)
+        FourierReflectanceSpectrum &operator=(FourierReflectanceSpectrum &&other)
         {
             coef = std::move(other.coef);
             return *this;
@@ -63,11 +63,70 @@ namespace spec {
     };
 
 
-    extern template class SpectralImage<MFourierSpectrum>;
+    extern template class SpectralImage<FourierReflectanceSpectrum>;
 
-    using MFourierSpectralImage = SpectralImage<MFourierSpectrum>;
+    using FourierReflectanceSpectralImage = SpectralImage<FourierReflectanceSpectrum>;
+
+    class FourierEmissionSpectrum : public ISpectrum 
+    {
+    public:
+        INJECT_REFL(FourierReflectanceSpectrum);
+
+        FourierEmissionSpectrum()
+            : coef{} {}
+
+        FourierEmissionSpectrum(const std::vector<Float> &coef)
+            : coef(coef) {}
+
+        FourierEmissionSpectrum(std::vector<Float> &&coef)
+            : coef(std::move(coef)) {}
+
+        FourierEmissionSpectrum(const FourierEmissionSpectrum &other) = default;
+
+        FourierEmissionSpectrum(FourierEmissionSpectrum &&other)
+            : coef(std::move(other.coef)) {}
+
+        FourierEmissionSpectrum &operator=(const FourierEmissionSpectrum &other) = default;
+
+        FourierEmissionSpectrum &operator=(FourierEmissionSpectrum &&other)
+        {
+            coef = std::move(other.coef);
+            return *this;
+        }
+
+        Float &operator[](unsigned i)
+        {
+            return coef[i];
+        }
+
+        Float operator[](unsigned i) const
+        {
+            return coef[i];
+        }
+
+        const std::vector<Float> &get() const
+        {
+            return coef;
+        }
+
+        void set(const std::vector<Float> &c)
+        {
+            coef = c;
+        }
+
+        Float get_or_interpolate(Float w) const override;
 
 
+    private:
+        std::vector<Float> coef;
+        mutable std::vector<Float> q_vector{};
+    };
+
+
+    extern template class SpectralImage<FourierEmissionSpectrum>;
+
+    using FourierEmissionSpectralImage = SpectralImage<FourierEmissionSpectrum>;
+/*
     class LFourierSpectrum : public ISpectrum 
     {
     public:
@@ -126,6 +185,6 @@ namespace spec {
     extern template class SpectralImage<LFourierSpectrum>;
 
     using LFourierSpectralImage = SpectralImage<LFourierSpectrum>;
-
+*/
 }
 #endif

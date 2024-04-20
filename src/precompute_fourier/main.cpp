@@ -1,5 +1,5 @@
 #include "functions.h"
-//#include "lutworks.h"
+#include "lutworks.h"
 #include <spec/conversions.h>
 #include <internal/serialization/parsers.h>
 #include <internal/serialization/csv.h>
@@ -10,43 +10,56 @@
 #include <glog/logging.h>
 
 const std::string EMISS_LUT_FILENAME = "output/f_emission_lut.eflf";
+using namespace spec;
+
+void load_dataset(std::vector<vec3ui> &rgbs, std::vector<Float> &wavelenghts, std::vector<std::vector<Float>> &values)
+{
+    std::ifstream in_spectra("output/dataset_spectra.csv");
+    std::ifstream in_rgbs("output/dataset_rgb.csv");
+
+    wavelenghts = std::get<0>(*csv::parse_line_m<Float>(in_spectra));
+
+
+    auto data = csv::load_as_vector_m<Float>(in_spectra);
+    in_spectra.close();
+    auto rgb_data = csv::load_as_vector<unsigned, unsigned, unsigned>(in_rgbs, ',', 1);
+    in_rgbs.close();
+
+    values.resize(data.size());
+    rgbs.reserve(data.size());
+
+    for(unsigned i = 0; i < data.size(); ++i) {
+        values[i] = std::move(std::get<0>(data[i]));
+
+        const auto &e = rgb_data[i];
+        rgbs.emplace_back(std::get<0>(e), std::get<1>(e), std::get<2>(e));
+    }
+}
 
 int main(int argc, char **argv)
 {   
-    (void) argc;
     google::InitGoogleLogging(argv[0]);
 
+    //Parameters
+    unsigned param_step = 4;
+    unsigned param_knearest = 4;
+    if(argc >= 2) {
+        param_step = parse<unsigned>(argv[1]);
+        if(argc == 3) {
+            param_knearest = parse<unsigned>(argv[2]);
+        }
+    }
 
-    std::ifstream file{"input/dataset.csv"};
-/*
-    std::vector<Float> wavelenghts = std::get<0>(*csv::parse_line_m<Float>(file));
-    auto data = csv::load_as_vector_m<Float>(file);
+    std::vector<vec3ui> ds_rgbs;
+    std::vector<Float> ds_wavelenghts;
+    std::vector<std::vector<Float>> ds_spectra;
+    load_dataset(ds_rgbs, ds_wavelenghts, ds_spectra);
 
-    const std::vector<Float> &values = std::get<0>(data[1]);
+    FourierLUT lut = generate_lut(ds_wavelenghts, ds_spectra, ds_rgbs, param_step, param_knearest);
 
-    vec3 color = xyz2rgb(_spectre2xyz(wavelenghts, values));
+    std::ofstream output{EMISS_LUT_FILENAME};
 
-    vec3 target_color_gt = color + vec3(5.0f / 255.0f);
-
-    std::vector<double> momentsd = adjust_and_compute_moments(target_color_gt, wavelenghts, values);
-    std::vector<Float> moments(M + 1);
-    for(int i = 0; i <= M; ++i) moments[i] = Float(momentsd[i]);
-
-    std::vector<Float> phases = math::wl_to_phases(wavelenghts);
-    std::vector<Float> new_values = math::mese(phases, moments);
-
-    vec3 target_color_out = xyz2rgb(_spectre2xyz(wavelenghts, new_values));
-
-    std::cout << target_color_out << "<-" << target_color_gt << std::endl;
-*/
-    
-    //int zeroed_idx = spec::parse<int>(argv[1]);
-
-    SigpolyLUT lut = generate_lut(zeroed_idx, 4, 24);
-    std::string output_path = spec::format(EMISS_LUT_FILENAME, zeroed_idx);
-    std::ofstream output{output_path};
-
-    std::cout << "Writing data to " << output_path << "." << std::endl;
+    std::cout << "Writing data to " << EMISS_LUT_FILENAME << "." << std::endl;
     write_header(output);
     write_lut(output, lut);
     std::cout << "Successfully written data." << std::endl;

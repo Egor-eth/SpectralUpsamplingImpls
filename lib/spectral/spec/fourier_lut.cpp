@@ -81,7 +81,7 @@ namespace spec {
         uint16_t step = binary::read<uint16_t>(src);
         uint16_t m = binary::read<uint16_t>(src);
         FourierLUT lut{step, m};
-        const unsigned size = lut.size * lut.size * lut.size * m;
+        const unsigned size = lut.size * lut.size * lut.size * (m + 1);
         for(unsigned i = 0; i < size; ++i) {
             lut.data[i] = binary::read<Float>(src);
         }
@@ -90,7 +90,7 @@ namespace spec {
 
     void FourierLUT::add(std::vector<Float> &res, unsigned r, unsigned g, unsigned b, Float mul) const
     {
-        unsigned offset = ((r * size + g) * size + b) * m;
+        unsigned offset = ((r * size + g) * size + b) * (m + 1);
         for(unsigned i = 0; i <= m; ++i) {
             res[i] += data[offset + i] * mul;
         }

@@ -15,7 +15,7 @@ namespace spec {
 
         FourierLUT(std::vector<Float> &&data, unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data{std::move(data)} {}
 
-        FourierLUT(unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data(size * size * size) {}
+        FourierLUT(unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m}, data(size * size * size * (m + 1)) {}
 
         FourierLUT(const FourierLUT &) = delete;
         FourierLUT &operator=(const FourierLUT &) = delete;

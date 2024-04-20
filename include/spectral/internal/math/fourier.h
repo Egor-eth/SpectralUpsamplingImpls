@@ -25,6 +25,9 @@ namespace spec {
 
         std::vector<Complex> fourier_moments_of(const std::vector<Float> &phases, const std::vector<Float> &values, int n);
 
+        std::vector<Complex> precompute_mese_coeffs(const std::vector<Complex> &gamma);
+        std::vector<Float> precompute_mese_coeffs(const std::vector<Float> &gamma);
+
         std::vector<Complex> lagrange_multipliers(const std::vector<Float> &moments);
 
         Float bounded_mese_l(Float phase, const std::vector<Complex> &lagrange_m);
@@ -34,12 +37,21 @@ namespace spec {
             return bounded_mese_l(phase, lagrange_multipliers(moments));
         }
 
+        Float mese_precomp(Float phase, const std::vector<Float> &moments);
 
-        std::vector<Float> mese(std::vector<Float> phases, const std::vector<Float> &moments);
+        inline std::vector<Float> mese(std::vector<Float> phases, const std::vector<Float> &moments)
+        {
+            std::vector<Float> q = precompute_mese_coeffs(moments);
+
+            for(unsigned k = 0; k < phases.size(); ++k) {
+                phases[k] = mese_precomp(phases[k], q);
+            }
+            return phases;
+        }
 
         inline Float mese(Float phase, const std::vector<Float> &moments)
         {
-            return mese(std::vector<Float>{phase}, moments)[0];
+            return mese_precomp(phase, precompute_mese_coeffs(moments));
         }
 
     }

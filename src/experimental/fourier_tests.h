@@ -30,16 +30,9 @@ inline void fourier_tests(const char *path)
     std::vector<Float> phases = math::wl_to_phases(wavelenghts);
 
     std::vector<Float> moments = math::real_fourier_moments_of(phases, values, 4);
-    std::vector<Complex> lagrange = math::lagrange_multipliers(moments);
-
-   /* std::cout << "lagrange: ";
-    for(const auto &v : lagrange) {
-        std::cout << v << " ";
-    }
-    std::cout << std::endl;*/
 
 
-    LFourierSpectrum fspec{std::move(lagrange)};
+    FourierReflectanceSpectrum fspec{std::move(moments)};
 
     vec3 rgb_gt = spectre2rgb(*spec);
     vec3 rgb = spectre2rgb(fspec);

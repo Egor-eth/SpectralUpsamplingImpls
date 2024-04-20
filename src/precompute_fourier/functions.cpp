@@ -7,7 +7,7 @@
 using namespace ceres;
 using std::abs;
 
-bool enable_logging = true;
+constexpr bool ENABLE_LOG = false;
 
 struct CostFunctorEmissionSeedFixer {
     const vec3 in;
@@ -15,7 +15,7 @@ struct CostFunctorEmissionSeedFixer {
     const std::vector<Float> phases;
     const std::vector<Float> values;
 
-    CostFunctorSeedFixer(const vec3 &rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
+    CostFunctorEmissionSeedFixer(const vec3 &rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
         : in(rgb2cielab(rgb)), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
 
     template<typename T>
@@ -52,9 +52,9 @@ struct CostFunctorEmissionSeedFixer {
 
 struct CostFunctorEmissionConstrained {
     const vec3 in;
-    const std::vector<Float> wavelenghts;
+    const std::vector<Float> &wavelenghts;
     const std::vector<Float> phases;
-    const std::vector<Float> values;
+    const std::vector<Float> &values;
 
     CostFunctorEmissionConstrained(const vec3 &rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
         : in(rgb2cielab(rgb)), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
@@ -77,16 +77,39 @@ struct CostFunctorEmissionConstrained {
             residual[4] += abs<T>(result[i] - T(values[i]));
         }
 
-
+        //std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
         return true;
     }
 };
 
-void solve_for_rgb(const vec3 &rgb, std::vector<double> &x)
+void solve_for_rgb(const vec3 &target_rgb, std::vector<double> &x, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
 {
-    (void) rgb;
-    (void) x;
-    return {};
+    assert(x.size() == M + 1);
+
+    if constexpr(ENABLE_LOG) {
+        std::cout << "Solving for color: " << target_rgb << std::endl;
+    }
+
+    // Build the problem.
+    Problem problem;
+
+    // Set up the only cost function (also known as residual). This uses
+    // auto-differentiation to obtain the derivative (jacobian).
+    CostFunction* cost_function =
+      new AutoDiffCostFunction<CostFunctorEmissionConstrained, 4, M + 1>(new CostFunctorEmissionConstrained(target_rgb, wavelenghts, values));
+    problem.AddResidualBlock(cost_function, nullptr, x.data());
+
+    // Run the solver!
+    Solver::Options options;
+    options.max_num_iterations = 100;
+    options.linear_solver_type = ceres::DENSE_QR;
+    options.minimizer_progress_to_stdout = ENABLE_LOG;
+    Solver::Summary summary;
+    Solve(options, &problem, &summary);
+
+    if constexpr(ENABLE_LOG) {
+        std::cout << summary.BriefReport() << "\n";
+    }
 }
 
 std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
@@ -96,7 +119,7 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std
 
     std::vector<double> x(moments.begin(), moments.end());
 
-    if(enable_logging) {
+    if(ENABLE_LOG) {
         std::cout << "Solving for color: " << target_rgb << std::endl;
     }
 
@@ -113,11 +136,11 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std
     Solver::Options options;
     options.max_num_iterations = 100;
     options.linear_solver_type = ceres::DENSE_QR;
-    options.minimizer_progress_to_stdout = enable_logging;
+    options.minimizer_progress_to_stdout = ENABLE_LOG;
     Solver::Summary summary;
     Solve(options, &problem, &summary);
 
-    if(enable_logging) {
+    if constexpr(ENABLE_LOG) {
         std::cout << summary.BriefReport() << "\n";
     }
 

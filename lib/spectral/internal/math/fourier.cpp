@@ -64,13 +64,9 @@ namespace spec::math {
 
     }
 
-    std::vector<Complex> lagrange_multipliers(const std::vector<Float> &moments)
-    {      
-        const int M = moments.size() - 1;
-        Complex gamma0;
-        std::vector<Complex> gamma = exponential_moments(moments, gamma0);
-
-        //Calculating q
+    std::vector<Complex> precompute_mese_coeffs(const std::vector<Complex> &gamma)
+    {
+        const int M = gamma.size() - 1;
         std::vector<Float> e0(M + 1, 0.0f);
         e0[0] = 1.0f;
         std::vector<Complex> data(2 * M + 1); //Matrix values
@@ -79,7 +75,31 @@ namespace spec::math {
             data[M + i] = INV_TWO_PI * gamma[i];
             data[M - i] = INV_TWO_PI * std::conj(gamma[i]);
         }
-        std::vector<Complex> q = levinson<Complex>(data, e0);
+        return levinson<Complex>(data, e0);
+    }
+
+    std::vector<Float> precompute_mese_coeffs(const std::vector<Float> &gamma)
+    {
+        const int M = gamma.size() - 1;
+        std::vector<Float> e0(M + 1, 0.0f);
+        e0[0] = 1.0f;
+        std::vector<Float> data(2 * M + 1); //Matrix values
+        data[M] = INV_TWO_PI * gamma[0];
+        for(int i = 1; i <= M; ++i) {
+            data[M + i] = INV_TWO_PI * gamma[i];
+            data[M - i] = INV_TWO_PI * gamma[i]; //[std::conj(gamma[i])] in fact;
+        }
+        return levinson<Float>(data, e0);
+    }
+
+    std::vector<Complex> lagrange_multipliers(const std::vector<Float> &moments)
+    {      
+        const int M = moments.size() - 1;
+        Complex gamma0;
+        std::vector<Complex> gamma = exponential_moments(moments, gamma0);
+
+        //Calculating q
+        std::vector<Complex> q = precompute_mese_coeffs(gamma);
 
       /*  std::cout << "q: ";
         for(const auto &v : q) {
@@ -115,33 +135,17 @@ namespace spec::math {
         return INV_PI * std::atan(sum) + 0.5f;
     }
 
-    std::vector<Float> mese(std::vector<Float> phases, const std::vector<Float> &gamma)
+
+    Float mese_precomp(Float phase, const std::vector<Float> &q)
     {
-        int M = gamma.size() - 1;
-        std::vector<Float> e0(M + 1, 0.0f);
-        e0[0] = 1.0f;
+        const int M = q.size() - 1;
+        Complex t = 0.0f;
+        for(int i = 0; i <= M; ++i) t += INV_TWO_PI * q[i] * std::exp(-I * Float(i) * phase); 
 
-        std::vector<Complex> data(2 * M + 1); //Matrix values
-        data[M] = INV_TWO_PI * gamma[0];
-        for(int i = 1; i <= M; ++i) {
-            data[M + i] = INV_TWO_PI * gamma[i];
-            data[M - i] = INV_TWO_PI * gamma[i]; //[std::conj(gamma[i])] in fact;
-        }
+        Float div = std::fabs(t);
+        div *= div;
 
-        std::vector<Complex> q = levinson<Complex>(data, e0);
-
-        for(unsigned k = 0; k < phases.size(); ++k) {
-         //   for(int i = 0; i <= M; ++i) y[i] = INV_TWO_PI * std::exp(-I * Float(i) * phases[k]);
-            Complex t = 0.0f;
-            for(int i = 0; i <= M; ++i) t += INV_TWO_PI * std::conj(q[i]) * std::exp(-I * Float(i) * phases[k]); 
-
-
-            Float div = std::fabs(t);
-            div *= div;
-
-            phases[k] = INV_TWO_PI * std::real(q[0]) / div;
-        }
-        return phases;
+        return INV_TWO_PI * std::real(q[0]) / div;
     }
 
 }
