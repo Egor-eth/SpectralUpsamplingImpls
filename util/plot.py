@@ -6,20 +6,31 @@ from pathlib import Path
 from os.path import join
 
 
-lst = []
-with open(sys.argv[1], "r") as f:
-    for s in f:
-        spl = s.split(' ')
-        lst.append([float(spl[0]), float(spl[1])])
+def plot_spd(path: str, show: bool, fmt: str = "{}.png"):
+    lst = []
+    with open(path, "r") as f:
+        for s in f:
+            spl = s.split(' ')
+            lst.append([float(spl[0]), float(spl[1])])
 
-spd = np.array(lst)
+    spd = np.array(lst)
 
-fig, ax = plt.subplots()
-ax.plot(spd[:, 0], spd[:, 1])
+    name = Path(path).stem
 
-ax.set(xlabel='wavelenght', ylabel='rel. power',
-       title='Spectral Power Distribution')
-ax.grid()
+    fig, ax = plt.subplots()
+    ax.plot(spd[:, 0], spd[:, 1])
 
-fig.savefig(join("output", "plots", Path(sys.argv[1]).stem + ".png"))
-plt.show()
+    ax.set(xlabel='wavelenght', ylabel='rel. power',
+           title=f'Spectral Power Distribution ({name})')
+    ax.grid()
+
+    fig.savefig(join("output", "plots", fmt.format(name)))
+    if show: 
+        plt.show()
+    plt.close()
+
+
+if __name__ == "__main__":
+    plot_spd(sys.argv[1], True)
+
+
