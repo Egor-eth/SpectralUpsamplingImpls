@@ -11,8 +11,8 @@
 
 using namespace spec;
 
-FourierLUT load_lut() {
-    std::ifstream file{"resources/f_emission_lut.eflf"};
+FourierLUT load_lut(const std::string &path) {
+    std::ifstream file{path};
     return FourierLUT::load_from(file);
 }
 
@@ -22,7 +22,12 @@ int main(int argc, char **argv)
 
     const Pixel color = Pixel::from_rgb(std::stoi(argv[1], nullptr, 16));
 
-    FourierLUT lut = load_lut();
+    std::string path = "resources/f_emission_lut.eflf";
+    if(argc == 3) {
+        path = argv[2];
+    }
+
+    FourierLUT lut = load_lut(path);
 
     FourierEmissionSpectrum fspec = upsample::fourier_emiss_int(color, 1.0f, lut);
 

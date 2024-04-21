@@ -13,6 +13,7 @@
 #include <cassert>
 #include <set>
 #include <map>
+#include <iomanip>
 
 #include "fourier_tests.h"
 
@@ -59,8 +60,8 @@ void dataset_tests()
     data.push_back(std::make_tuple<>(std::move(d65_1)));
 
     //csv head
-    output_rgb << "r,g,b" << std::fixed << std::endl;
-    output_sp << std::fixed;
+    output_rgb << "r,g,b" << std::endl << std::setprecision(10);
+    output_sp << std::setprecision(10);
     for(unsigned i = 0; i < wavelenghts.size() - 1; ++i) {
         output_sp << wavelenghts[i] << ",";
     }
