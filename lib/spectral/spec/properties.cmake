@@ -11,6 +11,7 @@ set(MODULE_SOURCES
     sigpoly_lut.cpp
     fourier_spectrum.cpp
     fourier_lut.cpp
+    metrics.cpp
 )
 
 set(MODULE_LIBS

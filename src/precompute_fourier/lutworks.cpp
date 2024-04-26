@@ -120,10 +120,10 @@ namespace {
     {   
         k = k <= coords.size() ? k : coords.size();
         std::fill_n(distances.begin(), k, std::numeric_limits<double>::infinity());
-        vec3d vf = v.cast<double>();
+        vec3 vf = rgb2cielab(v.cast<Float>() / 255.0f);
         for(unsigned n = 0; n < coords.size(); ++n) {
             const auto &rgb = coords[n];
-            double dist = vec3d::distance(rgb.cast<double>(), vf);
+            double dist = vec3::distance(rgb2cielab(rgb.cast<Float>() / 255.0f), vf);
             if(dist == 0.0) return false;
             for(unsigned i = 0; i < distances.size(); ++i) {
                 if(dist < distances[i]) {
