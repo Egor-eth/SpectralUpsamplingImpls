@@ -6,6 +6,7 @@ add_library(spectral_proj_compile_options INTERFACE)
 target_compile_features(spectral_proj_compile_options INTERFACE cxx_std_17)
 
 option(SPECTRAL_LIB_ONLY "Only compile library")
+option(SPECTRAL_DISABLE_PROGRESS_BAR "Disable progress printing")
 
 set(SPECTRAL_PROJECT_ROOT ${PROJECT_SOURCE_DIR})
 set(SPECTRAL_LIB_SRC_DIR ${SPECTRAL_PROJECT_ROOT}/lib)
@@ -21,4 +22,6 @@ add_subdirectory(${SPECTRAL_LIB_SRC_DIR})
 if(NOT SPECTRAL_LIB_ONLY)
     add_subdirectory(${SPECTRAL_APPS_SRC_DIR})
 endif()
-
+if(SPECTRAL_DISABLE_PROGRESS_BAR)
+    target_compile_definitions(spectral_proj_compile_options INTERFACE SPECTRAL_DISABLE_PROGRESS_BAR)
+endif()

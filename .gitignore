@@ -4,3 +4,4 @@ output/**
 input/**
 resources/**
 util/__pycache__
+util/venv

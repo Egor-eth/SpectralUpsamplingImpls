@@ -13,7 +13,7 @@ namespace spec {
     public:
         using BaseImage<Pixel>::BaseImage;
 
-        Image(const std::string &path);
+        explicit Image(const std::string &path);
 
         bool save(const std::string &path, const std::string &format = "") const;
     };

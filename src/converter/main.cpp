@@ -36,7 +36,6 @@ std::unique_ptr<IUpsampler> get_upsampler_by_name(const std::string &method_name
     return std::unique_ptr<IUpsampler>(ptr);
 }
 
-//https://stackoverflow.com/questions/874134/find-out-if-string-ends-with-another-string-in-c
 inline bool string_ends_with(const std::string &value, const std::string &ending)
 {
     if (ending.size() > value.size()) return false;

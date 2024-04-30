@@ -3,24 +3,37 @@
 #include <algorithm>
 
 namespace spec {
+#ifndef SPECTRAL_DISABLE_PROGRESS_BAR
+
     unsigned _progress_max_count = 1;
     unsigned _progress_min_update_step = 1;
     unsigned _prev_val = 0;
 
+#endif
+
     void init_progress_bar(unsigned maxcount, unsigned minupdate) {
+#ifndef SPECTRAL_DISABLE_PROGRESS_BAR
+
         _progress_max_count = maxcount;
         _progress_min_update_step = minupdate;
         _prev_val = 0;
         std::cout << std::endl;
+
+#else
+        (void) maxcount; (void) minupdate;
+#endif
     }
 
     void finish_progress_bar() {
+#ifndef SPECTRAL_DISABLE_PROGRESS_BAR
         print_progress(_progress_max_count, true);
-        //std::cout << "\033[A\033[2K\r";
+#endif
     }
 
     void print_progress(unsigned count, bool force) 
     {
+#ifndef SPECTRAL_DISABLE_PROGRESS_BAR
+
         static const unsigned bar_length = 100;
         if(force || count - _prev_val > _progress_min_update_step) {
             _prev_val = (count / _progress_min_update_step) * _progress_min_update_step;
@@ -29,6 +42,10 @@ namespace spec {
             std::cout << std::string(progress_points, '*') + std::string(bar_length - progress_points, ' ');
             std::cout << "] " << count << "/" << _progress_max_count << " - " << progress_points << "%\n";
         }
+
+#else
+        (void) count; (void) force;
+#endif
     }
 
     bool is_little_endian()
