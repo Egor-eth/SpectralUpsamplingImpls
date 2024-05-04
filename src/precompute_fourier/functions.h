@@ -9,7 +9,7 @@
 #include <utility>
 
 #ifndef PRECOMPUTE_M
-#define PRECOMPUTE_M 4
+#define PRECOMPUTE_M 5
 #endif
 
 using namespace spec;

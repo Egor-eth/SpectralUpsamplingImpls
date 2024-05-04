@@ -143,7 +143,7 @@ SigpolyLUT generate_lut(int zeroed_idx, int step, int stable_val)
 
     color_processed = 0u;
 
-    spec::init_progress_bar(ctx.size * ctx.size * ctx.size);
+    spec::init_progress_bar(ctx.size * ctx.size * ctx.size, 1000);
 
     for(ctx.k = ctx.stable_id; ctx.k >= 0; --ctx.k) {
         fill(ctx);

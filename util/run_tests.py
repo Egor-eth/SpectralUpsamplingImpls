@@ -1,5 +1,7 @@
 #!/bin/python3
 
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import subprocess
@@ -9,18 +11,14 @@ from os.path import join
 from skimage import io
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import peak_signal_noise_ratio as psnr
+from plot import diff_image, mean_deltaE
 
 
 
 METHODS = ["glassner", "smits", "sigpoly"]
-IMAGES = [join("input", "floppa.jpg"), join("input", "grid.png")]
+IMAGES = [join("input", "lenna.png"), join("input", "grid.png")]
 TARGET_DIR = join("output", "tests")
 
-def mse_deltaE(img1, img2):
-    img1_lab = cv2.cvtColor(img1, cv2.COLOR_BGR2LAB)
-    img2_lab = cv2.cvtColor(img2, cv2.COLOR_BGR2LAB)
-    deltae = np.sqrt(np.sum((img1_lab - img2_lab) ** 2, axis=-1))
-    return (np.mean(deltae), np.median(deltae), np.min(deltae), np.max(deltae))
 
 def run_test(path: str):
     image_gt = cv2.imread(path)
@@ -36,7 +34,13 @@ def run_test(path: str):
 
         print(f"SSIM: {ssim(image_gt_gray, image_gray)}", file=f)
         print(f"PSNR: {psnr(image_gt, image)}", file=f)
-        print(f"MSE-deltaE: {mse_deltaE(image_gt, image)}", file=f)
+        deltae = mean_deltaE(image_gt, image)
+        print(f"MSE-deltaE: {deltae[:4]}", file=f)
+
+        diff_path = join(TARGET_DIR, f"{Path(path).stem}_{method}_diff.png")
+        #cv2.imwrite(diff_path, diff_image(deltae[4]))
+        diff_image(deltae[4], diff_path)
+        #plt.imsave(diff_path, deltae[4], cmap='inferno')
         
 
 def main():

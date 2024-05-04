@@ -231,7 +231,7 @@ FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector
     color_processed = 0u;
 
     LutBuilder ctx{M, step, seeds_moments, std::move(rgbs), wavelenghts, seeds};
-    init_progress_bar(ctx.size * ctx.size * ctx.size - seeds.size());
+    init_progress_bar(ctx.size * ctx.size * ctx.size - seeds.size(), 256);
 
     fill(ctx, knearest);
 

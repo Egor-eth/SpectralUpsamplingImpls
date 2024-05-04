@@ -31,7 +31,7 @@ namespace spec {
         SigPolySpectralImage *dest = new SigPolySpectralImage(sourceImage.get_width(), sourceImage.get_height());
        
         const long img_size = sourceImage.get_width() * sourceImage.get_height();
-        init_progress_bar(img_size);
+        init_progress_bar(img_size, 1000);
 
         const Pixel *ptr = sourceImage.raw_data();
         SigPolySpectrum *s_ptr = dest->raw_data();

@@ -14,7 +14,7 @@ namespace spec {
         BasicSpectralImage *dest = new BasicSpectralImage(sourceImage.get_width(), sourceImage.get_height());
        
         const long img_size = sourceImage.get_width() * sourceImage.get_height();
-        init_progress_bar(img_size);
+        init_progress_bar(img_size, 1000);
 
         for(unsigned i = 0; i < upsample::SMITS_SPECTRUM_SIZE; ++i) {
             dest->add_wavelenght(upsample::SMITS_WAVELENGHTS[i]);

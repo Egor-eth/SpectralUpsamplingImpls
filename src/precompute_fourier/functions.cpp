@@ -40,8 +40,10 @@ struct CostFunctorEmissionSeedFixer {
         residual[2] = abs(color_diff.z);
 
         residual[3] = T(0.0);
+        
         for(unsigned i = 0; i < values.size(); ++i) {
             residual[4] += abs<T>(result[i] - T(values[i]));
+            if(result[i] < T(0.0)) return false;
         }
 
       //  std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
@@ -72,9 +74,13 @@ struct CostFunctorEmissionConstrained {
         residual[1] = abs(color_diff.y);
         residual[2] = abs(color_diff.z);
 
+        /*
         residual[3] = T(0.0);
         for(unsigned i = 0; i < values.size(); ++i) {
             residual[4] += abs<T>(result[i] - T(values[i]));
+        }*/
+        for(unsigned i = 0; i < values.size(); ++i) {
+            if(result[i] < T(0.0)) return false;
         }
 
         //std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
@@ -96,7 +102,7 @@ void solve_for_rgb(const vec3 &target_rgb, std::vector<double> &x, const std::ve
     // Set up the only cost function (also known as residual). This uses
     // auto-differentiation to obtain the derivative (jacobian).
     CostFunction* cost_function =
-      new AutoDiffCostFunction<CostFunctorEmissionConstrained, 4, M + 1>(new CostFunctorEmissionConstrained(target_rgb, wavelenghts, values));
+      new AutoDiffCostFunction<CostFunctorEmissionConstrained, 3, M + 1>(new CostFunctorEmissionConstrained(target_rgb, wavelenghts, values));
     problem.AddResidualBlock(cost_function, nullptr, x.data());
 
     // Run the solver!

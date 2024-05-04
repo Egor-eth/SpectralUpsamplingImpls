@@ -30,18 +30,42 @@ math::base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std
 
     unsigned idx = 0u;
     for(unsigned i = 0; i < wavelenghts.size(); ++i) {
-        const T val_lv = values[i] * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
+        const T val_lv = values[i];// * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
         
         xyz.x += T(util::_interp<X_CURVE>(wavelenghts[i])) * val_lv;
         xyz.y += T(util::_interp<Y_CURVE>(wavelenghts[i])) * val_lv;
         xyz.z += T(util::_interp<Z_CURVE>(wavelenghts[i])) * val_lv;
         idx += 1;
     }
-    xyz /= cieyint;
-    return xyz;
+   // xyz /= cieyint;
+    return xyz;// * (T(CURVES_WAVELENGHTS_END - CURVES_WAVELENGHTS_START) / wavelenghts.size());
 }
 
-constexpr Float MIN_DIST = 1.41f;
+constexpr Float MIN_DIST = 2.34f;
+
+template<typename T>
+T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
+{
+    T val = 0.0f;
+    for(unsigned i = 0; i < wavelenghts.size(); ++i) {
+    //for(int lambda : wl) {
+
+        Float delta = 1.0f / Float(wavelenghts.size());
+       /* if(i == 0) {
+            delta = (wavelenghts[1] - wavelenghts[0]) * 0.5f;
+        }
+        else if(i == wavelenghts.size() - 1) {
+            delta = (wavelenghts.back() - wavelenghts[wavelenghts.size() - 2]) * 0.5f;
+        }
+        else {
+            delta = (wavelenghts[i + 1] - wavelenghts[i - 1]) * 0.5f;
+        }
+       // std::cout << "delta " << delta << std::endl;
+        delta = delta + 1;*/
+        val += T(util::_interp<Y_CURVE>(wavelenghts[i])) * values[i];
+    }
+    return val;
+}
 
 void dataset_tests()
 {
@@ -70,9 +94,11 @@ void dataset_tests()
     std::set<vec3> used_lab{};
     std::map<vec3, const std::vector<Float> *> specs;
 
-    for(const auto &e : data) {
-        std::vector<Float> spec = std::get<0>(e);
+    for(auto &e : data) {
+        std::vector<Float> &spec = std::get<0>(e);
         assert(spec.size() == wavelenghts.size());
+
+        Float ciey = _get_cie_y_integral(wavelenghts, spec);
 
         Float max = 0.0f;
         for(unsigned i = 0; i < spec.size(); ++i) {
@@ -111,6 +137,9 @@ void dataset_tests()
                 std::cout << format("Excluded %d, %f, %f, %f", n, rgb.x, rgb.y, rgb.z) << std::endl;
             }
         }
+        else {
+            std::cout << format("Excluded %d, %f, %f, %f", n, rgb.x, rgb.y, rgb.z) << std::endl;
+        }
         n += 1;
     }
     
@@ -128,29 +157,6 @@ void dataset_tests()
     output_rgb.close();
 }
 
-template<typename T>
-T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
-{
-    T val = 0.0f;
-    for(unsigned i = 0; i < wavelenghts.size(); ++i) {
-    //for(int lambda : wl) {
-
-        Float delta = 1.0f / Float(wavelenghts.size());
-       /* if(i == 0) {
-            delta = (wavelenghts[1] - wavelenghts[0]) * 0.5f;
-        }
-        else if(i == wavelenghts.size() - 1) {
-            delta = (wavelenghts.back() - wavelenghts[wavelenghts.size() - 2]) * 0.5f;
-        }
-        else {
-            delta = (wavelenghts[i + 1] - wavelenghts[i - 1]) * 0.5f;
-        }
-       // std::cout << "delta " << delta << std::endl;
-        delta = delta + 1;*/
-        val += T(util::_interp<Y_CURVE>(wavelenghts[i])) * values[i];
-    }
-    return val;
-}
 
 const BasicSpectrum UNIFORM {
     {CURVES_WAVELENGHTS_START, 1.0f},

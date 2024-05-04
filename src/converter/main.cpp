@@ -68,7 +68,7 @@ int downsample(const Args &args) {
 
 
     std::cout << "Converting spectral image to png..." << std::endl;
-    init_progress_bar(w * h, 10);
+    init_progress_bar(w * h, 1000);
 
     for(int j = 0; j < h; ++j) {
         for(int i = 0; i < w; ++i) {
