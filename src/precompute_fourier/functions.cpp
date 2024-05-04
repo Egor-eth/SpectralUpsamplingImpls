@@ -11,12 +11,13 @@ constexpr bool ENABLE_LOG = false;
 
 struct CostFunctorEmissionSeedFixer {
     const vec3 in;
+    const Float power;
     const std::vector<Float> wavelenghts;
     const std::vector<Float> phases;
     const std::vector<Float> values;
 
-    CostFunctorEmissionSeedFixer(const vec3 &rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
-        : in(rgb2cielab(rgb)), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
+    CostFunctorEmissionSeedFixer(const vec3 &rgb, const Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
+        : in(rgb2cielab(rgb)), power(power), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
 
     template<typename T>
     bool operator()(const T *const x, T *residual) const noexcept(true)
@@ -32,7 +33,7 @@ struct CostFunctorEmissionSeedFixer {
             std::cout << v << std::endl;;
         }*/
 
-        base_vec3<T> color = _xyz2cielab<T>(_spectre2xyz<T>(wavelenghts, result));
+        base_vec3<T> color = _xyz2cielab<T>(_spectre2xyz<T>(wavelenghts, result) / T(power));
         base_vec3<T> color_diff = color - in.cast<T>();
 
         residual[0] = abs(color_diff.x);
@@ -54,12 +55,13 @@ struct CostFunctorEmissionSeedFixer {
 
 struct CostFunctorEmissionConstrained {
     const vec3 in;
+    const Float power;
     const std::vector<Float> &wavelenghts;
     const std::vector<Float> phases;
     const std::vector<Float> &values;
 
-    CostFunctorEmissionConstrained(const vec3 &rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
-        : in(rgb2cielab(rgb)), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
+    CostFunctorEmissionConstrained(const vec3 &rgb, Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
+        : in(rgb2cielab(rgb)), power(power), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
 
     template<typename T>
     bool operator()(const T *const x, T *residual) const noexcept(true)
@@ -67,33 +69,35 @@ struct CostFunctorEmissionConstrained {
         std::vector<T> result = _mese<T>(phases, x, M);
         assert(result.size() == phases.size());
 
-        base_vec3<T> color = _xyz2cielab<T>(_spectre2xyz<T>(wavelenghts, result));
+
+        base_vec3<T> xyz = _spectre2xyz<T>(wavelenghts, result) / T(power);
+        base_vec3<T> color = _xyz2cielab<T>(xyz);
         base_vec3<T> color_diff = color - in.cast<T>();
 
         residual[0] = abs(color_diff.x);
         residual[1] = abs(color_diff.y);
         residual[2] = abs(color_diff.z);
 
-        /*
+        
         residual[3] = T(0.0);
         for(unsigned i = 0; i < values.size(); ++i) {
             residual[4] += abs<T>(result[i] - T(values[i]));
-        }*/
-        for(unsigned i = 0; i < values.size(); ++i) {
-            if(result[i] < T(0.0)) return false;
         }
+        //for(unsigned i = 0; i < values.size(); ++i) {
+            //if(result[i] < T(0.0)) return false;
+        //}
 
         //std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
         return true;
     }
 };
 
-void solve_for_rgb(const vec3 &target_rgb, std::vector<double> &x, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
+void solve_for_rgb(const vec3 &target_rgb, Float power, std::vector<double> &x, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
 {
     assert(x.size() == M + 1);
 
     if constexpr(ENABLE_LOG) {
-        std::cout << "Solving for color: " << target_rgb << std::endl;
+        std::cout << "Solving for color: " << target_rgb << ", power: " << power << std::endl;
     }
 
     // Build the problem.
@@ -102,7 +106,7 @@ void solve_for_rgb(const vec3 &target_rgb, std::vector<double> &x, const std::ve
     // Set up the only cost function (also known as residual). This uses
     // auto-differentiation to obtain the derivative (jacobian).
     CostFunction* cost_function =
-      new AutoDiffCostFunction<CostFunctorEmissionConstrained, 3, M + 1>(new CostFunctorEmissionConstrained(target_rgb, wavelenghts, values));
+      new AutoDiffCostFunction<CostFunctorEmissionConstrained, 4, M + 1>(new CostFunctorEmissionConstrained(target_rgb, power, wavelenghts, values));
     problem.AddResidualBlock(cost_function, nullptr, x.data());
 
     // Run the solver!
@@ -118,7 +122,7 @@ void solve_for_rgb(const vec3 &target_rgb, std::vector<double> &x, const std::ve
     }
 }
 
-std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
+std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
 {
     std::vector<Float> moments = math::real_fourier_moments_of(math::wl_to_phases(wavelenghts), values, M + 1);
     assert(moments.size() == M + 1);
@@ -135,7 +139,7 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std
     // Set up the only cost function (also known as residual). This uses
     // auto-differentiation to obtain the derivative (jacobian).
     CostFunction* cost_function =
-      new AutoDiffCostFunction<CostFunctorEmissionSeedFixer, 4, M + 1>(new CostFunctorEmissionSeedFixer(target_rgb, wavelenghts, values));
+      new AutoDiffCostFunction<CostFunctorEmissionSeedFixer, 4, M + 1>(new CostFunctorEmissionSeedFixer(target_rgb, power, wavelenghts, values));
     problem.AddResidualBlock(cost_function, nullptr, x.data());
 
     // Run the solver!

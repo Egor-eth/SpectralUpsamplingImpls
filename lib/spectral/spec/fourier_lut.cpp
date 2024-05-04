@@ -1,6 +1,7 @@
 #include <spec/fourier_lut.h>
 #include <internal/serialization/binary.h>
 
+#include <iostream>
 namespace spec {
 
     namespace {
@@ -26,10 +27,18 @@ namespace spec {
     }
 
 
-    std::vector<Float> FourierLUT::eval(int r, int g, int b) const
+    std::vector<Float> FourierLUT::eval(int r, int g, int b, Float power) const
     {
          if(!validate_c(r, g, b)) {
             return {};
+        }
+        unsigned n = 0;
+        Float p_mul = 1.0f;
+        for(; n < power_values.size(); ++n) {
+            if(power_values[n] >= power) {
+                p_mul = power / power_values[n];
+                break;
+            }
         }
 
         const int r1_id = r / step;
@@ -63,14 +72,16 @@ namespace spec {
 
         std::vector<Float> res(m + 1, 0.0f);
 
-        add(res, r1_id, g1_id, b1_id, drf2 * dgf2 * dbf2 * div);
-        add(res, r1_id, g1_id, b2_id, drf2 * dgf2 * dbf1 * div);
-        add(res, r1_id, g2_id, b1_id, drf2 * dgf1 * dbf2 * div);
-        add(res, r1_id, g2_id, b2_id, drf2 * dgf1 * dbf1 * div);
-        add(res, r2_id, g1_id, b1_id, drf1 * dgf2 * dbf2 * div);
-        add(res, r2_id, g1_id, b2_id, drf1 * dgf2 * dbf1 * div);
-        add(res, r2_id, g2_id, b1_id, drf1 * dgf1 * dbf2 * div);
-        add(res, r2_id, g2_id, b2_id, drf1 * dgf1 * dbf1 * div);
+        add(res, r1_id, g1_id, b1_id, n, drf2 * dgf2 * dbf2 * div * p_mul);
+        add(res, r1_id, g1_id, b2_id, n, drf2 * dgf2 * dbf1 * div * p_mul);
+        add(res, r1_id, g2_id, b1_id, n, drf2 * dgf1 * dbf2 * div * p_mul);
+        add(res, r1_id, g2_id, b2_id, n, drf2 * dgf1 * dbf1 * div * p_mul);
+        add(res, r2_id, g1_id, b1_id, n, drf1 * dgf2 * dbf2 * div * p_mul);
+        add(res, r2_id, g1_id, b2_id, n, drf1 * dgf2 * dbf1 * div * p_mul);
+        add(res, r2_id, g2_id, b1_id, n, drf1 * dgf1 * dbf2 * div * p_mul);
+        add(res, r2_id, g2_id, b2_id, n, drf1 * dgf1 * dbf1 * div * p_mul);
+
+        for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << std::endl;
 
         return res;
     }
@@ -80,17 +91,24 @@ namespace spec {
         if(!validate_header(src)) throw std::invalid_argument("Unsupported file");
         uint16_t step = binary::read<uint16_t>(src);
         uint16_t m = binary::read<uint16_t>(src);
-        FourierLUT lut{step, m};
-        const unsigned size = lut.size * lut.size * lut.size * (m + 1);
+
+        uint16_t p_size = binary::read<uint16_t>(src);
+        std::vector<Float> power_values(p_size);
+        for(unsigned i = 0; i < p_size; ++i) {
+            power_values[i] = binary::read<Float>(src);
+        }
+
+        FourierLUT lut{power_values, step, m};
+        const unsigned size = power_values.size() * lut.size * lut.size * lut.size * (m + 1);
         for(unsigned i = 0; i < size; ++i) {
             lut.data[i] = binary::read<Float>(src);
         }
         return lut;
     }
 
-    void FourierLUT::add(std::vector<Float> &res, unsigned r, unsigned g, unsigned b, Float mul) const
+    void FourierLUT::add(std::vector<Float> &res, unsigned r, unsigned g, unsigned b, unsigned n, Float mul) const
     {
-        unsigned offset = ((r * size + g) * size + b) * (m + 1);
+        unsigned offset = (((n * size + r) * size + g) * size + b) * (m + 1);
         for(unsigned i = 0; i <= m; ++i) {
             res[i] += data[offset + i] * mul;
         }

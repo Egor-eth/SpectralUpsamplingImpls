@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 
     FourierLUT lut = load_lut(path);
 
-    FourierEmissionSpectrum fspec = upsample::fourier_emiss_int(color, 1.0f, lut);
+    FourierEmissionSpectrum fspec = upsample::fourier_emiss_int(color, 20.0f, lut);
 
     BasicSpectrum spec;
     for(int wl = CURVES_WAVELENGHTS_START; wl < CURVES_WAVELENGHTS_END; wl += CURVES_WAVELENGHTS_STEP)

@@ -24,7 +24,7 @@ using namespace spec;
 template<typename T>
 math::base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
 {
-    static T cieyint = T(util::get_cie_y_integral());
+   // static T cieyint = T(util::get_cie_y_integral());
 
     math::base_vec3<T> xyz{};
 
@@ -38,7 +38,7 @@ math::base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std
         idx += 1;
     }
    // xyz /= cieyint;
-    return xyz;// * (T(CURVES_WAVELENGHTS_END - CURVES_WAVELENGHTS_START) / wavelenghts.size());
+    return xyz;
 }
 
 constexpr Float MIN_DIST = 2.34f;
@@ -67,6 +67,22 @@ T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T
     return val;
 }
 
+template<>
+struct std::hash<std::pair<vec3, Float>> {
+    size_t operator()(const std::pair<vec3, Float> &obj) const
+    {
+        return std::hash<vec3>{}(obj.first) * 31 + std::hash<Float>{}(obj.second);
+    }
+};
+
+bool validate_spec(const std::vector<Float> &spec)
+{
+    for(Float v : spec) {
+        if(v < 0.0f) return false;
+    }
+    return true;
+}
+
 void dataset_tests()
 {
     std::ifstream file{"input/leds.csv"};
@@ -84,8 +100,8 @@ void dataset_tests()
     data.push_back(std::make_tuple<>(std::move(d65_1)));
 
     //csv head
-    output_rgb << "r,g,b" << std::endl << std::setprecision(10);
-    output_sp << std::setprecision(10);
+    output_rgb << "r,g,b,power" << std::endl << std::setprecision(10);
+    output_sp << std::setprecision(16);
     for(unsigned i = 0; i < wavelenghts.size() - 1; ++i) {
         output_sp << wavelenghts[i] << ",";
     }
@@ -98,23 +114,31 @@ void dataset_tests()
         std::vector<Float> &spec = std::get<0>(e);
         assert(spec.size() == wavelenghts.size());
 
-        Float ciey = _get_cie_y_integral(wavelenghts, spec);
+        //Float ciey = _get_cie_y_integral(wavelenghts, spec);
 
-        Float max = 0.0f;
+        vec3 xyz0 = _spectre2xyz(wavelenghts, spec);
+        vec3 rgb0 = xyz2rgb_unsafe(xyz0);
+
+        Float max = rgb0[0] > rgb0[1] ? rgb0[0] : rgb0[1];
+        max = max > rgb0[2] ? max : rgb0[2];
+        /*
         for(unsigned i = 0; i < spec.size(); ++i) {
             if(spec[i] > max) max = spec[i];
-        }
+        }*/
+
+        std::vector<Float> spec_cpy = spec;
         for(unsigned i = 0; i < spec.size(); ++i) {
-            spec[i] /= max;
+            spec[i] *= 20.0 / max;
+            spec_cpy[i] /= max;
         }
+        
+        vec3 xyz = _spectre2xyz(wavelenghts, spec_cpy);
+        vec3 rgb = math::clamp(xyz2rgb_unsafe(xyz), -1.0f, 1.0f);
 
-        vec3 xyz = _spectre2xyz(wavelenghts, spec);
-        vec3 rgb = xyz2rgb_unsafe(xyz);
-
+        std::cout << rgb << std::endl;
     
         bool t = rgb.x >= 0.0f && rgb.x <= 1.0f && rgb.y >= 0.0f && rgb.y <= 1.0f && rgb.z >= 0.0f && rgb.z <= 1.0f;
-
-        if(t) {
+        if(max > 0 && t && validate_spec(spec)) {
             vec3 lab = rgb2cielab(rgb);
             bool not_used = true;
             for(const auto &l : used_lab) {
@@ -134,7 +158,7 @@ void dataset_tests()
 
             }
             else {
-                std::cout << format("Excluded %d, %f, %f, %f", n, rgb.x, rgb.y, rgb.z) << std::endl;
+                std::cout << format("Excluded %d, %f, %f, %f via DE", n, rgb.x, rgb.y, rgb.z) << std::endl;
             }
         }
         else {
@@ -143,9 +167,9 @@ void dataset_tests()
         n += 1;
     }
     
-    for(const auto &[rgb, spec] : specs) {
+    for(const auto &[color, spec] : specs) {
 
-        output_rgb << format("%d,%d,%d\n", int(rgb.x * 255.999f), int(rgb.y * 255.999f), int(rgb.z * 255.999f));
+        output_rgb << format("%d,%d,%d\n", int(color.x * 255), int(color.y * 255), int(color.z * 255));
 
         for(unsigned i = 0; i < spec->size() - 1; ++i) {
             output_sp << spec->at(i) << ",";

@@ -2,11 +2,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
-import cv2
 from pathlib import Path
 from os.path import join
-from skimage.metrics import structural_similarity as ssim
-from skimage.metrics import peak_signal_noise_ratio as psnr
 
 
 def diff_image(deltae: np.ndarray, diff_path: str):
@@ -17,6 +14,7 @@ def diff_image(deltae: np.ndarray, diff_path: str):
     plt.savefig(diff_path, bbox_inches='tight')
 
 def mean_deltaE(img1, img2):
+    import cv2
     img1_lab = cv2.cvtColor(img1, cv2.COLOR_BGR2LAB)
     img2_lab = cv2.cvtColor(img2, cv2.COLOR_BGR2LAB)
     deltae = np.sqrt(np.sum((img1_lab - img2_lab) ** 2, axis=-1))
@@ -66,15 +64,19 @@ def plot_csv(path: str, show: bool, fmt: str = "{}.png"):
                 plot(wl, spd, True)
 
 def run_metrics(image1, image2, out_path: str):
-        deltae = mean_deltaE(image1, image2)
-        diff_image(deltae[4], out_path) 
+    import cv2
+    from skimage.metrics import structural_similarity as ssim
+    from skimage.metrics import peak_signal_noise_ratio as psnr
 
-        image1_gray = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
-        image2_gray = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+    deltae = mean_deltaE(image1, image2)
+    diff_image(deltae[4], out_path) 
 
-        print(f"SSIM: {ssim(image1_gray, image2_gray)}")
-        print(f"PSNR: {psnr(image1, image2)}")
-        print(f"DeltaE: {deltae[:4]}")
+    image1_gray = cv2.cvtColor(image1, cv2.COLOR_BGR2GRAY)
+    image2_gray = cv2.cvtColor(image2, cv2.COLOR_BGR2GRAY)
+
+    print(f"SSIM: {ssim(image1_gray, image2_gray)}")
+    print(f"PSNR: {psnr(image1, image2)}")
+    print(f"DeltaE: {deltae[:4]}")
 
 
 if __name__ == "__main__":

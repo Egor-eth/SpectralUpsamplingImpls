@@ -7,9 +7,10 @@
 #include <vector>
 #include <optional>
 #include <utility>
+#include <iostream>
 
 #ifndef PRECOMPUTE_M
-#define PRECOMPUTE_M 5
+#define PRECOMPUTE_M 10
 #endif
 
 using namespace spec;
@@ -48,20 +49,20 @@ base_vec3<T> _xyz2cielab(const base_vec3<T> &v)
 template<typename T>
 base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
 {
-    static T cieyint = T(util::get_cie_y_integral());
+   // static T cieyint = T(util::get_cie_y_integral());
 
     base_vec3<T> xyz{};
 
     unsigned idx = 0u;
     for(unsigned i = 0; i < wavelenghts.size(); ++i) {
-        const T val_lv = values[i] * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
+        const T val_lv = values[i];// * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
         
         xyz.x += T(X_CURVE[idx]) * val_lv;
         xyz.y += T(Y_CURVE[idx]) * val_lv;
         xyz.z += T(Z_CURVE[idx]) * val_lv;
         idx += 1;
     }
-    xyz /= cieyint;
+    //xyz /= cieyint;
     return xyz;
 }
 
@@ -123,6 +124,8 @@ std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
 
     std::vector<T> q = math::levinson<T>(data, e0);
 
+    //if(q[0] < T(0.0)) std::cout << "neg q" << std::endl;
+
     for(unsigned k = 0; k < phases.size(); ++k) {
         std::complex<T> t = T(0.0);
         for(int i = 0; i <= M; ++i) t += T(math::INV_TWO_PI) * q[i] * exp(-I_VAL * T(i) * T(phases[k])); 
@@ -131,14 +134,14 @@ std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
         T div = std::fabs(t);
         div *= div;
 
-        res[k] = T(math::INV_TWO_PI) * q[0] / div;
+        res[k] = abs(T(math::INV_TWO_PI) * q[0]) / div;
     }
     return res;
 }
 
-void solve_for_rgb(const vec3 &target_rgb, std::vector<double> &x, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
+void solve_for_rgb(const vec3 &target_rgb, Float power, std::vector<double> &x, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
 
-std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
+std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values);
 
 
 #endif
