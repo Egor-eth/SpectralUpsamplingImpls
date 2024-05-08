@@ -145,7 +145,7 @@ namespace spec::math {
         Float div = std::fabs(t);
         div *= div;
 
-        return std::abs(INV_TWO_PI * std::real(q[0])) / div;
+        return (INV_TWO_PI * std::real(q[0])) / div;
     }
 
 }

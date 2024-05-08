@@ -35,7 +35,7 @@ void write_lut(std::ostream &dst, const FourierLUT &lut)
         bin::write<Float>(dst, ptr[i]);
     }
 }
-constexpr int DEFAULT_P_ID = 3;
+constexpr int DEFAULT_P_ID = 0;
 
 
 namespace {
@@ -48,7 +48,7 @@ namespace {
         const bool force_last;
         const int m;
         long i = 0, j = 0, k = 0, n = 0;
-        const std::vector<Float> power_values{1.0f, 5.0f, 10.0f, 20.0f, 50.0f, 100.0f};
+        const std::vector<Float> power_values{25.0f};
         const unsigned p_size = power_values.size();
         const std::vector<Float> &dataset_wavelenghts;
 
@@ -230,6 +230,14 @@ namespace {
         }
     }
 
+    inline vec3ui get_target_color(const vec3ui& c)
+    {
+        vec3 rgb = c.cast<Float>() / 255.0f;
+        Float max = rgb.max();
+        if(max <= 1.0f) return c;
+        return ((rgb / max) * 255.0f).cast<unsigned>();
+    }
+
     void prepare_seeds(const std::vector<Float> &in_wavelenghts, const std::vector<std::vector<Float>> &in_seeds, std::vector<vec3ui> &rgbs, Float power, std::vector<Float> &out_moments, int step)
     {   
         init_progress_bar(in_seeds.size());
@@ -237,19 +245,22 @@ namespace {
 
         auto phases = math::wl_to_phases(in_wavelenghts);
         for(unsigned i = 0; i < rgbs.size(); ++i) {
-            vec3ui rgb = rgbs[i];
+            vec3ui rgb = get_target_color(rgbs[i]);
+
             rgb.x = rgb.x == 255 ? 255 : (rgb.x / step) * step;
             rgb.y = rgb.y == 255 ? 255 : (rgb.y / step) * step;
             rgb.z = rgb.z == 255 ? 255 : (rgb.z / step) * step;
 
             if(rgb != rgbs[i]) {
                 //std::cout << rgb << " <- " << rgbs[i] << std::endl;
-                std::vector<double> res = adjust_and_compute_moments(rgb.cast<Float>() / 255.0f, power, in_wavelenghts, in_seeds[i]);
+                vec3 rgbf = rgb.cast<Float>() / 255.0f;
+                std::vector<double> res = adjust_and_compute_moments(rgbf, power, in_wavelenghts, in_seeds[i]);
                 res.resize(M + 1);
                 out_moments.insert(out_moments.end(), res.begin(), res.end());
                 rgbs[i] = rgb;
             }
             else {
+            (void) power;
                 std::vector<Float> res = math::real_fourier_moments_of(phases, in_seeds[i], M + 1);
                 out_moments.insert(out_moments.end(), res.begin(), res.end());
             }
@@ -264,8 +275,26 @@ FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector
 {
     std::vector<Float> seeds_moments;
 
-    prepare_seeds(wavelenghts, seeds, rgbs, 20.0f, seeds_moments, step);
+    prepare_seeds(wavelenghts, seeds, rgbs, 25.0f, seeds_moments, step);
     
+    /*for(unsigned j = 0; j < wavelenghts.size() - 1; ++j) {
+        std::cout << seeds[0][j] << ",";
+    }
+    std::cout << seeds[0].back() << std::endl;*/
+
+    /*
+    std::vector<Float> phases = math::wl_to_phases(wavelenghts);
+    for(uint i = 0; i < rgbs.size(); ++i) {
+        std::vector<Float> moments(M + 1);
+        const Float *in_ptr = seeds_moments.data() + (M + 1) * i;
+        std::copy(in_ptr, in_ptr + M + 1, moments.data());
+        auto vals = math::mese(phases, moments);
+        for(unsigned j = 0; j < vals.size() - 1; ++j) {
+            std::cout << vals[j] << ",";
+        }
+        std::cout << vals.back() << std::endl;
+    }*/
+
     color_processed = 0u;
 
     LutBuilder ctx{M, step, seeds_moments, std::move(rgbs), wavelenghts, seeds};

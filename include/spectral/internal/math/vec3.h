@@ -177,6 +177,30 @@ namespace spec::math {
             return std::fabs(x) + std::fabs(y) + std::fabs(z);
         }
 
+        int argmax() const noexcept(true)
+        {
+            int a = x > y ? 0 : 1;
+            return v[a] > z ? a : 2;
+        }
+
+        int argmin() const noexcept(true)
+        {
+            int a = x < y ? 0 : 1;
+            return v[a] < z ? a : 2;
+        }
+
+        T max() const noexcept(true)
+        {
+            const T &a = x > y ? x : y;
+            return a > z ? a : z; 
+        }
+
+        T min() const noexcept(true)
+        {
+            const T &a = x < y ? x : y;
+            return a < z ? a : z; 
+        }
+
         static T distance2(const base_vec3 &v1, const base_vec3 &v2) noexcept(true)
         {
             T dx = v1.x - v2.x;

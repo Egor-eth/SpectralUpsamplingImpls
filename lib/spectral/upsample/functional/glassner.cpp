@@ -1,5 +1,6 @@
 #include <upsample/functional/glassner.h>
 #include <spec/conversions.h>
+#include <internal/math/math.h>
 
 namespace spec::upsample {
 
@@ -13,7 +14,7 @@ namespace spec::upsample {
 
         void upsample_to(const vec3 &rgb, BasicSpectrum &spectrum)
         {
-            vec3 ampls = rgb2xyz(rgb) * XYZ_TO_SPECTRE_INV;
+            vec3 ampls = math::clamp(rgb2xyz(rgb) * XYZ_TO_SPECTRE_INV, 0.0f, 1.0f);
        
             spectrum.get_or_create(GLASSNER_WAVELENGHTS[0]) = ampls[0];
             spectrum.get_or_create(GLASSNER_WAVELENGHTS[1]) = ampls[1];

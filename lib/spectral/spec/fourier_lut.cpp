@@ -32,14 +32,15 @@ namespace spec {
          if(!validate_c(r, g, b)) {
             return {};
         }
-        unsigned n = 0;
+        unsigned n = power_values.size() - 1;
         Float p_mul = 1.0f;
-        for(; n < power_values.size(); ++n) {
-            if(power_values[n] >= power) {
-                p_mul = power / power_values[n];
+        for(unsigned i = 0; i < power_values.size(); ++i) {
+            if(power_values[i] > power) {
+                n = i - 1;
                 break;
             }
         }
+        p_mul = power / power_values[n];
 
         const int r1_id = r / step;
         const int r2_id = safe_int(r1_id + 1, size);
@@ -81,7 +82,8 @@ namespace spec {
         add(res, r2_id, g2_id, b1_id, n, drf1 * dgf1 * dbf2 * div * p_mul);
         add(res, r2_id, g2_id, b2_id, n, drf1 * dgf1 * dbf1 * div * p_mul);
 
-        for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << std::endl;
+        for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << ",";
+        std::cout << std::endl;
 
         return res;
     }

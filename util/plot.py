@@ -1,6 +1,7 @@
 #!/bin/python3
 import matplotlib.pyplot as plt
 import numpy as np
+from numpy.polynomial import Polynomial
 import sys
 from pathlib import Path
 from os.path import join
@@ -26,8 +27,8 @@ def plot(wl, values, show: bool, name=None, fmt="{}.png"):
     fig, ax = plt.subplots()
     ax.plot(wl, values)
 
-    ax.set(xlabel='wavelenght', ylabel='rel. power',
-           title=f'Spectral Power Distribution ({name})')
+    ax.set(xlabel='длина волны', ylabel='отн. мощность',
+           title=f'Спектр')
     ax.grid()
 
     if name != None:
@@ -63,6 +64,19 @@ def plot_csv(path: str, show: bool, fmt: str = "{}.png"):
                 spd = [float(x) for x in spl]
                 plot(wl, spd, True)
 
+
+def plot_spspec(path: str, show: bool, fmt: str = "{}.png"):
+    def sigmoid(x: np.ndarray):
+        return 0.5 + 0.5 * x / (1 + x ** 2) ** 0.5
+
+    with open(path, "r") as f:
+        s = f.readline().split(" ")
+        coef = Polynomial([float(x) for x in s[::-1]])
+        wl = np.linspace(360, 830, 100)
+    plot(wl, sigmoid(coef(wl)), show)
+
+
+
 def run_metrics(image1, image2, out_path: str):
     import cv2
     from skimage.metrics import structural_similarity as ssim
@@ -84,6 +98,8 @@ if __name__ == "__main__":
         plot_csv(sys.argv[2], True)
     elif(sys.argv[1] == "spd"):
         plot_spd(sys.argv[2], True)
+    elif(sys.argv[1] == "spspec"):
+        plot_spspec(sys.argv[2], True)
     elif(sys.argv[1] == "dediff"):
         run_metrics(cv2.imread(sys.argv[2]), cv2.imread(sys.argv[3]), sys.argv[4])
 

@@ -10,7 +10,7 @@
 #include <iostream>
 
 #ifndef PRECOMPUTE_M
-#define PRECOMPUTE_M 10
+#define PRECOMPUTE_M 16
 #endif
 
 using namespace spec;
@@ -49,13 +49,13 @@ base_vec3<T> _xyz2cielab(const base_vec3<T> &v)
 template<typename T>
 base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
 {
-   // static T cieyint = T(util::get_cie_y_integral());
+    static T cieyint = T(util::get_cie_y_integral());
 
     base_vec3<T> xyz{};
 
     unsigned idx = 0u;
     for(unsigned i = 0; i < wavelenghts.size(); ++i) {
-        const T val_lv = values[i];// * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
+        const T val_lv = values[i] * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
         
         xyz.x += T(X_CURVE[idx]) * val_lv;
         xyz.y += T(Y_CURVE[idx]) * val_lv;
@@ -63,28 +63,35 @@ base_vec3<T> _spectre2xyz(const std::vector<Float> &wavelenghts, const std::vect
         idx += 1;
     }
     //xyz /= cieyint;
-    return xyz;
+    return xyz / cieyint;
+}
+
+template<typename T>
+math::base_vec3<T> _spectre2xyz0(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
+{
+    //static T cieyint = T(util::get_cie_y_integral());
+
+    math::base_vec3<T> xyz{};
+
+    unsigned idx = 0u;
+    for(unsigned i = 0; i < wavelenghts.size(); ++i) {
+        const T val_lv = values[i];// * T(util::CIE_D6500.get_or_interpolate(wavelenghts[i]));
+        
+        xyz.x += T(util::_interp<X_CURVE>(wavelenghts[i])) * val_lv;
+        xyz.y += T(util::_interp<Y_CURVE>(wavelenghts[i])) * val_lv;
+        xyz.z += T(util::_interp<Z_CURVE>(wavelenghts[i])) * val_lv;
+        idx += 1;
+    }
+   // xyz /= cieyint;
+    return xyz;/// cieyint;
 }
 
 template<typename T>
 T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
 {
-    T val = 0.0f;
-    for(int i = 0; i <= wavelenghts.size(); ++i) {
-    //for(int lambda : wl) {
-
-        Float delta;
-        if(i == 0) {
-            delta = (wavelenghts[1] - wavelenghts[0]) * 0.5f;
-        }
-        else if(i == wavelenghts.size() - 1) {
-            delta = (wavelenghts.back() - wavelenghts[wavelenghts.size() - 2]) * 0.5f;
-        }
-        else {
-            delta = (wavelenghts[i + 1] - wavelenghts[i - 1]) * 0.5f;
-        }
-
-        val += T(util::_interp<Y_CURVE>(wavelenghts[i])) * T(delta) * values[i];
+    T val = T(0.0);
+    for(unsigned i = 0; i < wavelenghts.size(); ++i) {
+        val += T(util::_interp<Y_CURVE>(wavelenghts[i])) * values[i];
     }
     return val;
 }
@@ -107,9 +114,13 @@ std::vector<T> _real_fourier_moments_of(const std::vector<T> &phases, const std:
 }
 
 template<typename T>
-std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
+std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma_arr, int M)
 {
     static const std::complex<T> I_VAL{T(0.0), T(1.0)};
+
+    std::vector<T> gamma(M + 1);
+    std::copy(gamma_arr, gamma_arr + M + 1, gamma.data());
+//    gamma[0] -= gamma[0] * T(0.15);
 
     std::vector<T> res(phases.size());
     std::vector<T> e0(M + 1, T(0.0));
@@ -134,7 +145,7 @@ std::vector<T> _mese(const std::vector<Float> &phases, const T *gamma, int M)
         T div = std::fabs(t);
         div *= div;
 
-        res[k] = abs(T(math::INV_TWO_PI) * q[0]) / div;
+        res[k] = (T(math::INV_TWO_PI) * q[0]) / div;
     }
     return res;
 }
