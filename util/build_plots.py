@@ -16,8 +16,11 @@ TARGETS = ["ff00ff", "ff77ff", "ffff00", "ffff77", "00ffff", "77ffff",
            "101010", "129841", "990000", "009900", "000099", "990099",
            "999900", "009999", "fffe83", "fffff0"]
 
-def plot_for_lut(lut: int):
-    lut_path = join("resources", f"f_emission_lut_{lut}.eflf")
+def plot_for_lut(lut):
+    if lut is None:
+        lut_path = join("output", "f_emission_lut.eflf")
+    else:
+        lut_path = join("resources", f"f_emission_lut_{lut}.eflf")
     print(lut_path)
     for target in TARGETS:
         print(target)
@@ -26,8 +29,7 @@ def plot_for_lut(lut: int):
 
 def main():
     if len(sys.argv) == 1:
-        for lut in LUTS:
-            plot_for_lut(lut)
+        plot_for_lut(None)
     else:
         plot_for_lut(int(sys.argv[1]))
 

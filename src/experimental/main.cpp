@@ -64,7 +64,7 @@ math::base_vec3<T> _spectre2xyz0(const std::vector<Float> &wavelenghts, const st
 }
 
 
-constexpr Float MIN_DIST = 5.0f;
+constexpr Float MIN_DIST = 7.0f;
 
 template<typename T>
 T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
@@ -186,12 +186,12 @@ void dataset_tests()
         vec3 rgb = xyz2rgb_unsafe(xyz);
 
         for(unsigned i = 0; i < spec.size(); ++i) {
-            spec[i] *= 25 * uniform_ciey;
+            spec[i] *= 25.0f * uniform_ciey;
         }
 
         std::cout << rgb << std::endl;
     
-        bool t = rgb.min() >= -0.5f; //rgb.max() <= 1.0f;
+        bool t = rgb.min() >= 0.0f; //rgb.max() <= 1.0f;
         if(t && validate_spec(spec)) {
             vec3 lab = rgb2cielab(rgb);
             bool not_used = true;
@@ -258,6 +258,8 @@ int main(int argc, char **argv)
 
     std::cout << _get_cie_y_integral(wavelenghts, val);
 */
+
+
     dataset_tests();
 
     //SigPolyUpsampler upsampler{};

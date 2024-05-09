@@ -12,6 +12,7 @@ using std::abs;
 constexpr bool ENABLE_LOG = false;
 
 const Float CIEY_UNIFORM = util::get_cie_y_integral(BasicSpectrum{{360.0f, 1.0f}, {830.0f, 1.0f}});
+const vec3 COLOR_POWER{27.4722f, 71.8074f, 7.63813f};
 
 struct CostFunctorEmissionFixer {
     const vec3 in;
@@ -51,9 +52,8 @@ struct CostFunctorEmissionFixer {
         }
 
         T p = _get_cie_y_integral(wavelenghts, result);
-        if(p < 0.75 * power) return false;
         residual[4] = abs(p - T(power));
-
+/*
         T min = T(9999999.0);
         T max = T(0.0);
         for(unsigned i = 0; i < wavelenghts.size(); ++i) {
@@ -61,7 +61,8 @@ struct CostFunctorEmissionFixer {
             if(result[i] < min) min = result[i]; 
         }
 
-        residual[5] = (max - min) / T(50.0);
+        residual[5] = (max - min);
+*/
         return true;
     }
 };
@@ -84,7 +85,7 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const Flo
     // Set up the only cost function (also known as residual). This uses
     // auto-differentiation to obtain the derivative (jacobian).
     CostFunction* cost_function =
-      new AutoDiffCostFunction<CostFunctorEmissionFixer, 6, 1, M>(new CostFunctorEmissionFixer(target_rgb, power, wavelenghts, values));
+      new AutoDiffCostFunction<CostFunctorEmissionFixer, 5, 1, M>(new CostFunctorEmissionFixer(target_rgb, power, wavelenghts, values));
     problem.AddResidualBlock(cost_function, nullptr, x.data(), x.data() + 1);
 
      auto* ordering = new ceres::ParameterBlockOrdering;
@@ -93,7 +94,7 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const Flo
 
     // Run the solver!
     Solver::Options options;
-    options.max_num_iterations = 100;
+    options.max_num_iterations = 250;
     options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
     options.minimizer_progress_to_stdout = ENABLE_LOG;
     options.linear_solver_ordering.reset(ordering);
@@ -160,12 +161,17 @@ struct CostFunctorEmissionConstrained {
         }
 
         residual[4] = abs(_get_cie_y_integral(wavelenghts, result) - T(power));
-        //residual[3] = sqrt(residual[3]);
+   /*
 
-        //for(unsigned i = 0; i < values.size(); ++i) {
-            //if(result[i] < T(0.0)) return false;
-        //}
+        T min = T(9999999.0);
+        T max = T(0.0);
+        for(unsigned i = 0; i < wavelenghts.size(); ++i) {
+            if(result[i] > max) max = result[i];
+            if(result[i] < min) min = result[i]; 
+        }
 
+        residual[5] = (max - min);
+*/
         //std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
         return true;
     }

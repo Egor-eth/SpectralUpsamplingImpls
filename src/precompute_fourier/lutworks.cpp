@@ -208,8 +208,16 @@ namespace {
             for(ctx.j = 0; ctx.j < ctx.size; ++ctx.j) {
                 for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
                     if(ctx.init_solution(solution, values, knearest)) {
-                    //TODO
-                        solve_for_rgb(ctx.get_target().cast<Float>() / 255.0f, ctx.target_power(), solution, ctx.dataset_wavelenghts, values);
+                        vec3 rgb = ctx.get_target().cast<Float>() / 255.0f;
+                        
+                        Float power = _get_cie_y_integral(ctx.dataset_wavelenghts, values);
+
+                        Float mul = (rgb * COLOR_POWER).sum() / CIEY_UNIFORM;
+
+                        values *= ctx.target_power() * CIEY_UNIFORM * mul / power;
+                        solution *= double(ctx.target_power() * CIEY_UNIFORM * mul / power);
+
+                        solve_for_rgb(ctx.get_target().cast<Float>() / 255.0f, ctx.target_power() * mul, solution, ctx.dataset_wavelenghts, values);
                         std::copy(solution.begin(), solution.end(), ctx.current());
                         color_processed += 1;
                     }
@@ -252,10 +260,15 @@ namespace {
             rgb.y = rgb.y == 255 ? 255 : (rgb.y / step) * step;
             rgb.z = rgb.z == 255 ? 255 : (rgb.z / step) * step;
 
+            vec3 rgbf = rgb.cast<Float>() / 255.0f;
+            const Float mul = (rgbf * COLOR_POWER).sum() / CIEY_UNIFORM;
+
+            std::vector<Float> spec_values = in_seeds[i] * mul;
+
             if(rgb != rgbs[i]) {
                 //std::cout << rgb << " <- " << rgbs[i] << std::endl;
-                vec3 rgbf = rgb.cast<Float>() / 255.0f;
-                std::vector<double> res = adjust_and_compute_moments(rgbf, power, in_wavelenghts, in_seeds[i]);
+
+                std::vector<double> res = adjust_and_compute_moments(rgbf, power * mul, in_wavelenghts, spec_values);
                 res.resize(M + 1);
                 out_moments.insert(out_moments.end(), res.begin(), res.end());
 
@@ -269,7 +282,7 @@ namespace {
             }
             else {
             (void) power;
-                std::vector<Float> res = math::real_fourier_moments_of(phases, in_seeds[i], M + 1);
+                std::vector<Float> res = math::real_fourier_moments_of(phases, spec_values, M + 1);
                 out_moments.insert(out_moments.end(), res.begin(), res.end());
             }
             print_progress(++color_processed);
@@ -279,10 +292,24 @@ namespace {
 
 }
 
+#include <upsample/functional/smits.h>
+#include <spec/basic_spectrum.h>
+
 FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector<std::vector<Float>> &seeds, std::vector<vec3i> rgbs, unsigned step, unsigned knearest)
 {
     std::vector<Float> seeds_moments;
 
+   /* BasicSpectrum spec = upsample::smits({0, 0, 1});
+    std::vector<Float> values(wavelenghts.size());
+    for(uint i = 0; i < wavelenghts.size(); ++i) {
+        values[i] = spec(wavelenghts[i]);
+    }
+
+
+    std::cout << _get_cie_y_integral(wavelenghts, values) << std::endl;
+    return {};
+
+*/
     prepare_seeds(wavelenghts, seeds, rgbs, 25.0f, seeds_moments, step);
     
     /*for(unsigned j = 0; j < wavelenghts.size() - 1; ++j) {

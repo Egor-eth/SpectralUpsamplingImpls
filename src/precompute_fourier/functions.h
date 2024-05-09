@@ -20,6 +20,21 @@ using math::base_vec3;
 constexpr double XYZ_TO_CIELAB_XYZN[3]{95.0489f, 100.0f, 108.8840f};
 constexpr int M = PRECOMPUTE_M;
 extern const Float CIEY_UNIFORM;
+extern const vec3 COLOR_POWER;
+
+template<typename T>
+std::vector<T> &operator*=(std::vector<T> &vec, T val)
+{
+    for(T &v : vec) v *= val;
+    return vec;
+}
+
+template<typename T>
+std::vector<T> operator*(const std::vector<T> &vec, T val)
+{
+    std::vector<T> copy = vec;
+    return copy *= val;
+}
 
 template<typename T>
 T _xyz2cielab_f(const T &t)
