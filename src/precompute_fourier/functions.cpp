@@ -11,7 +11,7 @@ using std::abs;
 
 constexpr bool ENABLE_LOG = false;
 
-Float ciey_uniform = util::get_cie_y_integral(BasicSpectrum{{380.0f, 1.0f}, {830.0f, 1.0f}});
+const Float CIEY_UNIFORM = util::get_cie_y_integral(BasicSpectrum{{360.0f, 1.0f}, {830.0f, 1.0f}});
 
 struct CostFunctorEmissionFixer {
     const vec3 in;
@@ -22,7 +22,7 @@ struct CostFunctorEmissionFixer {
     const Float ciey;
 
     CostFunctorEmissionFixer(const vec3 &rgb, Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
-        : in(rgb2cielab(rgb)), power(power * ciey_uniform), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values), ciey(_get_cie_y_integral(wavelenghts, values)) {}
+        : in(rgb2cielab(rgb)), power(power * CIEY_UNIFORM), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values), ciey(_get_cie_y_integral(wavelenghts, values)) {}
 
     template<typename T>
     bool operator()(const T *const g0, const T *const g, T *residual) const noexcept(true)
@@ -50,14 +50,18 @@ struct CostFunctorEmissionFixer {
             residual[3] += a;
         }
 
-        residual[4] = abs(_get_cie_y_integral(wavelenghts, result) - T(power));
-        //residual[3] = sqrt(residual[3]);
+        T p = _get_cie_y_integral(wavelenghts, result);
+        if(p < 0.75 * power) return false;
+        residual[4] = abs(p - T(power));
 
-        //for(unsigned i = 0; i < values.size(); ++i) {
-            //if(result[i] < T(0.0)) return false;
-        //}
+        T min = T(9999999.0);
+        T max = T(0.0);
+        for(unsigned i = 0; i < wavelenghts.size(); ++i) {
+            if(result[i] > max) max = result[i];
+            if(result[i] < min) min = result[i]; 
+        }
 
-        //std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
+        residual[5] = (max - min) / T(50.0);
         return true;
     }
 };
@@ -80,7 +84,7 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const Flo
     // Set up the only cost function (also known as residual). This uses
     // auto-differentiation to obtain the derivative (jacobian).
     CostFunction* cost_function =
-      new AutoDiffCostFunction<CostFunctorEmissionFixer, 5, 1, M>(new CostFunctorEmissionFixer(target_rgb, power, wavelenghts, values));
+      new AutoDiffCostFunction<CostFunctorEmissionFixer, 6, 1, M>(new CostFunctorEmissionFixer(target_rgb, power, wavelenghts, values));
     problem.AddResidualBlock(cost_function, nullptr, x.data(), x.data() + 1);
 
      auto* ordering = new ceres::ParameterBlockOrdering;
@@ -127,7 +131,7 @@ struct CostFunctorEmissionConstrained {
     const std::vector<Float> &values;
 
     CostFunctorEmissionConstrained(const vec3 &rgb, Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
-        : in(rgb2cielab(rgb)), power(power * ciey_uniform), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
+        : in(rgb2cielab(rgb)), power(power * CIEY_UNIFORM), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
 
     template<typename T>
     bool operator()(const T *const g0, const T *const g, T *residual) const noexcept(true)

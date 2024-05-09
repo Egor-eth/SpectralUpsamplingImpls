@@ -5,6 +5,7 @@ from numpy.polynomial import Polynomial
 import sys
 from pathlib import Path
 from os.path import join
+from util import load_spd
 
 
 def diff_image(deltae: np.ndarray, diff_path: str):
@@ -38,13 +39,7 @@ def plot(wl, values, show: bool, name=None, fmt="{}.png"):
     plt.close()
 
 def plot_spd(path: str, show: bool, fmt: str = "{}.png"):
-    lst = []
-    with open(path, "r") as f:
-        for s in f:
-            spl = s.split(' ')
-            lst.append([float(spl[0]), float(spl[1])])
-
-    spd = np.array(lst)
+    spd = load_spd(path)
 
     name = Path(path).stem
 

@@ -12,7 +12,7 @@
 const std::string EMISS_LUT_FILENAME = "output/f_emission_lut.eflf";
 using namespace spec;
 
-void load_dataset(std::vector<vec3ui> &rgbs, std::vector<Float> &wavelenghts, std::vector<std::vector<Float>> &values)
+void load_dataset(std::vector<vec3i> &rgbs, std::vector<Float> &wavelenghts, std::vector<std::vector<Float>> &values)
 {
     std::ifstream in_spectra("output/dataset_spectra.csv");
     std::ifstream in_rgbs("output/dataset_rgb.csv");
@@ -22,7 +22,7 @@ void load_dataset(std::vector<vec3ui> &rgbs, std::vector<Float> &wavelenghts, st
 
     auto data = csv::load_as_vector_m<Float>(in_spectra);
     in_spectra.close();
-    auto rgb_data = csv::load_as_vector<unsigned, unsigned, unsigned>(in_rgbs, ',', 1);
+    auto rgb_data = csv::load_as_vector<int, int, int>(in_rgbs, ',', 1);
     in_rgbs.close();
 
     values.resize(data.size());
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         }
     }
 
-    std::vector<vec3ui> ds_rgbs;
+    std::vector<vec3i> ds_rgbs;
     std::vector<Float> ds_wavelenghts;
     std::vector<std::vector<Float>> ds_spectra;
     load_dataset(ds_rgbs, ds_wavelenghts, ds_spectra);

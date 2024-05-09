@@ -64,7 +64,7 @@ math::base_vec3<T> _spectre2xyz0(const std::vector<Float> &wavelenghts, const st
 }
 
 
-constexpr Float MIN_DIST = 2.0f;
+constexpr Float MIN_DIST = 5.0f;
 
 template<typename T>
 T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
@@ -154,8 +154,7 @@ void dataset_tests()
 
     const Float ciey = util::get_cie_y_integral();
 
-    std::vector<Float> uniform(wavelenghts.size(), 1.0f);
-    const Float uniform_ciey = _get_cie_y_integral(wavelenghts, uniform); 
+    const Float uniform_ciey = _get_cie_y_integral(wavelenghts, std::vector<Float>(wavelenghts.size(), 1.0f)); 
 
     std::vector<Float> d65_1(wavelenghts.size());
     for(unsigned i = 0; i < wavelenghts.size(); ++i) d65_1[i] = util::CIE_D6500.get_or_interpolate(wavelenghts[i]) / ciey * 25.0f * uniform_ciey;
@@ -171,7 +170,7 @@ void dataset_tests()
 
     std::set<vec3> used_lab{};
     std::map<vec3, const std::vector<Float> *> specs{{vec3(1.0f, 1.0f, 1.0f), &d65_1}};
-
+    
 
     for(auto &e : data) {
         std::vector<Float> &spec = std::get<0>(e);
@@ -192,7 +191,7 @@ void dataset_tests()
 
         std::cout << rgb << std::endl;
     
-        bool t = rgb.min() >= 0.0f; //rgb.max() <= 1.0f;
+        bool t = rgb.min() >= -0.5f; //rgb.max() <= 1.0f;
         if(t && validate_spec(spec)) {
             vec3 lab = rgb2cielab(rgb);
             bool not_used = true;

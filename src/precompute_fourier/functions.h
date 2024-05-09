@@ -16,8 +16,10 @@
 using namespace spec;
 using math::base_vec3;
 
+
 constexpr double XYZ_TO_CIELAB_XYZN[3]{95.0489f, 100.0f, 108.8840f};
 constexpr int M = PRECOMPUTE_M;
+extern const Float CIEY_UNIFORM;
 
 template<typename T>
 T _xyz2cielab_f(const T &t)
