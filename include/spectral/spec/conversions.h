@@ -31,6 +31,8 @@ namespace spec {
 
     vec3 spectre2xyz(const ISpectrum &spectre, const ISpectrum &light = util::CIE_D6500);
 
+    vec3 spectre2xyz0(const ISpectrum &spectre);
+
     inline vec3 spectre2rgb(const ISpectrum &spectre, const ISpectrum &light = util::CIE_D6500)
     {
         return xyz2rgb(spectre2xyz(spectre, light));

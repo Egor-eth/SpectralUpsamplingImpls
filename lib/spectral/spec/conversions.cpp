@@ -44,6 +44,22 @@ namespace spec {
         return xyz;
     }
 
+    vec3 spectre2xyz0(const ISpectrum &spectrum)
+    {
+        vec3 xyz{0.0f, 0.0f, 0.0f};
+
+        unsigned idx = 0u;
+        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+            const Float val_lv = spectrum(lambda);
+            
+            xyz.x += X_CURVE[idx] * val_lv;
+            xyz.y += Y_CURVE[idx] * val_lv;
+            xyz.z += Z_CURVE[idx] * val_lv;
+            idx += 1;
+        }
+        return xyz;
+    }
+
     vec3 xyz2cielab(const vec3 &xyz)
     {
         const vec3 xyz_norm = xyz / D6500_WHITE_POINT;
