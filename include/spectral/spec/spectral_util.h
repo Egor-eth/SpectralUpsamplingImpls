@@ -17,6 +17,34 @@ namespace spec::util
 
     constexpr uint64_t SIGPOLY_FILE_MARKER = 0xfafa0000ab0bab0b;
 
+    using XYZArray_t = Float[CURVES_ARRAY_LEN];
+
+    template<const XYZArray_t& arr>
+    Float _interp(Float wl) noexcept(true)
+    {
+        const int a = (static_cast<int>(wl) / CURVES_WAVELENGHTS_STEP) * CURVES_WAVELENGHTS_STEP;
+        const int a_idx = (a - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;
+        if(a > CURVES_WAVELENGHTS_END) return 0.0f;
+
+        const Float f_a = arr[a_idx];
+        if(a == wl) return f_a;
+
+
+        const int b_idx = a_idx + 1;
+        if(b_idx < CURVES_WAVELENGHTS_START / CURVES_WAVELENGHTS_STEP) return 0.0f;
+
+        const Float f_b = arr[b_idx];
+
+        return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
+    }
+
+    Float get_cie_y_integral();
+    Float get_cie_y_integral(const ISpectrum &light);
+
+
+    BasicSpectrum convert_to_spd(const ISpectrum &spectrum, const std::vector<Float> &wavelenghts = {});
+
+
     struct SavingResult
     {
         bool success;
@@ -44,29 +72,6 @@ namespace spec::util
         static Metadata load(std::istream &src);
     };
 
-    using XYZArray_t = Float[CURVES_ARRAY_LEN];
-
-    template<const XYZArray_t& arr>
-    Float _interp(Float wl) noexcept(true)
-    {
-        const int a = (static_cast<int>(wl) / CURVES_WAVELENGHTS_STEP) * CURVES_WAVELENGHTS_STEP;
-        const int a_idx = (a - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;
-        if(a > CURVES_WAVELENGHTS_END) return 0.0f;
-
-        const Float f_a = arr[a_idx];
-        if(a == wl) return f_a;
-
-
-        const int b_idx = a_idx + 1;
-        if(b_idx < CURVES_WAVELENGHTS_START / CURVES_WAVELENGHTS_STEP) return 0.0f;
-
-        const Float f_b = arr[b_idx];
-
-        return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
-    }
-
-    Float get_cie_y_integral();
-    Float get_cie_y_integral(const ISpectrum &light);
 
     void save_spd(const std::string &path, const BasicSpectrum &spectre);
 

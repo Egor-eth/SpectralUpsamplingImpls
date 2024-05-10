@@ -1,6 +1,7 @@
 #include <spec/fourier_spectrum.h>
 #include <spec/basic_spectrum.h>
 #include <spec/spectral_util.h>
+#include <spec/conversions.h>
 #include <imageutil/pixel.h>
 #include <upsample/functional/fourier.h>
 #include <internal/common/constants.h>
@@ -32,12 +33,13 @@ int main(int argc, char **argv)
     FourierEmissionSpectrum fspec = upsample::fourier_emiss_int(color, 25.0f, lut);
 
     BasicSpectrum spec;
-    for(int wl = CURVES_WAVELENGHTS_START; wl < CURVES_WAVELENGHTS_END; wl += CURVES_WAVELENGHTS_STEP)
+    for(int wl = CURVES_WAVELENGHTS_START; wl <= CURVES_WAVELENGHTS_END; wl += CURVES_WAVELENGHTS_STEP)
     {
         spec.set(wl, fspec.get_or_interpolate(wl));
     }
 
     util::save_spd(format("output/spd/%s.spd", argv[1]), spec);
+    std::cout << "Effective color " << xyz2rgb_unsafe(spectre2xyz0(fspec)) << std::endl;
 
     return 0;
 }

@@ -5,11 +5,13 @@
 
 namespace spec::metrics {
 
+//------COLORS-------
     Float cie_delta_e(const vec3 &y1, const vec3 &y2)
     {
         return vec3::distance(rgb2cielab(y1), rgb2cielab(y2));
     }
 
+//------SPECTRA------
     Float mae(const ISpectrum &y1, const ISpectrum &y2)
     {
         Float res = 0.0f;
@@ -35,7 +37,8 @@ namespace spec::metrics {
         const Float mdist = std::sqrt(dist1) * std::sqrt(dist2);
         return std::acos(dot / mdist);
     }
-
+    
+//------IMAGES------
     Float mse(const Image &y1, const Image &y2)
     {
         assert(y1.get_width() == y2.get_width() && y1.get_height() == y2.get_height());

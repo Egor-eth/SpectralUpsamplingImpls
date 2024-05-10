@@ -4,6 +4,7 @@
 #include <spec/conversions.h>
 #include <vector>
 #include <limits>
+#include <unordered_map>
 #include <algorithm>
 
 #include <iostream>
@@ -52,17 +53,18 @@ namespace {
         const unsigned p_size = power_values.size();
         const std::vector<Float> &dataset_wavelenghts;
 
-        LutBuilder(int m, unsigned step, const std::vector<Float> &seeds_moments, std::vector<vec3i> &&seeds_rgb,
-                 const std::vector<Float> &wavelenghts, const std::vector<std::vector<Float>> &dataset)
+        LutBuilder(int m, unsigned step, const std::vector<Float> &wavelenghts,
+                   const std::vector<std::vector<Float>> &dataset, const std::unordered_map<vec3i, std::vector<Float>> &seeds_converted)
             : step{step}, size{256u / step + (255u % step != 0u)},
               force_last{255u % step != 0u}, m{m}, dataset_wavelenghts(wavelenghts),
-              seeds(std::move(seeds_rgb)),
+              seeds(),
               data(p_size * size * size * size * (m + 1), 0.0f), dataset(dataset)
         {
-            for(unsigned k = 0; k < seeds.size(); ++k) {
-                Float *out_ptr = at(seeds[k], DEFAULT_P_ID);
-                const Float *in_ptr = seeds_moments.data() + (m + 1) * k;
-                std::copy(in_ptr, in_ptr + m + 1, out_ptr);
+            seeds.reserve(seeds_converted.size());
+            for(const auto &[rgb, moments] : seeds_converted) {
+                Float *out_ptr = at(rgb, DEFAULT_P_ID);
+                seeds.push_back(rgb);
+                std::copy(moments.data(), moments.data() + m + 1, out_ptr);
             }
         }
 
@@ -124,7 +126,7 @@ namespace {
         }
 
     private:
-        const std::vector<vec3i> seeds;
+        std::vector<vec3i> seeds;
         std::vector<Float> data;
         const std::vector<std::vector<Float>> &dataset;
     };
@@ -246,7 +248,7 @@ namespace {
         return (math::clamp(rgb / max, 0.0f, 1.0f) * 255.0f).cast<int>();
     }
 
-    void prepare_seeds(const std::vector<Float> &in_wavelenghts, const std::vector<std::vector<Float>> &in_seeds, std::vector<vec3i> &rgbs, Float power, std::vector<Float> &out_moments, int step)
+    void prepare_seeds(const std::vector<Float> &in_wavelenghts, const std::vector<std::vector<Float>> &in_seeds, const std::vector<vec3i> &rgbs, Float power, std::unordered_map<vec3i, std::vector<Float>> &out_seeds, int step)
     {   
         init_progress_bar(in_seeds.size());
         color_processed = 0u;
@@ -255,7 +257,7 @@ namespace {
 
         for(unsigned i = 0; i < rgbs.size(); ++i) {
             vec3i rgb = get_target_color(rgbs[i]);
-
+            std::cout << rgb << std::endl;
             rgb.x = rgb.x == 255 ? 255 : (rgb.x / step) * step;
             rgb.y = rgb.y == 255 ? 255 : (rgb.y / step) * step;
             rgb.z = rgb.z == 255 ? 255 : (rgb.z / step) * step;
@@ -270,20 +272,20 @@ namespace {
 
                 std::vector<double> res = adjust_and_compute_moments(rgbf, power * mul, in_wavelenghts, spec_values);
                 res.resize(M + 1);
-                out_moments.insert(out_moments.end(), res.begin(), res.end());
 
-                vec3 rgbf_res = xyz2rgb(_spectre2xyz0(in_wavelenghts, _mese(phases, res.data(), M)).cast<Float>() / (CIEY_UNIFORM * 25.0f));
+                vec3 rgbf_res = xyz2rgb(_spectre2xyz0(in_wavelenghts, _mese(phases, res.data(), M)).cast<Float>() / (mul * CIEY_UNIFORM * 25.0f));
                 rgb = (rgbf_res * 255.0f).cast<int>();
 
                 rgb.x = rgb.x >= 255 ? 255 : (rgb.x / step) * step;
                 rgb.y = rgb.y >= 255 ? 255 : (rgb.y / step) * step;
                 rgb.z = rgb.z >= 255 ? 255 : (rgb.z / step) * step;
-                rgbs[i] = rgb;
+
+                out_seeds.emplace(rgb, std::vector<Float>(res.begin(), res.end()));
             }
             else {
             (void) power;
                 std::vector<Float> res = math::real_fourier_moments_of(phases, spec_values, M + 1);
-                out_moments.insert(out_moments.end(), res.begin(), res.end());
+                out_seeds.emplace(rgb, std::vector<Float>(res.begin(), res.end()));
             }
             print_progress(++color_processed);
         }
@@ -310,7 +312,8 @@ FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector
     return {};
 
 */
-    prepare_seeds(wavelenghts, seeds, rgbs, 25.0f, seeds_moments, step);
+    std::unordered_map<vec3i, std::vector<Float>> seeds_converted;
+    prepare_seeds(wavelenghts, seeds, rgbs, 25.0f, seeds_converted, step);
     
     /*for(unsigned j = 0; j < wavelenghts.size() - 1; ++j) {
         std::cout << seeds[0][j] << ",";
@@ -319,22 +322,19 @@ FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector
 
     
     std::vector<Float> phases = math::wl_to_phases(wavelenghts);
-    for(uint i = 0; i < rgbs.size(); ++i) {
-        std::vector<Float> moments(M + 1);
-        const Float *in_ptr = seeds_moments.data() + (M + 1) * i;
-        std::copy(in_ptr, in_ptr + M + 1, moments.data());
+    for(const auto &[rgb, moments] : seeds_converted) {
         auto vals = math::mese(phases, moments);
         for(unsigned j = 0; j < vals.size() - 1; ++j) {
             std::cout << vals[j] << ",";
         }
         std::cout << vals.back() << std::endl;
         std::cout << _get_cie_y_integral(wavelenghts, vals) / CIEY_UNIFORM << std::endl;
-        std::cout << xyz2rgb(_spectre2xyz0(wavelenghts, vals) / (CIEY_UNIFORM * 25.0f)) << " " << (rgbs[i].cast<Float>() / 255.0f) << std::endl;
+        std::cout << xyz2rgb(_spectre2xyz0(wavelenghts, vals) / (CIEY_UNIFORM * 25.0f)) << " " << (rgb.cast<Float>() / 255.0f) << std::endl;
     }
 
     color_processed = 0u;
 
-    LutBuilder ctx{M, step, seeds_moments, std::move(rgbs), wavelenghts, seeds};
+    LutBuilder ctx{M, step, wavelenghts, seeds, seeds_converted};
     init_progress_bar(ctx.p_size * ctx.size * ctx.size * ctx.size - seeds.size(), 256);
 
     fill(ctx, knearest);

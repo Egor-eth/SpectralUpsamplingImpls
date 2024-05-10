@@ -32,6 +32,7 @@ namespace spec {
          if(!validate_c(r, g, b)) {
             return {};
         }
+        /*
         unsigned n = power_values.size() - 1;
         Float p_mul = 1.0f;
         for(unsigned i = 0; i < power_values.size(); ++i) {
@@ -40,7 +41,9 @@ namespace spec {
                 break;
             }
         }
-        p_mul = power / power_values[n];
+        p_mul = power / power_values[n];*/
+        unsigned n = 0;
+        Float p_mul = power / power_values[0];
 
         const int r1_id = r / step;
         const int r2_id = safe_int(r1_id + 1, size);
@@ -56,15 +59,15 @@ namespace spec {
         const int b1 = safe_int(b1_id * step, 256);
         const int b2 = b == 255 ? 256 : safe_int(b2_id * step, 256);
 
-        const Float drf = Float(r2 - r1) / 255.0f;
+        const Float drf  = Float(r2 - r1) / 255.0f;
         const Float drf1 = Float(r - r1) / 255.0f;
         const Float drf2 = Float(r2 - r) / 255.0f;
 
-        const Float dgf = Float(g2 - g1) / 255.0f;
+        const Float dgf  = Float(g2 - g1) / 255.0f;
         const Float dgf1 = Float(g - g1) / 255.0f;
         const Float dgf2 = Float(g2 - g) / 255.0f;
 
-        const Float dbf = Float(b2 - b1) / 255.0f;
+        const Float dbf  = Float(b2 - b1) / 255.0f;
         const Float dbf1 = Float(b - b1) / 255.0f;
         const Float dbf2 = Float(b2 - b) / 255.0f;
 
@@ -82,8 +85,8 @@ namespace spec {
         add(res, r2_id, g2_id, b1_id, n, drf1 * dgf1 * dbf2 * div * p_mul);
         add(res, r2_id, g2_id, b2_id, n, drf1 * dgf1 * dbf1 * div * p_mul);
 
-        for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << ",";
-        std::cout << std::endl;
+        //for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << ",";
+        //std::cout << std::endl;
 
         return res;
     }

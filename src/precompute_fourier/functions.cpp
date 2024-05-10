@@ -95,7 +95,7 @@ std::vector<double> adjust_and_compute_moments(const vec3 &target_rgb, const Flo
     // Run the solver!
     Solver::Options options;
     options.max_num_iterations = 250;
-    options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+    options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = ENABLE_LOG;
     options.linear_solver_ordering.reset(ordering);
     Solver::Summary summary;
@@ -148,7 +148,9 @@ struct CostFunctorEmissionConstrained {
 
         base_vec3<T> xyz = _spectre2xyz0<T>(wavelenghts, result) / T(power);
         base_vec3<T> color = _xyz2cielab<T>(xyz);
-        base_vec3<T> color_diff = color - in.cast<T>();
+        base_vec3<T> color_diff = (color - in.cast<T>()) * COLOR_POWER.cast<T>() * T(25.0);
+
+        if(_xyz2rgb_unsafe(xyz).min() < T(0.0)) return false; 
 
         residual[0] = abs(color_diff.x);
         residual[1] = abs(color_diff.y);
@@ -200,8 +202,8 @@ void solve_for_rgb(const vec3 &target_rgb, Float power, std::vector<double> &x, 
 
     // Run the solver!
     Solver::Options options;
-    options.max_num_iterations = 100;
-    options.linear_solver_type = ceres::SPARSE_NORMAL_CHOLESKY;
+    options.max_num_iterations = 250;
+    options.linear_solver_type = ceres::DENSE_QR;
     options.minimizer_progress_to_stdout = ENABLE_LOG;
     options.linear_solver_ordering.reset(ordering);
 

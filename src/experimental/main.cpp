@@ -64,7 +64,7 @@ math::base_vec3<T> _spectre2xyz0(const std::vector<Float> &wavelenghts, const st
 }
 
 
-constexpr Float MIN_DIST = 7.0f;
+constexpr Float MIN_DIST = 5.0f;
 
 template<typename T>
 T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T> &values)
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
 /*
 
     std::vector<Float> wavelenghts;
-    for(int i = CURVES_WAVELENGHTS_START; i < CURVES_WAVELENGHTS_END; ++i) {
+    for(int i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; ++i) {
         wavelenghts.push_back(Float(i));
     }
     BasicSpectrum spec = upsample::smits({1.0f, 1.0f, 1.0f});

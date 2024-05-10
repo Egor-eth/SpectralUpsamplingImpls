@@ -37,6 +37,14 @@ std::vector<T> operator*(const std::vector<T> &vec, T val)
 }
 
 template<typename T>
+base_vec3<T> _xyz2rgb_unsafe(const base_vec3<T> &xyz)
+{
+    return {3.2404542 * xyz.x - 1.5371385 * xyz.y - 0.4985314 * xyz.z,
+           -0.9692660 * xyz.x + 1.8760108 * xyz.y + 0.0415560 * xyz.z,
+            0.0556434 * xyz.x - 0.2040259 * xyz.y + 1.0572252 * xyz.z};
+}
+
+template<typename T>
 T _xyz2cielab_f(const T &t)
 {
     static constexpr double delta = 6.0 / 29.0;

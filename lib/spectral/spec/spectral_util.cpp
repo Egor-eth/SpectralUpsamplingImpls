@@ -21,6 +21,22 @@ namespace spec::util {
         return val;
     }
 
+    BasicSpectrum convert_to_spd(const ISpectrum &spectrum, const std::vector<Float> &wavelenghts)
+    {
+        BasicSpectrum spec;
+        if(wavelenghts.empty()) {
+            for(int i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP) {
+                spec.set(Float(i), spectrum(Float(i)));
+            }
+        }
+        else {
+            for(Float v : wavelenghts) {
+                spec.set(v, spectrum(v));
+            }
+        }
+        return spec;
+    }
+
     const BasicSpectrum CIE_D6500{
         {300.000000f, 0.034100f}, 
         {305.000000f, 1.664300f},

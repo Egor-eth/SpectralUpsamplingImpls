@@ -1,12 +1,14 @@
 #include <spec/spectral_util.h>
 #include <spec/basic_spectrum.h>
 #include <spec/conversions.h>
+#include <spec/metrics.h>
 #include <internal/serialization/csv.h>
 #include <internal/math/math.h>
 #include <internal/common/util.h>
 #include <upsample/glassner_naive.h>
 #include <upsample/smits.h>
 #include <upsample/sigpoly.h>
+#include <iomanip>
 #include <filesystem>
 #include <memory>
 #include <numeric>
@@ -67,36 +69,73 @@ void load_xyz_ds(const std::string &path, std::vector<vec3> &data) {
     }
 }
 
-void dataset_resample(const IUpsampler &upsampler)
+void dataset_reupsample(const IUpsampler &upsampler, const std::string &method_name)
 {
-    // std::vector<BasicSpectrum> spectra;
-    std::vector<vec3> xyz_values;
-    //load_spec_ds("input/spectrum_m.csv", spectra);
-    load_xyz_ds("input/xyz_m.csv", xyz_values);
+    std::vector<BasicSpectrum> in_spectra;
+    load_spec_ds("input/spectrum_m.csv", in_spectra);
+    std::vector<BasicSpectrum> out_spectra(in_spectra.size());
+
+    std::vector<vec3> in_xyz;
+    load_xyz_ds("input/xyz_m.csv", in_xyz);
+
+    std::ofstream output_file("output/comparsion_ds_result_" + method_name + ".csv");
+    std::ofstream result_spectra_file("output/comparsion_ds_converted_" + method_name + ".csv");
 
     int successful = 0;
     std::vector<double> losses;
+    std::vector<Float> spec_maes(in_spectra.size());
+    std::vector<Float> spec_sams(in_spectra.size());
 
-    for(unsigned i = 0; i < xyz_values.size(); ++i) {
-        vec3 rgb = xyz2rgb(xyz_values[i]);
+    for(unsigned i = 0; i < in_xyz.size(); ++i) {
+        vec3 rgb = xyz2rgb(in_xyz[i]);
         ISpectrum::ptr spec = upsampler.upsample_pixel(Pixel::from_vec3(rgb));
 
         vec3 lab = xyz2cielab(spectre2xyz(*spec));
-        Float distance = vec3::distance(lab, xyz2cielab(xyz_values[i]));
-        successful += distance == 0.0;
-        losses.push_back(distance);
+        const Float deltaE = vec3::distance(lab, xyz2cielab(in_xyz[i]));
+        successful += deltaE < 2.333f;
+        losses.push_back(deltaE);
 
-       // std::cout << xyz << " " << xyz_values[i] << std::endl;
+        spec_maes[i] = metrics::mae(*spec, in_spectra[i]);
+        spec_sams[i] = metrics::sam(*spec, in_spectra[i]);
+        out_spectra[i] = util::convert_to_spd(*spec);
+
+       // std::cout << xyz << " " << in_xyz[i] << std::endl;
     }
 
-    for(double d : losses) {
-        std::cout << d << std::endl;
-    }
+    auto [minde, maxde] = minmax_element(losses.begin(), losses.end());
+    auto [minsam, maxsam] = minmax_element(spec_sams.begin(), spec_sams.end());
 
-    std::cout << "Overall MSE loss: " << std::accumulate(losses.begin(), losses.end(), 0.0) / xyz_values.size() << std::endl;
+    output_file << std::setprecision(8)
+                << "# Overall MSE DeltaE loss: " << std::accumulate(losses.begin(), losses.end(), 0.0f) / in_xyz.size() << ";\n"
+                << "# Min DeltaE: " <<  *minde << ", max DeltaE: " << *maxde << "\n"
+                << "# Median DeltaE: " << losses[losses.size() / 2] << ";\n"
+                << "# Unrecognizable difference in " << successful << "/" << in_xyz.size() << " values.\n#" << std::endl;
+
+    output_file << "# Average spectra MAE is " << std::accumulate(spec_maes.begin(), spec_maes.end(), 0.0f) / in_xyz.size() << ";\n"
+                << "# Min SAM: " << *minsam << ", max SAM: " << *maxsam << ".\n#\n"
+                << "DeltaE,Spectral MAE,SAM" << std::endl;
+
+    for(unsigned i = 0; i < in_xyz.size(); ++i) {
+        output_file << losses[i] << "," << spec_maes[i] << "," << spec_sams[i] << "\n";
+    }
+    output_file.flush();
+    output_file.close();
+
+    result_spectra_file << std::setprecision(16);
+    for(int i = CURVES_WAVELENGHTS_START; i < CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP) {
+        result_spectra_file << i << ",";
+    }
+    result_spectra_file << CURVES_WAVELENGHTS_END << std::endl;
+
+    for(const BasicSpectrum &sp : out_spectra) {
+        for(int i = CURVES_WAVELENGHTS_START; i < CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP) {
+            result_spectra_file << sp(i) << ",";
+        }
+        result_spectra_file << sp(CURVES_WAVELENGHTS_END) << std::endl;
+    }
 }
 
-void img_resample(const IUpsampler &upsampler, const std::string &path, const std::string &method)
+void img_reupsample(const IUpsampler &upsampler, const std::string &path, const std::string &method)
 {
     Image image_gt{path};
     std::cout << "Upsampling " << path << std::endl;
@@ -124,12 +163,12 @@ int main(int argc, char **argv)
     std::unique_ptr<IUpsampler> upsampler = get_upsampler_by_name(method);
 
     if(!strcmp(argv[2], "ds")) {
-        dataset_resample(*upsampler);
+        dataset_reupsample(*upsampler, method);
         return 0;
     }
     if(!strcmp(argv[2], "im")) {
         if(argc >= 4) {
-            img_resample(*upsampler, std::string(argv[3]), method);
+            img_reupsample(*upsampler, std::string(argv[3]), method);
             return 0;
         }
         return 1;
