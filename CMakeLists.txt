@@ -5,6 +5,12 @@ project(Spectral CXX)
 add_library(spectral_proj_compile_options INTERFACE)
 target_compile_features(spectral_proj_compile_options INTERFACE cxx_std_17)
 
+find_package(OpenMP)
+if(OpenMP_FOUND)
+    target_compile_definitions(spectral_proj_compile_options INTERFACE SPECTRAL_ENABLE_OPENMP)
+    target_link_libraries(spectral_proj_compile_options INTERFACE OpenMP::OpenMP_CXX)
+endif()
+
 option(SPECTRAL_LIB_ONLY "Only compile library")
 option(SPECTRAL_DISABLE_PROGRESS_BAR "Disable progress printing")
 

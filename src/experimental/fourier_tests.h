@@ -23,7 +23,7 @@ inline void fourier_tests(const char *path)
 
     std::vector<Float> wavelenghts;
     std::vector<Float> values;
-    for(unsigned i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; i += 1) {
+    for(unsigned i = WAVELENGHTS_START; i <= WAVELENGHTS_END; i += 1) {
         wavelenghts.push_back(Float(i));
         values.push_back(spec->get_or_interpolate(Float(i)));
     }

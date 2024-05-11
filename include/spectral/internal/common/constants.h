@@ -25,9 +25,9 @@ namespace spec {
     };
 
 
-    constexpr int CURVES_WAVELENGHTS_START = 360;
-    constexpr int CURVES_WAVELENGHTS_END = 830;
-    constexpr int CURVES_WAVELENGHTS_STEP = 1;
+    constexpr int WAVELENGHTS_START = 360;
+    constexpr int WAVELENGHTS_END = 830;
+    constexpr int WAVELENGHTS_STEP = 1;
 
     constexpr Float X_CURVE[] = {
         // CIE X function values

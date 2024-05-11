@@ -59,7 +59,7 @@ base_vec3<T> _sigpoly2xyz(const T *x)
     base_vec3<T> xyz{};
     //const BasicSpectrum &d65 = get_D6500();
     unsigned idx = 0u;
-    for(int lambda = spec::CURVES_WAVELENGHTS_START; lambda <= spec::CURVES_WAVELENGHTS_END; lambda += spec::CURVES_WAVELENGHTS_STEP) {
+    for(int lambda = spec::WAVELENGHTS_START; lambda <= spec::WAVELENGHTS_END; lambda += spec::WAVELENGHTS_STEP) {
         const T val_lv = _sigmoid_polynomial<T>(T(lambda), x) * static_cast<double>(spec::util::CIE_D6500.get_or_interpolate(lambda));
         
         xyz.x += val_lv * static_cast<double>(spec::X_CURVE[idx]);

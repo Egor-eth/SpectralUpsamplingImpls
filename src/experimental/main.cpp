@@ -237,9 +237,9 @@ void dataset_tests()
 
 
 const BasicSpectrum UNIFORM {
-    {CURVES_WAVELENGHTS_START, 1.0f},
-    {0.5f * (CURVES_WAVELENGHTS_START + CURVES_WAVELENGHTS_END), 1.0f},
-    {CURVES_WAVELENGHTS_END, 1.0f}
+    {WAVELENGHTS_START, 1.0f},
+    {0.5f * (WAVELENGHTS_START + WAVELENGHTS_END), 1.0f},
+    {WAVELENGHTS_END, 1.0f}
 };
 
 
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
 /*
 
     std::vector<Float> wavelenghts;
-    for(int i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; ++i) {
+    for(int i = WAVELENGHTS_START; i <= WAVELENGHTS_END; ++i) {
         wavelenghts.push_back(Float(i));
     }
     BasicSpectrum spec = upsample::smits({1.0f, 1.0f, 1.0f});

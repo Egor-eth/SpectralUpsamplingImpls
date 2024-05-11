@@ -122,16 +122,16 @@ void dataset_reupsample(const IUpsampler &upsampler, const std::string &method_n
     output_file.close();
 
     result_spectra_file << std::setprecision(16);
-    for(int i = CURVES_WAVELENGHTS_START; i < CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP) {
+    for(int i = WAVELENGHTS_START; i < WAVELENGHTS_END; i += WAVELENGHTS_STEP) {
         result_spectra_file << i << ",";
     }
-    result_spectra_file << CURVES_WAVELENGHTS_END << std::endl;
+    result_spectra_file << WAVELENGHTS_END << std::endl;
 
     for(const BasicSpectrum &sp : out_spectra) {
-        for(int i = CURVES_WAVELENGHTS_START; i < CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP) {
+        for(int i = WAVELENGHTS_START; i < WAVELENGHTS_END; i += WAVELENGHTS_STEP) {
             result_spectra_file << sp(i) << ",";
         }
-        result_spectra_file << sp(CURVES_WAVELENGHTS_END) << std::endl;
+        result_spectra_file << sp(WAVELENGHTS_END) << std::endl;
     }
 }
 

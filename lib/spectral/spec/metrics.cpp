@@ -15,10 +15,10 @@ namespace spec::metrics {
     Float mae(const ISpectrum &y1, const ISpectrum &y2)
     {
         Float res = 0.0f;
-        for(int wl = CURVES_WAVELENGHTS_START; wl <= CURVES_WAVELENGHTS_END; wl += CURVES_WAVELENGHTS_STEP) {
+        for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP) {
             res += std::fabs(y1(wl) - y2(wl));
         }
-        return res / Float((CURVES_WAVELENGHTS_END - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP);
+        return res / Float((WAVELENGHTS_END - WAVELENGHTS_START) / WAVELENGHTS_STEP);
     }
 
     Float sam(const ISpectrum &y1, const ISpectrum &y2)
@@ -26,7 +26,7 @@ namespace spec::metrics {
         Float dist1 = 0.0f;
         Float dist2 = 0.0f;
         Float dot = 0.0f;
-        for(int wl = CURVES_WAVELENGHTS_START; wl <= CURVES_WAVELENGHTS_END; wl += CURVES_WAVELENGHTS_STEP)
+        for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP)
         {
             const Float val1 = y1(wl);
             dist1 += val1 * val1;

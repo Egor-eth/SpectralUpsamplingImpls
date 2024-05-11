@@ -13,10 +13,10 @@ namespace spec::util {
     Float get_cie_y_integral(const ISpectrum &light)
     {
         Float val = 0.0f;
-        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+        for(int lambda = WAVELENGHTS_START; lambda <= WAVELENGHTS_END; lambda += WAVELENGHTS_STEP) {
         //for(int lambda : wl) {
             Float lightval = light.get_or_interpolate(lambda);
-            val += _interp<Y_CURVE>(lambda) * CURVES_WAVELENGHTS_STEP * lightval;
+            val += _interp<Y_CURVE>(lambda) * WAVELENGHTS_STEP * lightval;
         }
         return val;
     }
@@ -25,7 +25,7 @@ namespace spec::util {
     {
         BasicSpectrum spec;
         if(wavelenghts.empty()) {
-            for(int i = CURVES_WAVELENGHTS_START; i <= CURVES_WAVELENGHTS_END; i += CURVES_WAVELENGHTS_STEP) {
+            for(int i = WAVELENGHTS_START; i <= WAVELENGHTS_END; i += WAVELENGHTS_STEP) {
                 spec.set(Float(i), spectrum(Float(i)));
             }
         }

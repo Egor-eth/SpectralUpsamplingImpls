@@ -33,7 +33,7 @@ int main(int argc, char **argv)
     FourierEmissionSpectrum fspec = upsample::fourier_emiss_int(color, 25.0f, lut);
 
     BasicSpectrum spec;
-    for(int wl = CURVES_WAVELENGHTS_START; wl <= CURVES_WAVELENGHTS_END; wl += CURVES_WAVELENGHTS_STEP)
+    for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP)
     {
         spec.set(wl, fspec.get_or_interpolate(wl));
     }

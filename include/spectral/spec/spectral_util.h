@@ -22,20 +22,20 @@ namespace spec::util
     template<const XYZArray_t& arr>
     Float _interp(Float wl) noexcept(true)
     {
-        const int a = (static_cast<int>(wl) / CURVES_WAVELENGHTS_STEP) * CURVES_WAVELENGHTS_STEP;
-        const int a_idx = (a - CURVES_WAVELENGHTS_START) / CURVES_WAVELENGHTS_STEP;
-        if(a > CURVES_WAVELENGHTS_END) return 0.0f;
+        const int a = (static_cast<int>(wl) / WAVELENGHTS_STEP) * WAVELENGHTS_STEP;
+        const int a_idx = (a - WAVELENGHTS_START) / WAVELENGHTS_STEP;
+        if(a > WAVELENGHTS_END) return 0.0f;
 
         const Float f_a = arr[a_idx];
         if(a == wl) return f_a;
 
 
         const int b_idx = a_idx + 1;
-        if(b_idx < CURVES_WAVELENGHTS_START / CURVES_WAVELENGHTS_STEP) return 0.0f;
+        if(b_idx < WAVELENGHTS_START / WAVELENGHTS_STEP) return 0.0f;
 
         const Float f_b = arr[b_idx];
 
-        return f_a + (f_b - f_a) * (wl - a) / CURVES_WAVELENGHTS_STEP;
+        return f_a + (f_b - f_a) * (wl - a) / WAVELENGHTS_STEP;
     }
 
     Float get_cie_y_integral();

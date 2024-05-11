@@ -32,7 +32,7 @@ namespace spec {
         vec3 xyz{0.0f, 0.0f, 0.0f};
 
         unsigned idx = 0u;
-        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+        for(int lambda = WAVELENGHTS_START; lambda <= WAVELENGHTS_END; lambda += WAVELENGHTS_STEP) {
             const Float val_lv = spectrum(lambda) * light.get_or_interpolate(lambda);
             
             xyz.x += X_CURVE[idx] * val_lv;
@@ -49,7 +49,7 @@ namespace spec {
         vec3 xyz{0.0f, 0.0f, 0.0f};
 
         unsigned idx = 0u;
-        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+        for(int lambda = WAVELENGHTS_START; lambda <= WAVELENGHTS_END; lambda += WAVELENGHTS_STEP) {
             const Float val_lv = spectrum(lambda);
             
             xyz.x += X_CURVE[idx] * val_lv;
@@ -79,7 +79,7 @@ namespace spec {
         vec3 xyz{0.0f, 0.0f, 0.0f};
         const Float coef[3]{a1, a2, a3};
         unsigned idx = 0u;
-        for(int lambda = CURVES_WAVELENGHTS_START; lambda <= CURVES_WAVELENGHTS_END; lambda += CURVES_WAVELENGHTS_STEP) {
+        for(int lambda = WAVELENGHTS_START; lambda <= WAVELENGHTS_END; lambda += WAVELENGHTS_STEP) {
             const Float val_lv = math::sigmoid_polynomial(lambda, coef) * util::CIE_D6500.get_or_interpolate(lambda);
             
             xyz.x += X_CURVE[idx] * val_lv;

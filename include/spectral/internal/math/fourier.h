@@ -11,7 +11,7 @@ namespace spec {
     namespace math {
         constexpr Complex I{0.0f, 1.0f};
 
-        Float to_phase(Float wl, Float start = CURVES_WAVELENGHTS_START, Float end = CURVES_WAVELENGHTS_END);
+        Float to_phase(Float wl, Float start = WAVELENGHTS_START, Float end = WAVELENGHTS_END);
 
         inline std::vector<Float> wl_to_phases(std::vector<Float> wavelenghts)
         {
