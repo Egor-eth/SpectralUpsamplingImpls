@@ -104,15 +104,15 @@ namespace spec::util
             std::ifstream file{directory / entry.filename, std::ios::binary | std::ios::in};
             int w, h;
             STBImageUniquePtr data = _load_image(file, &w, &h, entry.targets.size());
-            if(static_cast<unsigned>(w) != meta.width || static_cast<unsigned>(h) != meta.height) {
+            if(w != meta.width || h != meta.height) {
                 throw std::runtime_error("Incorrect image shape");
             }
 
             const unsigned char *ptr = data.get();
             const int wl_count = entry.targets.size();
 
-            for(unsigned j = 0; j < meta.height; ++j) {
-                for(unsigned i = 0; i < meta.width; ++i) {
+            for(int j = 0; j < meta.height; ++j) {
+                for(int i = 0; i < meta.width; ++i) {
                     BasicSpectrum &spec = img.at(i, j);
                     for(int k = 0; k < wl_count; ++k) {
                         const Float val = std::fma<Float>(*(ptr++) / 255.0f, entry.norm_range, entry.norm_min_val); 
@@ -160,11 +160,11 @@ namespace spec::util
             init_progress_bar(meta.bands * meta.lines * meta.samples, 1000);
 
             size_t count = 0;
-            for(unsigned w = 0; w < meta.bands; ++w) {
+            for(int w = 0; w < meta.bands; ++w) {
                 Float wl = meta.wavelength[w];
                 img.add_wavelenght(wl);
-                for(unsigned j = 0; j < meta.lines; ++j) {
-                    for(unsigned i = 0; i < meta.samples; ++i) {
+                for(int j = 0; j < meta.lines; ++j) {
+                    for(int i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
                         img.at(i, j).set(wl, value);
                         print_progress(++count);
@@ -181,8 +181,8 @@ namespace spec::util
         {
             for(Float wl : meta.wavelength) {
                 img.add_wavelenght(wl);
-                for(unsigned j = 0; j < meta.lines; ++j) {
-                    for(unsigned i = 0; i < meta.samples; ++i) {
+                for(int j = 0; j < meta.lines; ++j) {
+                    for(int i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
                         img.at(i, j).set(wl, value);
                     }
@@ -194,9 +194,9 @@ namespace spec::util
         template<typename T>
         void _load_bip(const MetaENVI &meta, std::istream &str, BasicSpectralImage &img)
         {
-            for(unsigned j = 0; j < meta.lines; ++j) {
+            for(int j = 0; j < meta.lines; ++j) {
                 for(Float wl : meta.wavelength) {
-                    for(unsigned i = 0; i < meta.samples; ++i) {
+                    for(int i = 0; i < meta.samples; ++i) {
                         Float value = binary::read_ordered<T>(str, meta.byte_order == MetaENVI::ByteOrder::BIG_ENDIAN_ORDER);
                         img.at(i, j).set(wl, value);
                     }
@@ -228,6 +228,10 @@ namespace spec::util
         std::cout << "Loading file with width " << meta.lines << " height " << meta.samples << std::endl;
 
         BasicSpectralImage img{meta.lines, meta.samples};
+        BasicSpectrum *raw_ptr = img.raw_data();
+        for(long i = 0; i < img.get_width() * img.get_height(); ++i) {
+            raw_ptr[i].reserve(meta.bands);
+        }
 
         switch(meta.interleave) {
         case MetaENVI::Interleave::BSQ:
@@ -258,7 +262,7 @@ namespace spec::util
 
         BasicSpectrum *ls = new BasicSpectrum();
 
-        for(unsigned w = 0; w < meta.bands; ++w) {
+        for(int w = 0; w < meta.bands; ++w) {
             ls->set(meta.wavelength[w], static_cast<Float>(meta.illuminant[w]));
         }
         lightsource.reset(ls);
@@ -298,7 +302,7 @@ namespace spec::util
         const uint32_t width = binary::read<uint32_t>(file);
         const uint32_t height = binary::read<uint32_t>(file);
 
-        SigPolySpectralImage img{width, height};
+        SigPolySpectralImage img{int(width), int(height)};
         auto *ptr = img.raw_data();
 
         for(uint32_t i = 0; i < width * height; ++i) {

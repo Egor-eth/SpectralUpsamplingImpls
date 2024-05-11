@@ -11,6 +11,10 @@
 #include <unordered_map>
 #include <iostream>
 
+#ifdef SPECTRAL_ENABLE_OPENMP
+#include <omp.h>
+#endif
+
 namespace spec {
 
     const BasicSpectrum BasicSpectrum::none{};
@@ -29,12 +33,15 @@ namespace spec {
 
     const std::set<Float> &BasicSpectrum::get_wavelenghts() const
     {
-        if(modified) {
-            cached_wavelenghts.clear();
-            for(const auto &p : spectre) {
-                cached_wavelenghts.insert(p.first);
+        #pragma omp critical
+        {
+            if(modified) {
+                cached_wavelenghts.clear();
+                for(const auto &p : spectre) {
+                    cached_wavelenghts.insert(p.first);
+                }
+                modified = false;
             }
-            modified = false;
         }
         return cached_wavelenghts;
     }
@@ -57,29 +64,26 @@ namespace spec {
     }
 
     Float BasicSpectrum::get_or_interpolate(Float w) const
-    {
-        auto b_it = spectre.lower_bound(w);
-        Float b;
-        Float f_b;
-        if(b_it == spectre.end()) {
+    {   
+        const std::set<Float> &wavelenghts = get_wavelenghts();
+
+        auto it = wavelenghts.lower_bound(w);
+
+        if(it == wavelenghts.end()) {
             return 0.0f;
         }
         
-        b = b_it->first;
-        f_b = b_it->second;
+        Float b = *it;
+        Float f_b = spectre.at(b);
         if(b == w) return f_b;
         
 
-        Float a;
-        Float f_a;
-        if(b_it == spectre.begin()) {
+        if(it == wavelenghts.begin()) {
             return 0.0f;
         }
 
-        auto a_it = b_it;
-        --a_it;
-        a = a_it->first;
-        f_a = a_it->second;
+        Float a = *(--it);
+        Float f_a = spectre.at(a);
         
         return math::interpolate(w, a, b, f_a, f_b);
     }
@@ -92,6 +96,11 @@ namespace spec {
             spectre = std::move(other.spectre);
         }
         return *this;
+    }
+
+    void BasicSpectrum::reserve(size_t count)
+    {
+        spectre.reserve(count);
     }
 
 

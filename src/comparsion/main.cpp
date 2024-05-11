@@ -5,9 +5,11 @@
 #include <internal/serialization/csv.h>
 #include <internal/math/math.h>
 #include <internal/common/util.h>
+#include <internal/common/format.h>
 #include <upsample/glassner_naive.h>
 #include <upsample/smits.h>
 #include <upsample/sigpoly.h>
+#include <stdexcept>
 #include <iomanip>
 #include <filesystem>
 #include <memory>
@@ -16,6 +18,9 @@
 #include <cstring>
 #include <fstream>
 #include <chrono>
+#ifdef SPECTRAL_ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 using namespace spec;
 namespace fs = std::filesystem;
@@ -108,10 +113,11 @@ void dataset_reupsample(const IUpsampler &upsampler, const std::string &method_n
     output_file << std::setprecision(8)
                 << "# Overall MSE DeltaE loss: " << std::accumulate(losses.begin(), losses.end(), 0.0f) / in_xyz.size() << ";\n"
                 << "# Min DeltaE: " <<  *minde << ", max DeltaE: " << *maxde << "\n"
-                << "# Median DeltaE: " << losses[losses.size() / 2] << ";\n"
+               // << "# Median DeltaE: " << losses[losses.size() / 2] << ";\n"
                 << "# Unrecognizable difference in " << successful << "/" << in_xyz.size() << " values.\n#" << std::endl;
 
     output_file << "# Average spectra MAE is " << std::accumulate(spec_maes.begin(), spec_maes.end(), 0.0f) / in_xyz.size() << ";\n"
+                << "# Average spectra SAM is " << std::accumulate(spec_sams.begin(), spec_sams.end(), 0.0f) / in_xyz.size() << ";\n"
                 << "# Min SAM: " << *minsam << ", max SAM: " << *maxsam << ".\n#\n"
                 << "DeltaE,Spectral MAE,SAM" << std::endl;
 
@@ -137,23 +143,56 @@ void dataset_reupsample(const IUpsampler &upsampler, const std::string &method_n
 
 void img_reupsample(const IUpsampler &upsampler, const std::string &path, const std::string &method)
 {
-    Image image_gt{path};
-    std::cout << "Upsampling " << path << std::endl;
-    auto t1 = high_resolution_clock::now();
-    ISpectralImage::ptr spectral_img = upsampler.upsample(image_gt);
-    auto t2 = high_resolution_clock::now();
-    std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
+    const std::string name = fs::path(path).stem();
+    std::cout << name << " " << method << std::endl;
 
-    int w = spectral_img->get_width(), h = spectral_img->get_height();
-    Image image{w, h};
+    ISpectralImage::ptr spec_img_gt;
+    ISpectrum::csptr light_source;
+    if(!util::load_spectral_image(path, spec_img_gt, light_source)) throw std::runtime_error("Failed to load");
 
-    std::cout << "Downsampling" << std::endl;
-    for(int j = 0; j < h; ++j) {
-        for(int i = 0; i < w; ++i) {
-            image.at(i, j) = Pixel::from_vec3(xyz2rgb(spectre2xyz(spectral_img->at(i, j))));
-        }
+    std::cout << "Loaded image" << std::endl;
+
+    const unsigned width = spec_img_gt->get_width();
+    const unsigned height = spec_img_gt->get_height();
+
+    std::ofstream output_file("output/comparsion/im_result_" + name + "_" + method + ".txt");
+
+    const Image img_rgb_gt = spectral_image2rgb(*spec_img_gt);
+
+    std::cout << "Downsampled loaded image" << std::endl;
+
+    Image img_rgb_reupsampled;
+
+    {   
+        auto t1 = high_resolution_clock::now();
+        ISpectralImage::ptr spec_img_reupsampled = upsampler.upsample(img_rgb_gt);
+        auto t2 = high_resolution_clock::now();
+        std::cout << "Reupsampled image" << std::endl;
+
+        output_file << "Upsampling time: " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
+
+        Float mae_sum = 0.0f;
+        Float sam_sum = 0.0f;
+
+        #pragma omp parallel for reduction(+:mae_sum,sam_sum)
+        for(unsigned j = 0; j < height; ++j) {
+            for(unsigned i = 0; i < width; ++i) {
+                mae_sum += metrics::mae(spec_img_reupsampled->at(i, j), spec_img_gt->at(i, j));
+                sam_sum += metrics::sam(spec_img_reupsampled->at(i, j), spec_img_gt->at(i, j));
+            }
+        } 
+        output_file << "Average spectra MAE: " << mae_sum / Float(width * height) << ";\n"
+                    << "Average SAM: " << sam_sum / Float(width * height) << std::endl; 
+
+        std::cout << "Metrics calculated" << std::endl;
+
+        img_rgb_reupsampled = spectral_image2rgb(*spec_img_reupsampled);
+        std::cout << "Redownsampled image" << std::endl;
     }
-    image.save((fs::path("output") / "tests") / (fs::path(path).stem().string() + "_" + method + ".png"));
+
+    img_rgb_gt.save(format("output/comparsion/im_%s_downsampled.png", name.c_str()));
+    img_rgb_reupsampled.save(format("output/comparsion/im_%s_redownsampled_%s.png", name.c_str(), method.c_str()));
+
 }
 
 int main(int argc, char **argv)
@@ -161,14 +200,17 @@ int main(int argc, char **argv)
     if(argc <= 2) return 1;
     const std::string method = argv[1];
     std::unique_ptr<IUpsampler> upsampler = get_upsampler_by_name(method);
-
+  
     if(!strcmp(argv[2], "ds")) {
         dataset_reupsample(*upsampler, method);
         return 0;
     }
     if(!strcmp(argv[2], "im")) {
         if(argc >= 4) {
+            auto t1 = high_resolution_clock::now();
             img_reupsample(*upsampler, std::string(argv[3]), method);
+            auto t2 = high_resolution_clock::now();
+            std::cout << "Time: " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << std::endl;
             return 0;
         }
         return 1;

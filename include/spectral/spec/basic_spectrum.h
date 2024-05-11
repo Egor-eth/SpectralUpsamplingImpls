@@ -4,7 +4,7 @@
 #include <spectral/spec/spectral_image.h>
 #include <spectral/internal/common/constants.h>
 #include <initializer_list>
-#include <map>
+#include <unordered_map>
 #include <set>
 
 namespace spec {
@@ -18,7 +18,7 @@ namespace spec {
             : spectre() {}
 
         BasicSpectrum(std::initializer_list<std::pair<const Float, Float>> l) 
-            : spectre(l) {}
+            : spectre(l) {get_wavelenghts();}
 
         BasicSpectrum(const BasicSpectrum &s) = default;
 
@@ -40,7 +40,9 @@ namespace spec {
         BasicSpectrum &operator=(const BasicSpectrum &other) = default;
         BasicSpectrum &operator=(BasicSpectrum &&other);
 
-        const std::map<Float, Float> &get_map() const {
+        void reserve(size_t count);
+
+        const std::unordered_map<Float, Float> &get_map() const {
             return spectre;
         }
 
@@ -49,7 +51,7 @@ namespace spec {
     private:
         mutable std::set<Float> cached_wavelenghts{};
         mutable bool modified = true;
-        std::map<Float, Float> spectre;
+        std::unordered_map<Float, Float> spectre;
     };
 
     /**

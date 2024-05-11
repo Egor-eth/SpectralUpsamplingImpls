@@ -147,8 +147,10 @@ namespace spec
             std::ofstream file(path, std::ios::trunc);
             if(!file) throw std::runtime_error("Cannot open file");
 
-            for(const auto &e : spectre.get_map()) {
-                file << format(SPD_OUTPUT_FORMAT, e.first, e.second);
+            const auto &map = spectre.get_map();
+
+            for(const Float wl : spectre.get_wavelenghts()) {
+                file << format(SPD_OUTPUT_FORMAT, wl, map.at(wl));
             }
 
             file.flush();

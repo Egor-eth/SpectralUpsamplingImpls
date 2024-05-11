@@ -52,6 +52,11 @@ public:
         return &get();
     }
 
+    operator bool() const
+    {
+        return bool(value);
+    }
+
 private:
     const std::function<T()> constructor;
     mutable std::optional<T> value;

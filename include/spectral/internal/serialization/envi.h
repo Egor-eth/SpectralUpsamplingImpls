@@ -19,9 +19,9 @@ namespace spec {
         std::size_t header_offset = 0; // skip bytes from start of image
         UnitType wavelength_units = UnitType::NANOMETER;
 
-        unsigned samples; // aka width
-        unsigned lines; // aka height
-        unsigned bands; // aka channels
+        int samples; // aka width
+        int lines; // aka height
+        int bands; // aka channels
 
         ByteOrder byte_order;
         DataType data_type;

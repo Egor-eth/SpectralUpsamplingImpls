@@ -178,17 +178,17 @@ out:
         }
 
         if((it = entries.find("samples")) != entries.end()) {
-            meta.samples = parse<unsigned>(it->second);
+            meta.samples = parse<int>(it->second);
             entries.erase(it);
         }
 
         if((it = entries.find("lines")) != entries.end()) {
-            meta.lines = parse<unsigned>(it->second);
+            meta.lines = parse<int>(it->second);
             entries.erase(it);
         }
 
         if((it = entries.find("bands")) != entries.end()) {
-            meta.bands = parse<unsigned>(it->second);
+            meta.bands = parse<int>(it->second);
             entries.erase(it);
         }
 

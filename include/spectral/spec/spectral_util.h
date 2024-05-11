@@ -22,7 +22,7 @@ namespace spec::util
     template<const XYZArray_t& arr>
     Float _interp(Float wl) noexcept(true)
     {
-        const int a = (static_cast<int>(wl) / WAVELENGHTS_STEP) * WAVELENGHTS_STEP;
+        const int a = (int(wl) / WAVELENGHTS_STEP) * WAVELENGHTS_STEP;
         const int a_idx = (a - WAVELENGHTS_START) / WAVELENGHTS_STEP;
         if(a > WAVELENGHTS_END) return 0.0f;
 
@@ -63,8 +63,8 @@ namespace spec::util
 
     struct Metadata
     {
-        unsigned width;
-        unsigned height;
+        int width;
+        int height;
         std::string format;
         std::vector<MetadataEntry> wavelenghts;
 

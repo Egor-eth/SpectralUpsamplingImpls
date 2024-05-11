@@ -2,6 +2,9 @@
 #include <spec/spectral_util.h>
 #include <internal/common/lazy_value.h>
 #include <memory>
+#ifdef SPECTRAL_ENABLE_OPENMP
+#include <omp.h>
+#endif
 
 #include <iostream>
 namespace spec {
@@ -21,14 +24,8 @@ namespace spec {
     }
 
     vec3 spectre2xyz(const ISpectrum &spectrum, const ISpectrum &light)
-    {
-        static Float cieyint = -1.0f;
-        static const ISpectrum *src = nullptr;
-        if(src != &light) {
-            cieyint = util::get_cie_y_integral(light);
-            src = &light;
-        }
-
+    {   
+        Float cieyint = &light == &util::CIE_D6500 ? util::get_cie_y_integral() : util::get_cie_y_integral(light);
         vec3 xyz{0.0f, 0.0f, 0.0f};
 
         unsigned idx = 0u;
@@ -58,6 +55,23 @@ namespace spec {
             idx += 1;
         }
         return xyz;
+    }
+
+    Image spectral_image2rgb(const ISpectralImage &img, const ISpectrum &light)
+    {
+        Image image{img.get_width(), img.get_height()};
+        const unsigned w = img.get_width();
+        const unsigned h = img.get_height();
+        vec3 rgb;
+
+     //   #pragma omp parallel for private(rgb) shared(image, img)
+        for(unsigned j = 0; j < h; ++j) {
+            for(unsigned i = 0; i < w; ++i) {
+                rgb = spectre2rgb(img.at(i, j), light);
+                image.at(i, j) = Pixel::from_vec3(rgb);
+            }
+        }
+        return image;
     }
 
     vec3 xyz2cielab(const vec3 &xyz)

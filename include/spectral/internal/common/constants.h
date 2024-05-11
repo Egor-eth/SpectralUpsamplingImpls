@@ -29,7 +29,7 @@ namespace spec {
     constexpr int WAVELENGHTS_END = 830;
     constexpr int WAVELENGHTS_STEP = 1;
 
-    constexpr Float X_CURVE[] = {
+    alignas(64) constexpr Float X_CURVE[] = {
         // CIE X function values
         0.0001299000f,   0.0001458470f,   0.0001638021f,   0.0001840037f,   0.0002066902f,
         0.0002321000f,   0.0002607280f,   0.0002930750f,   0.0003293880f,   0.0003699140f,
@@ -127,7 +127,7 @@ namespace spec {
         0.000001776509f, 0.000001656215f, 0.000001544022f, 0.000001439440f, 0.000001341977f,
         0.000001251141f};
 
-    constexpr Float Y_CURVE[] = {
+    alignas(64) constexpr Float Y_CURVE[] = {
         // CIE Y function values
         0.000003917000f,  0.000004393581f,  0.000004929604f,  0.000005532136f,  0.000006208245f,
         0.000006965000f,  0.000007813219f,  0.000008767336f,  0.000009839844f,  0.00001104323f,
@@ -225,7 +225,7 @@ namespace spec {
         0.0000006415300f, 0.0000005980895f, 0.0000005575746f, 0.0000005198080f, 0.0000004846123f,
         0.0000004518100f};
 
-    constexpr Float Z_CURVE[] = {
+    alignas(64) constexpr Float Z_CURVE[] = {
         // CIE Z function values
         0.0006061000f,   0.0006808792f,   0.0007651456f,   0.0008600124f,   0.0009665928f,
         0.001086000f,    0.001220586f,    0.001372729f,    0.001543579f,    0.001734286f,

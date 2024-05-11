@@ -1,8 +1,7 @@
 #ifndef INCLUDE_SPECTRAL_SPEC_SPECTRAL_IMAGE_H
 #define INCLUDE_SPECTRAL_SPEC_SPECTRAL_IMAGE_H
 #include <spectral/spec/spectrum.h>
-#include <memory>
-
+#include <vector>
 
 namespace spec {
    
@@ -13,32 +12,25 @@ namespace spec {
         INJECT_REFL(SpectralImage<SpectrumType>);
 
         SpectralImage()
-            : SpectralImage(nullptr, 0, 0) {}
+            : ISpectralImage(0, 0), data() {}
 
-        SpectralImage(unsigned w, unsigned h)
-            : SpectralImage(new SpectrumType[w * h], w, h) {}
+        SpectralImage(int w, int h)
+            : ISpectralImage(w, h), data(w * h) {}
 
-        SpectralImage(unsigned w, unsigned h, const SpectrumType &p)
-            : SpectralImage(w, h)
-        {
-            std::fill(this->data.get(), this->data.get() + w * h, p);
-        }    
+        SpectralImage(int w, int h, const SpectrumType &p)
+            : ISpectralImage(w, h), data(w * h, p) {}    
 
-        SpectralImage(const SpectralImage &image)
-            : SpectralImage(new SpectrumType[image.width * image.height], image.width, image.height)
-        {
-            std::copy(image.data.get(), image.data.get() + width * height, data.get());
-        }
+        SpectralImage(const SpectralImage &image) = default;
 
         SpectralImage(SpectralImage &&image)
             : ISpectralImage(image.width, image.height), data(std::move(image.data)) {}
 
         inline const SpectrumType *raw_data() const {
-            return data.get();
+            return data.data();
         }
 
         inline SpectrumType *raw_data() {
-            return data.get();
+            return data.data();
         }
 
         SpectrumType &at(int i, int j) override
@@ -58,7 +50,7 @@ namespace spec {
         SpectralImage &operator=(SpectralImage &&other) {
             if(this == &other) return *this;
 
-            std::swap(data, other.data);
+            data = std::move(other.data);
             width = std::move(other.width);
             height = std::move(other.height);
             return *this;
@@ -67,11 +59,7 @@ namespace spec {
 
 
     protected:
-        std::unique_ptr<SpectrumType []> data;
-
-        SpectralImage(SpectrumType *ptr, unsigned width, unsigned height)
-            : ISpectralImage(width, height), data(ptr) {}
-
+        std::vector<SpectrumType> data;
 
     };
 

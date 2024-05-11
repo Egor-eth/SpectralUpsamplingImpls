@@ -4,6 +4,7 @@ project(Spectral CXX)
 
 add_library(spectral_proj_compile_options INTERFACE)
 target_compile_features(spectral_proj_compile_options INTERFACE cxx_std_17)
+target_compile_options(spectral_proj_compile_options INTERFACE -Wno-unknown-pragmas)
 
 find_package(OpenMP)
 if(OpenMP_FOUND)

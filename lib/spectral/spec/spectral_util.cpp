@@ -1,17 +1,27 @@
 #include <spec/spectral_util.h>
 #include <internal/common/lazy_value.h>
 
+#ifdef SPECTRAL_ENABLE_OPENMP
+#include <omp.h>
+#endif
+
+#include <iostream>
+
 namespace spec::util {
 
+    namespace {
+        LazyValue<Float> d6500_cie_int{[]() -> Float { return get_cie_y_integral(CIE_D6500); }};
+    }
 
     Float get_cie_y_integral()
     {
-        static LazyValue<Float> value{[]() -> Float { return get_cie_y_integral(CIE_D6500); }};
-        return *value;
+
+        return 10567.1f;
     }
 
     Float get_cie_y_integral(const ISpectrum &light)
     {
+
         Float val = 0.0f;
         for(int lambda = WAVELENGHTS_START; lambda <= WAVELENGHTS_END; lambda += WAVELENGHTS_STEP) {
         //for(int lambda : wl) {

@@ -105,10 +105,42 @@ int upsample(const Args &args) {
         ISpectralImage::ptr spectral_img = upsampler->upsample(image);
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
-        std::cout << "Saving..." << std::endl;
 
-        if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
-            std::cerr << "[!] Error saving image." << std::endl;
+        if(args.ior_mode) {
+            BasicSpectralImage eta_img{spectral_img->get_width(), spectral_img->get_height()};
+            BasicSpectralImage k_img{spectral_img->get_width(), spectral_img->get_height()};
+
+
+            for(int j = 0; j < spectral_img->get_height(); ++j) {
+                for(int i = 0; i < spectral_img->get_width(); ++i) {
+                    const ISpectrum &spec = spectral_img->at(i, j);
+                    BasicSpectrum &eta_p = eta_img.at(i, j);
+                    BasicSpectrum &k_p = k_img.at(i, j);
+
+                    for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP) {
+                        auto [eta, k] = color2ior(spec(wl));
+                        eta_p.set(wl, eta);
+                        k_p.set(wl, k);
+                    }
+                }
+            }
+
+            std::cout << "Saving..." << std::endl;
+            if(!spec::util::save(args.output_dir, *args.output_name + "_eta", eta_img)) {
+                std::cerr << "[!] Error saving image." << std::endl;
+            }
+            if(!spec::util::save(args.output_dir, *args.output_name + "_k", k_img)) {
+                std::cerr << "[!] Error saving image." << std::endl;
+            }
+
+        } else {
+
+            std::cout << "Saving..." << std::endl;
+
+            if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
+                std::cerr << "[!] Error saving image." << std::endl;
+            }
+
         }
     } catch (std::exception &ex) {
         std::cerr << "[!] " << ex.what() << std::endl;

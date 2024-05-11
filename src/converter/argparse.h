@@ -13,6 +13,7 @@ struct Args {
     std::string output_dir = "output";
     std::string input_path; // -f
     bool downsample_mode = false; // --downsample
+    bool ior_mode = false; //--ior
 };
 
 bool parse_args(int argc, char **argv, Args &args);

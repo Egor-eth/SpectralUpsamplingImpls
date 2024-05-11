@@ -3,6 +3,7 @@
 #include <spectral/internal/math/math.h>
 #include <spectral/spec/basic_spectrum.h>
 #include <spectral/spec/spectral_util.h>
+#include <spectral/imageutil/image.h>
 #include <utility>
 
 namespace spec {
@@ -32,6 +33,9 @@ namespace spec {
     vec3 spectre2xyz(const ISpectrum &spectre, const ISpectrum &light = util::CIE_D6500);
 
     vec3 spectre2xyz0(const ISpectrum &spectre);
+
+    Image spectral_image2rgb(const ISpectralImage &img, const ISpectrum &light = util::CIE_D6500);
+
 
     inline vec3 spectre2rgb(const ISpectrum &spectre, const ISpectrum &light = util::CIE_D6500)
     {
