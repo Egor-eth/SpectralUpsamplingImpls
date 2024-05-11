@@ -10,8 +10,9 @@ if(UNIX)
     include_directories(/usr/include/eigen3)
 endif()
 
-find_package(Ceres REQUIRED)
-
+if(NOT SPECTRAL_NO_PRECOMPUTERS)
+    find_package(Ceres REQUIRED)
+endif()
 
 if(PROJECT_IS_TOP_LEVEL)
     target_compile_options(spectral_apps_compile_options INTERFACE -Wall -Wextra -Werror -Wcast-qual)

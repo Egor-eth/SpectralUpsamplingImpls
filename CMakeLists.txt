@@ -13,6 +13,7 @@ if(OpenMP_FOUND)
 endif()
 
 option(SPECTRAL_LIB_ONLY "Only compile library")
+option(SPECTRAL_NO_PRECOMPUTERS "Disable precompute modules")
 option(SPECTRAL_DISABLE_PROGRESS_BAR "Disable progress printing")
 
 set(SPECTRAL_PROJECT_ROOT ${PROJECT_SOURCE_DIR})

@@ -117,4 +117,10 @@ namespace spec {
         return {n, k};
     }
 
+    vec3 edgetint_exp(const vec3 &rgb)
+    {
+        vec3 diff = vec3(1, 1, 1) - rgb;
+        return rgb + diff * 0.5f;
+    }
+
 }

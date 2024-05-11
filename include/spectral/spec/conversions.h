@@ -49,9 +49,12 @@ namespace spec {
     std::pair<Float, Float> color2ior(Float reflectivity, Float edgetint);
 
     inline std::pair<Float, Float> color2ior(Float color)
-    {
+    {   
         return color2ior(color, color);
     }
+
+    vec3 edgetint_exp(const vec3 &rgb);
+
 
 }
 #endif

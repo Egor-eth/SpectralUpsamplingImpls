@@ -83,6 +83,41 @@ int downsample(const Args &args) {
     return 0;
 }
 
+int upsample_color(const Args &args, IUpsampler &upsampler)
+{
+    const Pixel rgb = *args.color;
+    std::cout << "Converting color to spectrum with " << *args.method << " method..." << std::endl;
+    ISpectrum::ptr spectrum = upsampler.upsample_pixel(rgb);
+
+
+    if(args.ior_mode) {
+        BasicSpectrum eta_p;
+        BasicSpectrum k_p;
+
+        std::cout << "Calculating ior..." << std::endl;
+        for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP) {
+            auto [eta, k] = color2ior(spectrum->get_or_interpolate(wl));
+            eta_p.set(wl, eta);
+            k_p.set(wl, k);
+        }
+
+        if(!spec::util::save(args.output_dir, *args.output_name + "_eta", eta_p)) {
+            std::cerr << "[!] Error saving spetrum." << std::endl;
+            return 2;
+        }
+        if(!spec::util::save(args.output_dir, *args.output_name + "_eta", k_p)) {
+            std::cerr << "[!] Error saving spectrum." << std::endl;
+            return 2;
+        }
+        return 0;
+    }
+    if(!spec::util::save(args.output_dir, *args.output_name, *spectrum)) {
+        std::cerr << "[!] Error saving spectrum." << std::endl;
+        return 2;
+    }
+    return 0;
+}
+
 int upsample(const Args &args) {
     auto upsampler = get_upsampler_by_name(*args.method);
     if(!upsampler) {
@@ -90,58 +125,26 @@ int upsample(const Args &args) {
         return 1;
     }
 
-    Image image;
     if(args.color) {
-        image = Image(1, 1);
-        image.at(0, 0) = *args.color;
-    }
-    else {
-        image = Image(args.input_path);
+        return upsample_color(args, *upsampler);
     }
 
     try {
+
+        Image image = Image(args.input_path);
         std::cout << "Converting image to spectral with " << *args.method << " method..." << std::endl;
         auto t1 = high_resolution_clock::now();
         ISpectralImage::ptr spectral_img = upsampler->upsample(image);
         auto t2 = high_resolution_clock::now();
         std::cout << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
 
-        if(args.ior_mode) {
-            BasicSpectralImage eta_img{spectral_img->get_width(), spectral_img->get_height()};
-            BasicSpectralImage k_img{spectral_img->get_width(), spectral_img->get_height()};
+        std::cout << "Saving..." << std::endl;
 
-
-            for(int j = 0; j < spectral_img->get_height(); ++j) {
-                for(int i = 0; i < spectral_img->get_width(); ++i) {
-                    const ISpectrum &spec = spectral_img->at(i, j);
-                    BasicSpectrum &eta_p = eta_img.at(i, j);
-                    BasicSpectrum &k_p = k_img.at(i, j);
-
-                    for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP) {
-                        auto [eta, k] = color2ior(spec(wl));
-                        eta_p.set(wl, eta);
-                        k_p.set(wl, k);
-                    }
-                }
-            }
-
-            std::cout << "Saving..." << std::endl;
-            if(!spec::util::save(args.output_dir, *args.output_name + "_eta", eta_img)) {
-                std::cerr << "[!] Error saving image." << std::endl;
-            }
-            if(!spec::util::save(args.output_dir, *args.output_name + "_k", k_img)) {
-                std::cerr << "[!] Error saving image." << std::endl;
-            }
-
-        } else {
-
-            std::cout << "Saving..." << std::endl;
-
-            if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
-                std::cerr << "[!] Error saving image." << std::endl;
-            }
-
+        if(!spec::util::save(args.output_dir, *args.output_name, *spectral_img)) {
+            std::cerr << "[!] Error saving image." << std::endl;
+            return 3;
         }
+
     } catch (std::exception &ex) {
         std::cerr << "[!] " << ex.what() << std::endl;
         return 1;

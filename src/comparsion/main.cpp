@@ -195,6 +195,23 @@ void img_reupsample(const IUpsampler &upsampler, const std::string &path, const 
 
 }
 
+void img_simpletest(const IUpsampler &upsampler, const std::string &path, const std::string &method)
+{
+    Image image_gt{path};
+    const std::string name = fs::path(path).stem();
+    std::ofstream output_file("output/comparsion/textures/result_" + name + "_" + method + ".txt");
+
+    std::cout << "Upsampling " << path << std::endl;
+    auto t1 = high_resolution_clock::now();
+    ISpectralImage::ptr spectral_img = upsampler.upsample(image_gt);
+    auto t2 = high_resolution_clock::now();
+    output_file << "Upsampling took " << duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " ms." << std::endl;
+
+    std::cout << "Downsampling" << std::endl;
+    Image image = spectral_image2rgb(*spectral_img);
+    image.save("output/comparsion/textures/" + name + "_" + method + ".png");
+}
+
 int main(int argc, char **argv)
 {
     if(argc <= 2) return 1;
@@ -204,6 +221,13 @@ int main(int argc, char **argv)
     if(!strcmp(argv[2], "ds")) {
         dataset_reupsample(*upsampler, method);
         return 0;
+    }
+    if(!strcmp(argv[2], "si")) {
+        if(argc >= 4) {
+            img_simpletest(*upsampler, std::string(argv[3]), method);
+            return 0;
+        }
+        return 1;
     }
     if(!strcmp(argv[2], "im")) {
         if(argc >= 4) {
