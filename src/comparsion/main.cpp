@@ -174,7 +174,7 @@ void img_reupsample(const IUpsampler &upsampler, const std::string &path, const 
         Float mae_sum = 0.0f;
         Float sam_sum = 0.0f;
 
-        #pragma omp parallel for reduction(+:mae_sum,sam_sum)
+        //#pragma omp parallel for reduction(+:mae_sum,sam_sum)
         for(unsigned j = 0; j < height; ++j) {
             for(unsigned i = 0; i < width; ++i) {
                 mae_sum += metrics::mae(spec_img_reupsampled->at(i, j), spec_img_gt->at(i, j));

@@ -34,8 +34,21 @@ namespace spec::metrics {
             dist2 += val2 * val2;
             dot += val1 * val2;
         }
+
+        if(dist1 == 0.0f || dist2 == 0.0f) {
+            for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP)
+            {
+                if(y1(wl) != y2(wl)) {
+                    return math::PI / 2.0f;
+                }
+            }
+            return 0.0f;
+        }
+
         const Float mdist = std::sqrt(dist1) * std::sqrt(dist2);
-        return std::acos(dot / mdist);
+        Float cosine_sim = dot / mdist;
+
+        return std::acos(math::clamp(cosine_sim, 0.0f, 1.0f));
     }
     
 //------IMAGES------

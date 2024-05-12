@@ -1,7 +1,11 @@
 build/**
 build_debug/**
+
 output/**
 input/**
 resources/**
+
 util/__pycache__
 util/venv
+
+run_comp.sh
