@@ -1,6 +1,7 @@
 #ifndef INCLUDE_SPECTRAL_INTERNAL_COMMON_CONSTANTS_H
 #define INCLUDE_SPECTRAL_INTERNAL_COMMON_CONSTANTS_H
 #include <spectral/internal/math/math.h>
+#include <vector>
 #include <string>
 #include <cinttypes>
 
@@ -28,6 +29,8 @@ namespace spec {
     constexpr int WAVELENGHTS_START = 360;
     constexpr int WAVELENGHTS_END = 830;
     constexpr int WAVELENGHTS_STEP = 1;
+
+    extern const std::vector<Float> WAVELENGHTS;
 
     alignas(64) constexpr Float X_CURVE[] = {
         // CIE X function values

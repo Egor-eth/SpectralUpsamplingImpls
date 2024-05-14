@@ -263,7 +263,7 @@ namespace spec::util
         BasicSpectrum *ls = new BasicSpectrum();
 
         for(int w = 0; w < meta.bands; ++w) {
-            ls->set(meta.wavelength[w], static_cast<Float>(meta.illuminant[w]));
+            ls->set(meta.wavelength[w], Float(meta.illuminant[w]));
         }
         lightsource.reset(ls);
         return img;

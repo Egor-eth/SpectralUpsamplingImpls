@@ -12,21 +12,21 @@ namespace spec::metrics {
     }
 
 //------SPECTRA------
-    Float mae(const ISpectrum &y1, const ISpectrum &y2)
+    Float mae(const ISpectrum &y1, const ISpectrum &y2, const std::vector<Float> &wavelenghts)
     {
         Float res = 0.0f;
-        for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP) {
+        for(Float wl : wavelenghts) {
             res += std::fabs(y1(wl) - y2(wl));
         }
         return res / Float((WAVELENGHTS_END - WAVELENGHTS_START) / WAVELENGHTS_STEP);
     }
 
-    Float sam(const ISpectrum &y1, const ISpectrum &y2)
+    Float sam(const ISpectrum &y1, const ISpectrum &y2, const std::vector<Float> &wavelenghts)
     {
         Float dist1 = 0.0f;
         Float dist2 = 0.0f;
         Float dot = 0.0f;
-        for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP)
+        for(Float wl : wavelenghts)
         {
             const Float val1 = y1(wl);
             dist1 += val1 * val1;
@@ -36,7 +36,7 @@ namespace spec::metrics {
         }
 
         if(dist1 == 0.0f || dist2 == 0.0f) {
-            for(int wl = WAVELENGHTS_START; wl <= WAVELENGHTS_END; wl += WAVELENGHTS_STEP)
+            for(Float wl : wavelenghts)
             {
                 if(y1(wl) != y2(wl)) {
                     return math::PI / 2.0f;

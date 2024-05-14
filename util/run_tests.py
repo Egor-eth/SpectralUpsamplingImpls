@@ -1,6 +1,5 @@
 #!/bin/python3
 
-import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
@@ -16,8 +15,15 @@ from plot import diff_image, mean_deltaE
 
 
 METHODS = ["glassner", "smits", "sigpoly"]
-IMAGES = [join("input", "lenna.png"), join("input", "grid.png")]
-TARGET_DIR = join("output", "tests")
+IMAGES = [join("input", "textures", "brushed_concrete_03_diff_4k.jpg"),
+          join("input", "textures", "coast_sand_03_diff_2k.jpg"),
+     #     join("input", "textures", "fabric_pattern_07_col_1_2k.png"),
+          join("input", "textures", "gravel_floor_02_diff_4k.jpg"),
+          join("input", "textures", "medieval_red_brick_diff_4k.jpg"),
+          join("input", "textures", "painted_concrete_diff_4k.jpg"),
+          join("input", "textures", "tree_bark_03_diff_4k.jpg"),
+          join("input", "textures", "wood_cabinet_worn_long_diff_4k.jpg")]
+TARGET_DIR = join("output", "comparsion", "comparsion", "textures")
 
 
 def run_test(path: str):
@@ -26,7 +32,7 @@ def run_test(path: str):
     for method in METHODS:
         print(path + " : " + method)
         f = open(join(TARGET_DIR, Path(path).stem + "_" + method + ".txt"), "w+")
-        subprocess.run(["./build/comparsion", method, "im", path], stdout=f)
+        #subprocess.run(["./build/comparsion", method, "im", path], stdout=f)
 
         image = cv2.imread(join(TARGET_DIR, f"{Path(path).stem}_{method}.png"))
 
