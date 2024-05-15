@@ -13,6 +13,7 @@ namespace spec {
 
     Float FourierEmissionSpectrum::get_or_interpolate(Float w) const
     {
+        if(coef[0] == 0) return 0.0f;
         if(q_vector.empty()) {
             q_vector = math::precompute_mese_coeffs(coef);
         }
