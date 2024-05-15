@@ -13,10 +13,10 @@ namespace spec {
     public:
         static constexpr uint64_t FILE_MARKER = 0xfafa0000ab0ba001;
 
-        FourierLUT(std::vector<Float> &&data, const std::vector<Float> &power_values, unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m},
+        FourierLUT(std::vector<Float> &&data, const std::vector<Float> &power_values, unsigned step, unsigned m) : step{step}, size{256 / step + 1 + (255 % step != 0)}, m{m},
             power_values(power_values), data{std::move(data)} {}
 
-        FourierLUT(const std::vector<Float> &power_values, unsigned step, unsigned m) : step{step}, size{256 / step + (255 % step != 0)}, m{m},
+        FourierLUT(const std::vector<Float> &power_values, unsigned step, unsigned m) : step{step}, size{256 / step + 1 + (255 % step != 0)}, m{m},
             power_values(power_values), data(power_values.size() * size * size * size * (m + 1)) {}
 
         FourierLUT() = default;

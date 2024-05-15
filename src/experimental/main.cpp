@@ -73,7 +73,7 @@ T _get_cie_y_integral(const std::vector<Float> &wavelenghts, const std::vector<T
     for(unsigned i = 0; i < wavelenghts.size(); ++i) {
     //for(int lambda : wl) {
 
-        Float delta = 1.0f / Float(wavelenghts.size());
+       // Float delta = 1.0f / Float(wavelenghts.size());
        /* if(i == 0) {
             delta = (wavelenghts[1] - wavelenghts[0]) * 0.5f;
         }
@@ -140,6 +140,16 @@ bool validate_spec(const std::vector<Float> &spec)
         }
         */
 
+inline void to_csv(std::ofstream &str, const std::vector<Float> &spec)
+{
+    for(unsigned i = 0; i < spec.size() - 1; ++i) {
+        str << spec[i] << ",";
+    }
+    str << spec.back() << std::endl;
+}
+
+const vec3 COLOR_POWER{27.4722f, 71.8074f, 7.63813f};
+
 void dataset_tests()
 {
     std::ifstream file{"input/leds.csv"};
@@ -149,6 +159,8 @@ void dataset_tests()
 
     std::ofstream output_sp("output/dataset_spectra.csv");
     std::ofstream output_rgb("output/dataset_rgb.csv");
+    std::ofstream output_rgb_val("output/dataset_rgb_val.csv");
+    std::ofstream output_sp_val("output/dataset_spectra_val.csv");
     int n = 0;
     assert(wavelenghts.size() != 0);
 
@@ -163,10 +175,11 @@ void dataset_tests()
     //csv head
     output_rgb << "r,g,b" << std::endl << std::setprecision(10);
     output_sp << std::setprecision(16);
-    for(unsigned i = 0; i < wavelenghts.size() - 1; ++i) {
-        output_sp << wavelenghts[i] << ",";
-    }
-    output_sp << wavelenghts.back() << std::endl;
+    output_rgb_val << "r,g,b" << std::endl << std::setprecision(10);
+    output_sp_val << std::setprecision(16);
+
+    to_csv(output_sp, wavelenghts);
+    to_csv(output_sp_val, wavelenghts);
 
     std::set<vec3> used_lab{};
     std::map<vec3, const std::vector<Float> *> specs{{vec3(1.0f, 1.0f, 1.0f), &d65_1}};
@@ -178,6 +191,10 @@ void dataset_tests()
 
         Float illum = _get_cie_y_integral(wavelenghts, spec);
 
+        vec3 xyz0 = _spectre2xyz0(wavelenghts, spec);
+        vec3 rgb0 = xyz2rgb_unsafe(xyz0);
+        std::cout << "Orig rgb: " << rgb0 << ", illum: " << illum << std::endl;
+
         for(unsigned i = 0; i < wavelenghts.size(); ++i) {
             spec[i] /= illum;
         }
@@ -186,7 +203,7 @@ void dataset_tests()
         vec3 rgb = xyz2rgb_unsafe(xyz);
 
         for(unsigned i = 0; i < spec.size(); ++i) {
-            spec[i] *= 25.0f * uniform_ciey;
+            spec[i] *= uniform_ciey * 25.0f;
         }
 
         std::cout << rgb << std::endl;
@@ -212,11 +229,16 @@ void dataset_tests()
 
             }
             else {
-                std::cout << format("Excluded %d, %f, %f, %f via DE", n, rgb.x, rgb.y, rgb.z) << std::endl;
+                const vec3 rgb_norm = rgb / rgb.max();
+                if(rgb_norm.min() > 0.75f) {
+                    output_rgb_val << format("%d,%d,%d\n", int(rgb.x * 255), int(rgb.y * 255), int(rgb.z * 255));
+                    to_csv(output_sp_val, spec);
+                }
+               // std::cout << format("Excluded %d, %f, %f, %f via DE", n, rgb.x, rgb.y, rgb.z) << std::endl;
             }
         }
         else {
-            std::cout << format("Excluded %d, %f, %f, %f", n, rgb.x, rgb.y, rgb.z) << std::endl;
+           // std::cout << format("Excluded %d, %f, %f, %f", n, rgb.x, rgb.y, rgb.z) << std::endl;
         }
         n += 1;
     }
@@ -225,14 +247,13 @@ void dataset_tests()
 
         output_rgb << format("%d,%d,%d\n", int(color.x * 255), int(color.y * 255), int(color.z * 255));
 
-        for(unsigned i = 0; i < spec->size() - 1; ++i) {
-            output_sp << spec->at(i) << ",";
-        }
-        output_sp << spec->back() << std::endl;
+        to_csv(output_sp, *spec);
     }
 
     output_sp.close();
     output_rgb.close();
+    output_sp_val.close();
+    output_rgb_val.close();
 }
 
 

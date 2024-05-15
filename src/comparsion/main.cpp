@@ -9,6 +9,7 @@
 #include <upsample/glassner_naive.h>
 #include <upsample/smits.h>
 #include <upsample/sigpoly.h>
+#include <upsample/functional/fourier.h>
 #include <stdexcept>
 #include <iomanip>
 #include <filesystem>
@@ -62,15 +63,14 @@ void load_spec_ds(const std::string &path, std::vector<Float> &wavelenghts, std:
     }
 }
 
-void load_xyz_ds(const std::string &path, std::vector<vec3> &data) {
+void load_vec_ds(const std::string &path, std::vector<vec3> &data) {
     std::ifstream file_in{path};
 
-    auto table = csv::load_as_vector<csv::skip, Float, Float, Float>(file_in, ',', 1);
+    auto table = csv::load_as_vector<int, int, int>(file_in, ',', 1);
     file_in.close();
 
     for(const auto &entry : table) {
-        BasicSpectrum spectrum;
-        data.push_back({std::get<1>(entry), std::get<2>(entry), std::get<3>(entry)});
+        data.push_back({Float(std::get<0>(entry)) / 255.0f, Float(std::get<1>(entry)) / 255.0f, Float(std::get<2>(entry)) / 255.0f});
     }
 }
 
@@ -296,10 +296,107 @@ void ior_reupsample(const IUpsampler &upsampler, const std::string &path_eta, co
 
 }
 
+const vec3 COLOR_POWER{27.4722f, 71.8074f, 7.63813f};
+
+void emiss_reupsample()
+{
+    std::vector<BasicSpectrum> in_spectra;
+    std::vector<Float> wavelenghts;
+    std::vector<vec3> in_rgbs;
+    load_spec_ds("output/dataset_spectra_val.csv", wavelenghts, in_spectra);
+    load_vec_ds("output/dataset_rgb_val.csv", in_rgbs);
+    std::vector<BasicSpectrum> out_spectra(in_spectra.size());
+
+    std::ofstream output_file("output/comparsion/comparsion_em_result.csv");
+    std::ofstream result_spectra_file("output/comparsion/comparsion_em_converted.csv");
+    std::ofstream ds_spectra_file("output/comparsion/comparsion_em.csv");
+
+    int successful = 0;
+    std::vector<Float> losses;
+    std::vector<Float> spec_maes(in_spectra.size());
+    std::vector<Float> spec_sams(in_spectra.size());
+
+
+    std::ifstream lut_file{"resources/f_emission_lut.eflf"};
+    FourierLUT lut = FourierLUT::load_from(lut_file);
+    lut_file.close();
+
+    for(unsigned i = 0; i < in_spectra.size(); ++i) {
+        vec3 rgb = in_rgbs[i];
+
+        vec3 rgb_norm = rgb / rgb.max();
+        Float power = 25.0f * rgb.max();
+       // Float base_power = (rgb * COLOR_POWER).sum();
+        FourierEmissionSpectrum spec = upsample::fourier_emiss(rgb_norm, power, lut);
+        Float illum = util::get_cie_y_integral(spec);
+
+        vec3 lab = xyz2cielab(spectre2xyz0(spec) / (illum));
+        const Float deltaE = vec3::distance(lab, rgb2cielab(rgb_norm));
+        successful += deltaE < 2.333f;
+        losses.push_back(deltaE);
+
+        spec_maes[i] = metrics::mae(spec, in_spectra[i], wavelenghts);
+        spec_sams[i] = metrics::sam(spec, in_spectra[i], wavelenghts);
+        out_spectra[i] = util::convert_to_spd(spec);
+
+    }
+
+    Float de_mean = std::accumulate(losses.begin(), losses.end(), 0.0f) / in_spectra.size();
+    Float mae_mean = std::accumulate(spec_maes.begin(), spec_maes.end(), 0.0f) / in_spectra.size();
+    Float sam_mean = std::accumulate(spec_sams.begin(), spec_sams.end(), 0.0f) / in_spectra.size();
+
+    //auto [minde, maxde] = minmax_element(losses.begin(), losses.end());
+   //auto [minsam, maxsam] = minmax_element(spec_sams.begin(), spec_sams.end());
+
+    output_file << std::setprecision(8)
+                << "# Average DeltaE loss: " << de_mean << ";\n"
+                //<< "# Min DeltaE: " <<  *minde << ", max DeltaE: " << *maxde << "\n"
+                << "# DeltaE stddev: " << stddev(losses, de_mean) << ";\n"
+                << "# Unrecognizable difference in " << successful << "/" << in_spectra.size() << " values.\n#" << std::endl;
+
+    output_file << "# Average spectra MAE is " << mae_mean << ", stddev: " << stddev(spec_maes, mae_mean) << ";\n"
+                << "# Average spectra SAM is " << sam_mean << ", stddev: " << stddev(spec_sams, sam_mean) << ";\n"
+               // << "# Min SAM: " << *minsam << ", max SAM: " << *maxsam << ".\n#\n"
+                << "DeltaE,Spectral MAE,SAM" << std::endl;
+
+    for(unsigned i = 0; i < in_spectra.size(); ++i) {
+        output_file << losses[i] << "," << spec_maes[i] << "," << spec_sams[i] << "\n";
+    }
+    output_file.flush();
+    output_file.close();
+
+    result_spectra_file << std::setprecision(16);
+    ds_spectra_file << std::setprecision(16);
+    for(int i = WAVELENGHTS_START; i < WAVELENGHTS_END; i += WAVELENGHTS_STEP) {
+        result_spectra_file << i << ",";
+        ds_spectra_file << i << ",";
+    }
+    result_spectra_file << WAVELENGHTS_END << std::endl;
+    ds_spectra_file << WAVELENGHTS_END << std::endl;
+
+    for(const BasicSpectrum &sp : in_spectra) {
+        for(int i = WAVELENGHTS_START; i < WAVELENGHTS_END; i += WAVELENGHTS_STEP) {
+            ds_spectra_file << sp(i) << ",";
+        }
+        ds_spectra_file << sp(WAVELENGHTS_END) << std::endl;
+    }
+
+    for(const BasicSpectrum &sp : out_spectra) {
+        for(int i = WAVELENGHTS_START; i < WAVELENGHTS_END; i += WAVELENGHTS_STEP) {
+            result_spectra_file << sp(i) << ",";
+        }
+        result_spectra_file << sp(WAVELENGHTS_END) << std::endl;
+    }
+}
+
 int main(int argc, char **argv)
 {
-    if(argc <= 2) return 1;
+    if(argc < 2) return 1;
     const std::string method = argv[1];
+    if(method == "fourier") {
+        emiss_reupsample();
+        return 0;
+    }
     std::unique_ptr<IUpsampler> upsampler = get_upsampler_by_name(method);
   
     if(!strcmp(argv[2], "ds")) {

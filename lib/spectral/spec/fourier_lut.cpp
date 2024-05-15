@@ -1,6 +1,10 @@
 #include <spec/fourier_lut.h>
 #include <internal/serialization/binary.h>
 
+#include <spec/spectral_util.h>
+#include <spec/conversions.h>
+#include <spec/fourier_spectrum.h>
+
 #include <iostream>
 namespace spec {
 
@@ -59,6 +63,8 @@ namespace spec {
         const int b1 = safe_int(b1_id * step, 256);
         const int b2 = b == 255 ? 256 : safe_int(b2_id * step, 256);
 
+        std::cout << size << " " << r1 << " " << r2 << std::endl;
+
         const Float drf  = Float(r2 - r1) / 255.0f;
         const Float drf1 = Float(r - r1) / 255.0f;
         const Float drf2 = Float(r2 - r) / 255.0f;
@@ -85,8 +91,13 @@ namespace spec {
         add(res, r2_id, g2_id, b1_id, n, drf1 * dgf1 * dbf2 * div * p_mul);
         add(res, r2_id, g2_id, b2_id, n, drf1 * dgf1 * dbf1 * div * p_mul);
 
-        //for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << ",";
-        //std::cout << std::endl;
+//        for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << ",";
+//        std::cout << std::endl;
+
+
+        for(Float f : res) {
+            if(std::isnan(f)) std::cout << "NAN" << std::endl;
+        }
 
         return res;
     }
@@ -117,5 +128,13 @@ namespace spec {
         for(unsigned i = 0; i <= m; ++i) {
             res[i] += data[offset + i] * mul;
         }
+      /*  std::cout << "ADDING: " << r * step << " " << g * step << " " << b * step << " with ";
+        //for(unsigned i = 0; i <= m; ++i) std::cout << res[i] << ",";
+        //std::cout << std::endl;
+
+        std::vector<Float> coef(m + 1);
+        std::copy(data.begin() + offset, data.begin() + offset + m + 1, coef.data());
+        FourierEmissionSpectrum spec{std::move(coef)};
+        std::cout << util::get_cie_y_integral(spec) << " " << xyz2rgb_unsafe(spectre2xyz0(spec)) << std::endl;*/
     }
 }

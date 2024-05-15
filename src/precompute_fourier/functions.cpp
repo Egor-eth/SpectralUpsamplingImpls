@@ -23,7 +23,7 @@ struct CostFunctorEmissionFixer {
     const Float ciey;
 
     CostFunctorEmissionFixer(const vec3 &rgb, Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
-        : in(rgb2cielab(rgb)), power(power * CIEY_UNIFORM), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values), ciey(_get_cie_y_integral(wavelenghts, values)) {}
+        : in(rgb2cielab(rgb)), power(power), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values), ciey(_get_cie_y_integral(wavelenghts, values)) {}
 
     template<typename T>
     bool operator()(const T *const g0, const T *const g, T *residual) const noexcept(true)
@@ -33,11 +33,13 @@ struct CostFunctorEmissionFixer {
         for(int i = 0; i < M; ++i) {
             vals[i + 1] = g[i];
         }
-        std::vector<T> result = _mese<T>(phases, vals.data(), M);
+        const std::vector<T> result = _mese<T>(phases, vals.data(), M);
         assert(result.size() == phases.size());
 
+        T illum = _get_cie_y_integral(wavelenghts, result);
 
-        base_vec3<T> xyz = _spectre2xyz0<T>(wavelenghts, result) / T(power);
+        base_vec3<T> xyz = _spectre2xyz0<T>(wavelenghts, result) / illum;
+      //  base_vec3<T> rgb = _xyz2rgb_unsafe<T>(xyz);
         base_vec3<T> color = _xyz2cielab<T>(xyz);
         base_vec3<T> color_diff = color - in.cast<T>();
 
@@ -50,19 +52,12 @@ struct CostFunctorEmissionFixer {
             T a = abs<T>(result[i] - T(values[i]));
             residual[3] += a;
         }
+        //residual[3] /= T(values.size());
 
-        T p = _get_cie_y_integral(wavelenghts, result);
-        residual[4] = abs(p - T(power));
-/*
-        T min = T(9999999.0);
-        T max = T(0.0);
-        for(unsigned i = 0; i < wavelenghts.size(); ++i) {
-            if(result[i] > max) max = result[i];
-            if(result[i] < min) min = result[i]; 
-        }
+        T target_power = T(CIEY_UNIFORM);//T((rgb * COLOR_POWER.cast<T>()).sum());
 
-        residual[5] = (max - min);
-*/
+        residual[4] = abs(illum - T(power) * target_power);
+
         return true;
     }
 };
@@ -132,7 +127,7 @@ struct CostFunctorEmissionConstrained {
     const std::vector<Float> &values;
 
     CostFunctorEmissionConstrained(const vec3 &rgb, Float power, const std::vector<Float> &wavelenghts, const std::vector<Float> &values)
-        : in(rgb2cielab(rgb)), power(power * CIEY_UNIFORM), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
+        : in(rgb2cielab(rgb)), power(power), wavelenghts(wavelenghts), phases(math::wl_to_phases(wavelenghts)), values(values) {}
 
     template<typename T>
     bool operator()(const T *const g0, const T *const g, T *residual) const noexcept(true)
@@ -142,39 +137,30 @@ struct CostFunctorEmissionConstrained {
         for(int i = 0; i < M; ++i) {
             vals[i + 1] = g[i];
         }
-        std::vector<T> result = _mese<T>(phases, vals.data(), M);
+        const std::vector<T> result = _mese<T>(phases, vals.data(), M);
         assert(result.size() == phases.size());
 
+        T illum = _get_cie_y_integral(wavelenghts, result);
 
-        base_vec3<T> xyz = _spectre2xyz0<T>(wavelenghts, result) / T(power);
+        base_vec3<T> xyz = _spectre2xyz0<T>(wavelenghts, result) / illum;
+      //  base_vec3<T> rgb = _xyz2rgb_unsafe<T>(xyz);
         base_vec3<T> color = _xyz2cielab<T>(xyz);
-        base_vec3<T> color_diff = (color - in.cast<T>()) * COLOR_POWER.cast<T>() * T(25.0);
-
-        if(_xyz2rgb_unsafe(xyz).min() < T(0.0)) return false; 
+        base_vec3<T> color_diff = color - in.cast<T>();
 
         residual[0] = abs(color_diff.x);
         residual[1] = abs(color_diff.y);
         residual[2] = abs(color_diff.z);
 
-        
         residual[3] = T(0.0);
         for(unsigned i = 0; i < values.size(); ++i) {
-            residual[3] += abs<T>(result[i] - T(values[i]));
+            T a = abs<T>(result[i] - T(values[i]));
+            residual[3] += a;
         }
+        //residual[3] /= T(values.size());
 
-        residual[4] = abs(_get_cie_y_integral(wavelenghts, result) - T(power));
-   /*
+        T target_power = T(CIEY_UNIFORM);// T((rgb * COLOR_POWER.cast<T>()).sum());
 
-        T min = T(9999999.0);
-        T max = T(0.0);
-        for(unsigned i = 0; i < wavelenghts.size(); ++i) {
-            if(result[i] > max) max = result[i];
-            if(result[i] < min) min = result[i]; 
-        }
-
-        residual[5] = (max - min);
-*/
-        //std::cout << residual[0] << " " << residual[1] << " " << residual[2] << " " << residual[3] << " " << std::endl;
+        residual[4] = abs(illum - T(power) * target_power);
         return true;
     }
 };

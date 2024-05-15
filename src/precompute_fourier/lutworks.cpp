@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <algorithm>
 
+#include <cassert>
 #include <iostream>
 
 namespace bin = spec::binary;
@@ -55,7 +56,7 @@ namespace {
 
         LutBuilder(int m, unsigned step, const std::vector<Float> &wavelenghts,
                    const std::vector<std::vector<Float>> &dataset, const std::unordered_map<vec3i, std::vector<Float>> &seeds_converted)
-            : step{step}, size{256u / step + (255u % step != 0u)},
+            : step{step}, size{256u / step + 1u + (255u % step != 0u)},
               force_last{255u % step != 0u}, m{m}, dataset_wavelenghts(wavelenghts),
               seeds(),
               data(p_size * size * size * size * (m + 1), 0.0f), dataset(dataset)
@@ -132,7 +133,7 @@ namespace {
     };
 
     //res and distances must have size >= k
-    bool k_nearest(const std::vector<vec3i> &coords, vec3i v, unsigned k, std::vector<unsigned> &res, std::vector<double> &distances)
+    int k_nearest(const std::vector<vec3i> &coords, vec3i v, unsigned k, std::vector<unsigned> &res, std::vector<double> &distances)
     {   
         k = k <= coords.size() ? k : coords.size();
         std::fill_n(distances.begin(), k, std::numeric_limits<double>::infinity());
@@ -140,7 +141,11 @@ namespace {
         for(unsigned n = 0; n < coords.size(); ++n) {
             const auto &rgb = coords[n];
             double dist = vec3::distance(rgb2cielab(rgb.cast<Float>() / 255.0f), vf);
-            if(dist == 0.0) return false;
+            if(dist == 0.0) {
+                if(rgb == v) return 0;
+                res[0] = n;
+                return -1;
+            }
             for(unsigned i = 0; i < distances.size(); ++i) {
                 if(dist < distances[i]) {
                     distances.insert(distances.begin() + i, dist);
@@ -151,7 +156,7 @@ namespace {
         }
         res.resize(k);
         distances.resize(k);
-        return true;
+        return 1;
     }
 
     bool LutBuilder::init_solution(std::vector<double> &solution, std::vector<Float> &values, unsigned knearest) const
@@ -160,7 +165,8 @@ namespace {
             std::vector<unsigned> nearest(knearest);
             std::vector<double> distances(knearest);
             knearest = nearest.size();
-            if(k_nearest(seeds, get_target(), knearest, nearest, distances)) {
+            int knearest_res = k_nearest(seeds, get_target(), knearest, nearest, distances);
+            if(knearest_res == 1) {
 
                 solution.resize(m + 1);
                 std::fill_n(solution.begin(), m + 1, 0.0);
@@ -168,6 +174,8 @@ namespace {
 
                 double div = 0.0;
                 for(unsigned i = 0; i < knearest; ++i) div += 1.0 / distances[i];
+
+                assert(!std::isnan(div));
 
                 for(unsigned i = 0; i < knearest; ++i) {
                     const double mul = (1.0 / distances[i]) / div;
@@ -181,6 +189,11 @@ namespace {
                         values[j] += target_values[j] * mul;
                     }
                 }
+                return true;
+            }
+            else if(knearest_res == -1) {
+                const Float *target = at(seeds[nearest[0]], DEFAULT_P_ID);
+                std::copy(target, target + m + 1, solution.data());
                 return true;
             }
             return false;
@@ -210,19 +223,23 @@ namespace {
             for(ctx.j = 0; ctx.j < ctx.size; ++ctx.j) {
                 for(ctx.k = 0; ctx.k < ctx.size; ++ctx.k) {
                     if(ctx.init_solution(solution, values, knearest)) {
-                        vec3 rgb = ctx.get_target().cast<Float>() / 255.0f;
+                      //  vec3 rgb = ctx.get_target().cast<Float>() / 255.0f;
                         
                         Float power = _get_cie_y_integral(ctx.dataset_wavelenghts, values);
 
-                        Float mul = (rgb * COLOR_POWER).sum() / CIEY_UNIFORM;
+                        Float target_base_power = CIEY_UNIFORM;//(rgb * COLOR_POWER).sum();
 
-                        values *= ctx.target_power() * CIEY_UNIFORM * mul / power;
-                        solution *= double(ctx.target_power() * CIEY_UNIFORM * mul / power);
+                        values *= target_base_power * ctx.target_power() / power;
+                        solution *= double(target_base_power * ctx.target_power() / power);
 
-                        solve_for_rgb(ctx.get_target().cast<Float>() / 255.0f, ctx.target_power() * mul, solution, ctx.dataset_wavelenghts, values);
+                        solve_for_rgb(ctx.get_target().cast<Float>() / 255.0f, ctx.target_power(), solution, ctx.dataset_wavelenghts, values);
                         std::copy(solution.begin(), solution.end(), ctx.current());
                         color_processed += 1;
                     }
+                    else {
+
+                    }
+
                     spec::print_progress(color_processed);
                 }
             }
@@ -258,32 +275,42 @@ namespace {
         for(unsigned i = 0; i < rgbs.size(); ++i) {
             vec3i rgb = get_target_color(rgbs[i]);
             std::cout << rgb << std::endl;
-            rgb.x = rgb.x == 255 ? 255 : (rgb.x / step) * step;
-            rgb.y = rgb.y == 255 ? 255 : (rgb.y / step) * step;
-            rgb.z = rgb.z == 255 ? 255 : (rgb.z / step) * step;
+            //std::cout << rgb << std::endl;
+            rgb.x = rgb.x == 255 ? 255 : int(std::round((Float(rgb.x) / Float(step))) * step);
+            rgb.y = rgb.y == 255 ? 255 : int(std::round((Float(rgb.y) / Float(step))) * step);
+            rgb.z = rgb.z == 255 ? 255 : int(std::round((Float(rgb.z) / Float(step))) * step);
 
             vec3 rgbf = rgb.cast<Float>() / 255.0f;
-            const Float mul = (rgbf * COLOR_POWER).sum() / CIEY_UNIFORM;
+            Float target_base_power = CIEY_UNIFORM;// (rgbf * COLOR_POWER).sum();
+            Float ds_illum = _get_cie_y_integral(in_wavelenghts, in_seeds[i]);
 
-            std::vector<Float> spec_values = in_seeds[i] * mul;
+            std::vector<Float> spec_values = in_seeds[i] * (target_base_power * power / ds_illum);
 
             if(rgb != rgbs[i]) {
                 //std::cout << rgb << " <- " << rgbs[i] << std::endl;
 
-                std::vector<double> res = adjust_and_compute_moments(rgbf, power * mul, in_wavelenghts, spec_values);
+                std::vector<double> res = adjust_and_compute_moments(rgbf, power, in_wavelenghts, spec_values);
                 res.resize(M + 1);
 
-                vec3 rgbf_res = xyz2rgb(_spectre2xyz0(in_wavelenghts, _mese(phases, res.data(), M)).cast<Float>() / (mul * CIEY_UNIFORM * 25.0f));
+                std::vector<double> spec = _mese(phases, res.data(), M);
+
+                Float illum = _get_cie_y_integral(in_wavelenghts, spec);
+                vec3 rgbf_res = xyz2rgb(_spectre2xyz0(in_wavelenghts, spec).cast<Float>() / illum);
                 rgb = (rgbf_res * 255.0f).cast<int>();
 
-                rgb.x = rgb.x >= 255 ? 255 : (rgb.x / step) * step;
-                rgb.y = rgb.y >= 255 ? 255 : (rgb.y / step) * step;
-                rgb.z = rgb.z >= 255 ? 255 : (rgb.z / step) * step;
+    
+
+                rgb.x = rgb.x >= 255 ? 255 : int(std::round((Float(rgb.x) / Float(step))) * step);
+                rgb.y = rgb.y >= 255 ? 255 : int(std::round((Float(rgb.y) / Float(step))) * step);
+                rgb.z = rgb.z >= 255 ? 255 : int(std::round((Float(rgb.z) / Float(step))) * step);
+
+                std::cout << illum << " " << power * target_base_power << std::endl;
+                std::cout << rgbs[i] << std::endl;
+                std::cout << rgb << "\n" << std::endl;
 
                 out_seeds.emplace(rgb, std::vector<Float>(res.begin(), res.end()));
             }
             else {
-            (void) power;
                 std::vector<Float> res = math::real_fourier_moments_of(phases, spec_values, M + 1);
                 out_seeds.emplace(rgb, std::vector<Float>(res.begin(), res.end()));
             }
@@ -312,6 +339,7 @@ FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector
     return {};
 
 */
+    std::vector<vec3i> rgbs_orig = rgbs;
     std::unordered_map<vec3i, std::vector<Float>> seeds_converted;
     prepare_seeds(wavelenghts, seeds, rgbs, 25.0f, seeds_converted, step);
     
@@ -327,15 +355,21 @@ FourierLUT generate_lut(const std::vector<Float> &wavelenghts, const std::vector
         for(unsigned j = 0; j < vals.size() - 1; ++j) {
             std::cout << vals[j] << ",";
         }
+
+        //vec3 rgbf = (rgb.cast<Float>() / 255.0f);
+        Float illum = _get_cie_y_integral(wavelenghts, vals);
+        vec3 ergbf = xyz2rgb(_spectre2xyz0(wavelenghts, vals) / illum);
+
         std::cout << vals.back() << std::endl;
-        std::cout << _get_cie_y_integral(wavelenghts, vals) / CIEY_UNIFORM << std::endl;
-        std::cout << xyz2rgb(_spectre2xyz0(wavelenghts, vals) / (CIEY_UNIFORM * 25.0f)) << " " << (rgb.cast<Float>() / 255.0f) << std::endl;
+        std::cout << illum << " " << 25 * (ergbf * COLOR_POWER).sum() << std::endl;
+        std::cout << ergbf << " " << (rgb.cast<Float>() / 255.0f) << std::endl;
     }
 
+    std::cout << std::endl;
     color_processed = 0u;
 
     LutBuilder ctx{M, step, wavelenghts, seeds, seeds_converted};
-    init_progress_bar(ctx.p_size * ctx.size * ctx.size * ctx.size - seeds.size(), 256);
+    init_progress_bar(ctx.p_size * ctx.size * ctx.size * ctx.size - seeds.size(), 100);
 
     fill(ctx, knearest);
 
